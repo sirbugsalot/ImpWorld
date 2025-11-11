@@ -20,18 +20,30 @@ jobs:
           node-version: 20
           cache: 'npm'
           
-      - name: Install EAS CLI
+      - name: Install Dependencies
         run: npm install -g eas-cli
 
-      - name: Expo Login
+      - name: Initialize EAS Project in CI
         # Uses the EXPO_TOKEN stored in GitHub Secrets
         # run: eas login
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           CI: true
           EXPO_PROJECT_ID: e8bf1a0e-2db1-42e2-af27-30ca210d3b51
+        run: npx eas init --non-interactive --branch dev
+
+      - name: Publish Update
+        # Authentication and non-interactive flags are applied here
+        env:
+          # Critical: The secret token must be set in GitHub Secrets
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          # Critical: Suppresses all interactive prompts ("Configure this project?")
+          CI: true
+          # Aggressive fix: Ensures the CLI knows exactly which project to deploy to
+          EXPO_PROJECT_ID: e8bf1a0e-2db1-42e2-af27-30ca210d3b51 
+        # FINAL COMMAND: Runs the update command now that the project is initialized
         run: npx eas update --non-interactive --branch dev --message "Automated update from GitHub push"
-          # Force commit
+
       # - name: Publish Update
       #   # Compiles the JS code and pushes the bundle to the 'dev' branch on Expo's servers
       #   run: eas update --branch dev --message "Automatic update from GitHub Actions commit ${{ github.sha }}"
