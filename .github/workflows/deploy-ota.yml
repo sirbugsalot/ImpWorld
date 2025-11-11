@@ -32,4 +32,3 @@ jobs:
         
       - name: Verify Login Status (Optional Debug)
         run: eas whoami
-```eof
