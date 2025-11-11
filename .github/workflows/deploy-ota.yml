@@ -21,14 +21,14 @@ jobs:
           cache: 'npm'
           
       - name: Install EAS CLI
-        run: npm install #-g eas-cli
+        run: npm install -g eas-cli
 
       - name: Expo Login
         # Uses the EXPO_TOKEN stored in GitHub Secrets
         # run: eas login
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          CI: true
+          # CI: true
           EXPO_PROJECT_ID: e8bf1a0e-2db1-42e2-af27-30ca210d3b51
         run: npx eas update --non-interactive --message "Automated update from GitHub push"
 
