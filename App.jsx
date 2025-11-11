@@ -1,24 +1,47 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Button, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, Text, View, Button, TouchableOpacity, ActivityIndicator, Alert, Switch } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as Updates from 'expo-updates';
 
 // Define colors for the application
-const primaryColor = '#2563EB'; // Blue-600
+const primaryColor = '#1D4ED8'; // Blue-700
 const secondaryColor = '#FBBF24'; // Amber-400
-const devColor = '#EF4444'; // Red-500
-const nominalColor = '#10B981'; // Emerald-500
+const devColor = '#F87171'; // Red-400
+const nominalColor = '#34D399'; // Emerald-400
 const textColor = '#1F2937'; // Gray-800
 
+// Constants for App Versions
+const VERSION_DEV = 'Development';
+const VERSION_STABLE = 'Stable';
+
 const App = () => {
-  // State for the Dev/Nominal Mode switch
+  // State for the Dev/Nominal Mode switch (Determines if the OTA check is available)
   const [isDevMode, setIsDevMode] = useState(true);
-  const [statusMessage, setStatusMessage] = useState('Ready for use.');
+  
+  // State for the version the user has selected to LAUNCH
+  const [selectedVersion, setSelectedVersion] = useState(VERSION_DEV);
+  
+  const [statusMessage, setStatusMessage] = useState('Ready to launch application.');
   const [isChecking, setIsChecking] = useState(false);
+  
+  // The actual function that the "Launch" button will eventually call
+  const launchApp = () => {
+      setStatusMessage(`Launching app in ${selectedVersion} mode!`);
+      // Placeholder for actual navigation or complex logic start
+      Alert.alert(
+          "Application Launched",
+          `Currently running in ${selectedVersion} mode. All systems nominal.`,
+          [{ text: "OK" }]
+      );
+  };
+
 
   // Function to check for and install remote OTA updates
   const checkForUpdateAndInstall = async () => {
-    if (!isDevMode) return; // Only allow update checks in Dev Mode
+    if (!isDevMode) {
+      setStatusMessage('Update check disabled in Nominal Mode.');
+      return;
+    }
 
     setIsChecking(true);
     setStatusMessage('Checking for remote update...');
@@ -52,11 +75,11 @@ const App = () => {
     }
   };
 
-  // UI for the custom alert/status box (to avoid using native Alert for status)
+  // UI for the custom alert/status box
   const StatusBox = () => (
     <View style={[styles.statusBox, { backgroundColor: isDevMode ? devColor : nominalColor }]}>
       <Text style={styles.statusTextHeader}>
-        Mode: {isDevMode ? 'DEVELOPMENT' : 'NOMINAL'}
+        Deployment Mode: {isDevMode ? 'DEVELOPMENT' : 'NOMINAL'}
       </Text>
       <Text style={styles.statusTextContent}>
         {statusMessage}
@@ -68,49 +91,60 @@ const App = () => {
   return (
     <View style={styles.container}>
       <StatusBox />
-      <Text style={styles.title}>On-the-Go App V0</Text>
-      <Text style={styles.subtitle}>Mobile Application Skeleton</Text>
+      
+      <Text style={styles.title}>On-the-Go App</Text>
+      <Text style={styles.subtitle}>Version Selection & Launch</Text>
 
-      {/* Mode Switch Button */}
+      {/* OTA Update Check Button (Only visible in Dev Mode) */}
+      {isDevMode && (
+          <TouchableOpacity 
+              style={[styles.otaButton, { opacity: isChecking ? 0.6 : 1 }]} 
+              onPress={checkForUpdateAndInstall}
+              disabled={isChecking}
+          >
+              <Text style={styles.buttonText}>
+                  {isChecking ? 'Checking for Updates...' : 'Check & Apply Remote Update (OTA)'}
+              </Text>
+          </TouchableOpacity>
+      )}
+
+      {/* Version Selector Switch */}
+      <View style={styles.versionSelectorContainer}>
+          <Text style={styles.versionSelectorText}>STABLE</Text>
+          <Switch
+              trackColor={{ false: nominalColor, true: devColor }}
+              thumbColor={selectedVersion === VERSION_DEV ? primaryColor : primaryColor}
+              onValueChange={(value) => setSelectedVersion(value ? VERSION_DEV : VERSION_STABLE)}
+              value={selectedVersion === VERSION_DEV}
+          />
+          <Text style={styles.versionSelectorText}>DEVELOPMENT</Text>
+      </View>
+      
+      <Text style={styles.versionDisplay}>
+          Selected Launch Version: <Text style={{fontWeight: 'bold', color: selectedVersion === VERSION_DEV ? devColor : nominalColor}}>{selectedVersion}</Text>
+      </Text>
+
+      {/* Main Launch Button */}
       <TouchableOpacity
-        style={[styles.modeSwitchButton, { backgroundColor: isDevMode ? nominalColor : devColor }]}
-        onPress={() => setIsDevMode(!isDevMode)}
+        style={styles.launchButton}
+        onPress={launchApp}
         disabled={isChecking}
       >
         <Text style={styles.buttonText}>
-          Switch to {isDevMode ? 'NOMINAL Mode' : 'DEVELOPMENT Mode'}
+          LAUNCH APPLICATION
         </Text>
       </TouchableOpacity>
 
-      {/* Conditional UI based on Mode */}
-      {isDevMode ? (
-        // DEV USE Screen
-        <View style={styles.buttonContainer}>
-          <Text style={styles.sectionHeader}>DEV USE</Text>
-          
-          <TouchableOpacity 
-            style={styles.devButton} 
-            onPress={checkForUpdateAndInstall}
-            disabled={isChecking}
-          >
-            <Text style={styles.buttonText}>
-              {isChecking ? 'Checking...' : 'Check for Remote Update & Install'}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.devButton}>
-            <Text style={styles.buttonText}>Placeholder Button A (Dev)</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        // NOMINAL Screen
-        <View style={styles.buttonContainer}>
-          <Text style={styles.sectionHeader}>NOMINAL USE</Text>
-          <TouchableOpacity style={styles.nominalButton}>
-            <Text style={styles.buttonText}>Placeholder Button B (Nominal)</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      {/* Mode Switch Button (for disabling the OTA feature) */}
+      <View style={styles.modeSwitchContainer}>
+          <Text style={styles.modeSwitchLabel}>Dev Mode Enabled (for OTA):</Text>
+          <Switch
+              trackColor={{ false: nominalColor, true: devColor }}
+              thumbColor={isDevMode ? primaryColor : primaryColor}
+              onValueChange={setIsDevMode}
+              value={isDevMode}
+          />
+      </View>
 
       <StatusBar style="auto" />
     </View>
@@ -121,21 +155,21 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6', // Gray-100
+    backgroundColor: '#F9FAFB', // Gray-50
     alignItems: 'center',
-    paddingTop: 80,
+    paddingTop: 60,
     paddingHorizontal: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '700',
-    color: textColor,
+    color: primaryColor,
     marginTop: 20,
     marginBottom: 5,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#6B7280', // Gray-500
+    fontSize: 18,
+    color: textColor,
     marginBottom: 40,
   },
   statusBox: {
@@ -146,15 +180,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+    elevation: 4,
   },
   statusTextHeader: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 5,
+    marginBottom: 3,
   },
   statusTextContent: {
     fontSize: 14,
@@ -164,60 +198,15 @@ const styles = StyleSheet.create({
   indicator: {
     marginTop: 8,
   },
-  modeSwitchButton: {
-    width: '80%',
-    paddingVertical: 14,
-    borderRadius: 8,
-    marginBottom: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 6,
-  },
-  buttonContainer: {
-    width: '100%',
+  versionSelectorContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-  },
-  sectionHeader: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: textColor,
-    marginBottom: 20,
-    paddingBottom: 5,
-    borderBottomWidth: 2,
-    borderBottomColor: primaryColor,
-  },
-  devButton: {
-    width: '90%',
-    backgroundColor: devColor, 
-    paddingVertical: 16,
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    padding: 15,
     borderRadius: 10,
+    marginTop: 20,
     marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 6,
-  },
-  nominalButton: {
     width: '90%',
-    backgroundColor: nominalColor, 
-    paddingVertical: 16,
-    borderRadius: 10,
-    marginBottom: 15,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 6,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-});
-
-export default App;
+    shadowOffset

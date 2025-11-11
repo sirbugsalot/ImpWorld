@@ -28,7 +28,7 @@ jobs:
 
       - name: Publish Update
         # Compiles the JS code and pushes the bundle to the 'dev' branch on Expo's servers
-        run: eas update --branch dev --message "Automatic update from GitHub Actions commit ${{ github.sha }}"
+        run: eas update --branch dev --message "..."
         
       - name: Verify Login Status (Optional Debug)
         run: eas whoami
