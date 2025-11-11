@@ -5,10 +5,11 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/react-logo.png",
-    "scheme": "impworld",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "ios": {
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },    "ios": {
       "supportsTablet": true
     },
     "android": {
@@ -18,6 +19,7 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+      "package": "com.sirbugsalot.ImpWorld",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
@@ -25,19 +27,7 @@
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-    "plugins": [
-      "expo-build-properties"
-    ],
-    "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
-    },
-    "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "e8bf1a0e-2db1-42e2-af27-30ca210d3b51"
-      }
-    },
+    "plugins": [],
     "runtimeVersion": {
       "policy": "appVersion"
     },
