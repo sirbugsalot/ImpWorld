@@ -17,18 +17,20 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
+          cache: 'npm'
           
       - name: Install EAS CLI
-        run: npm install -g eas-cli
+        run: npm install #-g eas-cli
 
       - name: Expo Login
         # Uses the EXPO_TOKEN stored in GitHub Secrets
         # run: eas login
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          CI: true
           EXPO_PROJECT_ID: e8bf1a0e-2db1-42e2-af27-30ca210d3b51
-        run: eas update --branch dev --message "Automatic update from GitHub Actions commit ${{ github.sha }}"
+        run: npx eas update --non-interactive --message "Automated update from GitHub push"
 
       # - name: Publish Update
       #   # Compiles the JS code and pushes the bundle to the 'dev' branch on Expo's servers
