@@ -30,7 +30,7 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           CI: true
           EXPO_PROJECT_ID: e8bf1a0e-2db1-42e2-af27-30ca210d3b51
-        run: npx eas init --non-interactive --branch dev
+        run: npx eas init --non-interactive
 
       - name: Publish Update
         # Authentication and non-interactive flags are applied here
