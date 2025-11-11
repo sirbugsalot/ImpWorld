@@ -27,10 +27,11 @@ jobs:
         run: eas login
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PROJECT_ID: e8bf1a0e-2db1-42e2-af27-30ca210d3b51 
 
       - name: Publish Update
         # Compiles the JS code and pushes the bundle to the 'dev' branch on Expo's servers
         run: eas update --branch dev --message "Automatic update from GitHub Actions commit ${{ github.sha }}"
-                
+
       - name: Verify Login Status (Optional Debug)
         run: eas whoami
