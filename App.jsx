@@ -3,6 +3,8 @@ import { StyleSheet, Text, View, Button, TouchableOpacity, ActivityIndicator, Al
 import { StatusBar } from 'expo-status-bar';
 import * as Updates from 'expo-updates';
 
+// Triggering new pipeline run
+
 // Define colors for the application
 const primaryColor = '#1D4ED8'; // Blue-700
 const secondaryColor = '#FBBF24'; // Amber-400
