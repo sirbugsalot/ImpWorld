@@ -24,7 +24,7 @@ jobs:
 
       - name: Expo Login
         # Uses the EXPO_TOKEN stored in GitHub Secrets
-        run: eas whoami
+        run: eas login
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EXPO_PROJECT_ID: e8bf1a0e-2db1-42e2-af27-30ca210d3b51 
