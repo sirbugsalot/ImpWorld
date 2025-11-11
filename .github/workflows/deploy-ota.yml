@@ -24,11 +24,13 @@ jobs:
 
       - name: Expo Login
         # Uses the EXPO_TOKEN stored in GitHub Secrets
-        run: eas login --token ${{ secrets.EXPO_TOKEN }} 
+        run: eas login
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: Publish Update
         # Compiles the JS code and pushes the bundle to the 'dev' branch on Expo's servers
-        run: eas update --branch dev --message "..."
-        
+        run: eas update --branch dev --message "Automatic update from GitHub Actions commit ${{ github.sha }}"
+                
       - name: Verify Login Status (Optional Debug)
         run: eas whoami
