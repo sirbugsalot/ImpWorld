@@ -21,7 +21,7 @@ jobs:
           cache: 'npm'
           
       - name: Install Dependencies
-        run: npm install -g eas-cli
+        run: npm install
 
       - name: Initialize EAS Project in CI
         # Uses the EXPO_TOKEN stored in GitHub Secrets
