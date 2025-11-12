@@ -20,6 +20,9 @@ jobs:
           node-version: 20
           cache: 'npm'
           
+      - name: Install EAS CLI Globally
+        run: npm install -g eas-cli
+        
       - name: Install Dependencies
         run: npm install
 
