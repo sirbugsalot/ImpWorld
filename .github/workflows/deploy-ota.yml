@@ -47,9 +47,9 @@ jobs:
         # FINAL COMMAND: Runs the update command now that the project is initialized
         run: npx eas update --non-interactive --branch dev --message "Automated update from GitHub push"
 
-      # - name: Publish Update
-      #   # Compiles the JS code and pushes the bundle to the 'dev' branch on Expo's servers
-      #   run: eas update --branch dev --message "Automatic update from GitHub Actions commit ${{ github.sha }}"
+      # # - name: Publish Update
+      # #   # Compiles the JS code and pushes the bundle to the 'dev' branch on Expo's servers
+      # #   run: eas update --branch dev --message "Automatic update from GitHub Actions commit ${{ github.sha }}"
 
-      - name: Verify Login Status (Optional Debug)
-        run: eas whoami
+      # - name: Verify Login Status (Optional Debug)
+      #   run: eas whoami
