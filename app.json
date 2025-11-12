@@ -9,7 +9,8 @@
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
-    },    "ios": {
+    },
+    "ios": {
       "supportsTablet": true
     },
     "android": {
@@ -32,8 +33,14 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/e8bf1a0e-2db1-42e2-af27-30ca210d3b51", 
+      "url": "https://u.expo.dev/e8bf1a0e-2db1-42e2-af27-30ca210d3b51",
       "fallbackToCacheTimeout": 0
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e8bf1a0e-2db1-42e2-af27-30ca210d3b51"
+      }
+    },
+    "owner": "sirbugsalot"
   }
 }

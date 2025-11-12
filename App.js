@@ -209,6 +209,67 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     width: '90%',
     shadowColor: '#000',
-    shadowOffset
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  versionSelectorText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: textColor,
+    marginHorizontal: 10,
+  },
+  versionDisplay: {
+      fontSize: 18,
+      marginBottom: 30,
+      color: textColor,
+  },
+  launchButton: {
+    width: '90%',
+    backgroundColor: primaryColor,
+    paddingVertical: 18,
+    borderRadius: 12,
+    marginTop: 20,
+    marginBottom: 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  otaButton: {
+    width: '90%',
+    backgroundColor: secondaryColor,
+    paddingVertical: 14,
+    borderRadius: 8,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  modeSwitchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '90%',
+    padding: 10,
+    backgroundColor: '#E5E7EB', // Gray-200
+    borderRadius: 8,
+  },
+  modeSwitchLabel: {
+    fontSize: 16,
+    color: textColor,
+    fontWeight: '500',
   }
 });
+
+export default App;
