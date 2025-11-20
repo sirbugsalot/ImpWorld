@@ -92,7 +92,7 @@ const App = () => {
     <View style={styles.container}>
       <StatusBox />
       
-      <Text style={styles.title}>On-the-Go App</Text>
+      <Text style={styles.title}>ImpWorld</Text>
       <Text style={styles.subtitle}>Version Selection & Launch</Text>
 
       {/* OTA Update Check Button (Only visible in Dev Mode) */}
