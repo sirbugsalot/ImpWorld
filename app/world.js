@@ -1,25 +1,24 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Platform, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons'; 
 
-// Game constants
-const MAP_SIZE = Dimensions.get('window').width * 0.8;
-const STEP_SIZE = 16;
-const BLOB_SIZE = 40;
-
+// Define colors (Keep these standard as they are stable)
 const primaryColor = '#1D4ED8'; 
-const menuColor = '#4B5563';
-const gameBgColor = '#225522'; 
-const dPadColor = '#555555';
+const textColor = '#1F2937';
 
-// --- Settings Dropdown Component ---
+// --- Settings Menu Dropdown Component (From index.js) ---
 const SettingsMenu = ({ onClose }) => {
     const router = useRouter();
+
+    // Placeholder handlers (using alert, which we know works)
+    const handleVersionInfo = () => { alert("Displaying Version Information..."); };
+    const handleAuth = () => { alert("Navigating to Authentication Screen..."); };
+
     return (
         <View style={styles.dropdownContainer}>
             
-            {/* Home Option */}
+            {/* 1. Home Option: CRITICAL for navigating back */}
             <TouchableOpacity 
                 style={styles.menuItem} 
                 onPress={() => { router.replace('/'); onClose(); }}
@@ -27,16 +26,18 @@ const SettingsMenu = ({ onClose }) => {
                 <Text style={styles.menuItemText}>Home</Text>
             </TouchableOpacity>
 
+            {/* 2. Version */}
             <TouchableOpacity 
                 style={styles.menuItem} 
-                onPress={() => { alert("Displaying Version Information..."); onClose(); }}
+                onPress={() => { handleVersionInfo(); onClose(); }}
             >
                 <Text style={styles.menuItemText}>Version</Text>
             </TouchableOpacity>
 
+            {/* 3. Log In / Sign Up */}
             <TouchableOpacity 
                 style={styles.menuItem} 
-                onPress={() => { alert("Navigating to Authentication Screen..."); onClose(); }}
+                onPress={() => { handleAuth(); onClose(); }}
             >
                 <Text style={styles.menuItemText}>Log In / Sign Up</Text>
             </TouchableOpacity>
@@ -44,89 +45,26 @@ const SettingsMenu = ({ onClose }) => {
     );
 };
 
-
-// The main component for the World UI
+// --- Main World Component ---
 const WorldScreen = () => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    const [blobPosition, setBlobPosition] = useState({ x: MAP_SIZE / 2 - BLOB_SIZE / 2, y: MAP_SIZE / 2 - BLOB_SIZE / 2 });
-
-    const moveBlob = (direction) => {
-        setBlobPosition(currentPos => {
-            let newX = currentPos.x;
-            let newY = currentPos.y;
-
-            switch (direction) {
-                case 'up': newY -= STEP_SIZE; break;
-                case 'down': newY += STEP_SIZE; break;
-                case 'left': newX -= STEP_SIZE; break;
-                case 'right': newX += STEP_SIZE; break;
-            }
-
-            const max = MAP_SIZE - BLOB_SIZE;
-            newX = Math.max(0, Math.min(newX, max));
-            newY = Math.max(0, Math.min(newY, max));
-
-            return { x: newX, y: newY };
-        });
-    };
 
     return (
-        <View style={styles.fullContainer}>
+        <View style={styles.container}>
+            
+            {/* Header Bar with Hamburger Icon */}
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Game World</Text>
+                <Text style={styles.headerTitle}>Simple World Loaded</Text>
                 <TouchableOpacity onPress={() => setIsSettingsOpen(!isSettingsOpen)}>
                     <Ionicons name="menu" size={32} color={primaryColor} />
                 </TouchableOpacity>
             </View>
 
-            {/* Game Map Area */}
-            <View style={styles.gameContainer}>
-                <View style={styles.mapArea}>
-                    <View 
-                        style={[
-                            styles.blob, 
-                            { transform: [{ translateX: blobPosition.x }, { translateY: blobPosition.y }] }
-                        ]} 
-                    />
-                </View>
-            </View>
-            
-            {/* --- Controls and D-Pad Area --- */}
-            <View style={styles.controlsContainer}>
-                
-                {/* D-Pad (Cross) */}
-                <View style={styles.dPad}>
-                    <View style={styles.dPadRow}>
-                        <View style={styles.dPadPlaceholder} />
-                        <TouchableOpacity style={styles.dPadButton} onPress={() => moveBlob('up')}>
-                            <Ionicons name="arrow-up" size={20} color="white" />
-                        </TouchableOpacity>
-                        <View style={styles.dPadPlaceholder} />
-                    </View>
-                    <View style={styles.dPadRow}>
-                        <TouchableOpacity style={styles.dPadButton} onPress={() => moveBlob('left')}>
-                            <Ionicons name="arrow-back" size={20} color="white" />
-                        </TouchableOpacity>
-                        <View style={styles.dPadCenter} />
-                        <TouchableOpacity style={styles.dPadButton} onPress={() => moveBlob('right')}>
-                            <Ionicons name="arrow-forward" size={20} color="white" />
-                        </TouchableOpacity>
-                    </View>
-                    <View style={styles.dPadRow}>
-                        <View style={styles.dPadPlaceholder} />
-                        <TouchableOpacity style={styles.dPadButton} onPress={() => moveBlob('down')}>
-                            <Ionicons name="arrow-down" size={20} color="white" />
-                        </TouchableOpacity>
-                        <View style={styles.dPadPlaceholder} />
-                    </View>
-                </View>
-
-                <View style={styles.actionButtons}>
-                    {/* Placeholder for future A/B buttons */}
-                    <View style={styles.buttonPlaceholder}>
-                        <Text style={styles.buttonPlaceholderText}>A/B Buttons</Text>
-                    </View>
-                </View>
+            {/* Simple Content to prove the screen loaded */}
+            <View style={styles.mainContent}>
+                <Text style={styles.confirmationText}>
+                    SUCCESS: The /world route is now stable!
+                </Text>
             </View>
 
             {/* Settings Dropdown Overlay */}
@@ -135,12 +73,12 @@ const WorldScreen = () => {
     );
 };
 
-// CRITICAL LINE: Must be a default export!
+// **CRITICAL:** Default export is required by Expo Router
 export default WorldScreen;
 
 
 const styles = StyleSheet.create({
-    fullContainer: {
+    container: {
         flex: 1,
         backgroundColor: '#F9FAFB', 
         paddingTop: Platform.OS === 'android' ? 30 : 50,
@@ -151,93 +89,24 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: '100%',
         paddingHorizontal: 20,
-        marginBottom: 10,
+        marginBottom: 20,
     },
     headerTitle: {
         fontSize: 22,
         fontWeight: '700',
-        color: primaryColor,
+        color: textColor,
     },
-    gameContainer: {
+    mainContent: {
         flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 10,
-    },
-    mapArea: {
-        width: MAP_SIZE,
-        height: MAP_SIZE,
-        backgroundColor: gameBgColor, 
-        borderRadius: 10,
-        overflow: 'hidden', 
-        position: 'relative',
-        borderWidth: 5,
-        borderColor: '#558855',
-    },
-    blob: {
-        position: 'absolute',
-        width: BLOB_SIZE,
-        height: BLOB_SIZE,
-        borderRadius: BLOB_SIZE / 2,
-        backgroundColor: '#FF66B2', 
-        zIndex: 10,
-    },
-    controlsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        padding: 20,
-        width: '100%',
-        backgroundColor: '#EAEAEA',
-        borderTopWidth: 1,
-        borderTopColor: '#DDDDDD',
-    },
-    dPad: {
-        width: 120,
-        height: 120,
-        backgroundColor: dPadColor,
-        borderRadius: 15,
-        padding: 5,
-    },
-    dPadRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        height: '33.33%',
-    },
-    dPadButton: {
-        width: 35,
-        height: 35,
-        backgroundColor: menuColor,
-        borderRadius: 5,
-        justifyContent: 'center',
-        alignItems: 'center',
-        margin: 2,
-    },
-    dPadCenter: {
-        width: 35,
-        height: 35,
-        margin: 2,
-    },
-    dPadPlaceholder: {
-        width: 35,
-        height: 35,
-        margin: 2,
-    },
-    actionButtons: {
-        width: 120,
-        height: 120,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    buttonPlaceholder: {
-        backgroundColor: '#999',
-        padding: 10,
-        borderRadius: 5,
+    confirmationText: {
+        fontSize: 18,
+        fontWeight: '500',
+        color: '#10B981', // Green for success
     },
-    buttonPlaceholderText: {
-        color: 'white',
-        fontWeight: 'bold',
-    },
+    // --- Dropdown Styles ---
     dropdownContainer: {
         position: 'absolute',
         top: Platform.OS === 'android' ? 70 : 100, 
