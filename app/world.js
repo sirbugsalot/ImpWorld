@@ -13,13 +13,13 @@ const menuColor = '#4B5563'; // Gray-600 for menu background
 const gameBgColor = '#225522'; // Dark moss green for GBA feel
 const dPadColor = '#555555'; // Dark gray for D-pad
 
-// --- Settings Dropdown Component (Reused from index.js) ---
+// --- Settings Dropdown Component (Reused for the World screen) ---
 const SettingsMenu = ({ onClose }) => {
     const router = useRouter();
     return (
         <View style={styles.dropdownContainer}>
             
-            {/* New: Home Option */}
+            {/* Home Option: Uses router.replace('/') to go back to index.js */}
             <TouchableOpacity 
                 style={styles.menuItem} 
                 onPress={() => { router.replace('/'); onClose(); }}
@@ -47,9 +47,10 @@ const SettingsMenu = ({ onClose }) => {
 };
 
 
-const GameScreen = () => {
+// The main component for the World UI
+const WorldScreen = () => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    // State for the blob's position (x, y coordinates from top-left of the game area)
+    // State for the blob's position 
     const [blobPosition, setBlobPosition] = useState({ x: MAP_SIZE / 2 - BLOB_SIZE / 2, y: MAP_SIZE / 2 - BLOB_SIZE / 2 });
 
     // Function to handle movement in four directions
@@ -77,7 +78,7 @@ const GameScreen = () => {
     return (
         <View style={styles.fullContainer}>
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Game Environment</Text>
+                <Text style={styles.headerTitle}>Game World</Text>
                 <TouchableOpacity onPress={() => setIsSettingsOpen(!isSettingsOpen)}>
                     <Ionicons name="menu" size={32} color={primaryColor} />
                 </TouchableOpacity>
@@ -140,6 +141,10 @@ const GameScreen = () => {
     );
 };
 
+// **CRITICAL FIX:** Export the component as default
+export default WorldScreen;
+
+
 const styles = StyleSheet.create({
     fullContainer: {
         flex: 1,
@@ -160,7 +165,7 @@ const styles = StyleSheet.create({
         color: primaryColor,
     },
     gameContainer: {
-        flex: 1, // Takes up most vertical space
+        flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
         paddingVertical: 10,
@@ -168,19 +173,19 @@ const styles = StyleSheet.create({
     mapArea: {
         width: MAP_SIZE,
         height: MAP_SIZE,
-        backgroundColor: gameBgColor, // Dark Green Background
+        backgroundColor: gameBgColor, 
         borderRadius: 10,
-        overflow: 'hidden', // Ensures blob doesn't move outside the map
+        overflow: 'hidden', 
         position: 'relative',
         borderWidth: 5,
-        borderColor: '#558855', // Lighter green border
+        borderColor: '#558855',
     },
     blob: {
         position: 'absolute',
         width: BLOB_SIZE,
         height: BLOB_SIZE,
         borderRadius: BLOB_SIZE / 2,
-        backgroundColor: '#FF66B2', // Pink blob for high contrast
+        backgroundColor: '#FF66B2', 
         zIndex: 10,
     },
     controlsContainer: {
@@ -189,11 +194,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 20,
         width: '100%',
-        backgroundColor: '#EAEAEA', // Light gray background for controls
+        backgroundColor: '#EAEAEA',
         borderTopWidth: 1,
         borderTopColor: '#DDDDDD',
     },
-    // --- D-Pad Styles ---
     dPad: {
         width: 120,
         height: 120,
@@ -225,7 +229,6 @@ const styles = StyleSheet.create({
         height: 35,
         margin: 2,
     },
-    // --- Action Buttons Placeholder ---
     actionButtons: {
         width: 120,
         height: 120,
@@ -241,7 +244,6 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
     },
-    // --- Dropdown Styles (Reused) ---
     dropdownContainer: {
         position: 'absolute',
         top: Platform.OS === 'android' ? 70 : 100, 
@@ -256,7 +258,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 5,
         elevation: 5,
-        zIndex: 100, // Higher Z index to be on top of everything
+        zIndex: 100,
     },
     menuItem: {
         padding: 15,
@@ -269,5 +271,3 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     }
 });
-
-export default GameScreen;
