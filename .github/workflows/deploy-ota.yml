@@ -9,7 +9,14 @@ jobs:
   publish:
     name: Publish OTA Update to Expo
     runs-on: ubuntu-latest
-    
+
+    # Define environment variables once for the entire job
+    env:
+      # CRUCIAL: Uses the hidden GitHub Secret for security
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }} 
+      # Required to suppress all prompts in the CI environment
+      CI: true 
+      
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -30,20 +37,20 @@ jobs:
         # Uses the EXPO_TOKEN stored in GitHub Secrets
         # run: eas login
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          CI: true
-          EXPO_PROJECT_ID: e8bf1a0e-2db1-42e2-af27-30ca210d3b51
+          #EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          #CI: true
+          #EXPO_PROJECT_ID: e8bf1a0e-2db1-42e2-af27-30ca210d3b51
         run: npx eas init --non-interactive --force
 
       - name: Publish Update
         # Authentication and non-interactive flags are applied here
         env:
           # Critical: The secret token must be set in GitHub Secrets
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          #EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           # Critical: Suppresses all interactive prompts ("Configure this project?")
-          CI: true
+          #CI: true
           # Aggressive fix: Ensures the CLI knows exactly which project to deploy to
-          EXPO_PROJECT_ID: e8bf1a0e-2db1-42e2-af27-30ca210d3b51 
+          #EXPO_PROJECT_ID: e8bf1a0e-2db1-42e2-af27-30ca210d3b51 
         # FINAL COMMAND: Runs the update command now that the project is initialized
         run: npx eas update --non-interactive --branch dev --message "Automated update from GitHub push"
 
