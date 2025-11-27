@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons'; 
-// Import the necessary hook for navigation
 import { useRouter } from 'expo-router'; 
 
 // Define colors
@@ -11,10 +10,12 @@ const textColor = '#1F2937';
 
 // --- Placeholder Handlers (Empty functions for menu items) ---
 const handleVersionInfo = () => {
+    // This will eventually show a modal with version info (OTA bundle ID, native version, etc.)
     alert("Displaying Version Information..."); 
 };
 
 const handleAuth = () => {
+    // This will eventually navigate to a login screen or open a signup modal
     alert("Navigating to Authentication Screen..."); 
 };
 
@@ -42,12 +43,11 @@ const SettingsMenu = ({ onClose }) => (
 
 const App = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false); 
-  // Get the router instance
   const router = useRouter();
 
-  // Function to navigate to the new details.js file (path is just '/details')
-  const navigateToDetails = () => {
-      router.push('/details');
+  // Function to navigate to the new game.js file (path is now '/game')
+  const navigateToGame = () => {
+      router.push('/world');
   };
 
   return (
@@ -71,12 +71,12 @@ const App = () => {
             Use the menu icon to navigate.
         </Text>
 
-        {/* NEW NAVIGATION BUTTON */}
+        {/* NAVIGATION BUTTON now links to /game */}
         <TouchableOpacity
             style={styles.navButton}
-            onPress={navigateToDetails}
+            onPress={navigateToGame}
         >
-            <Text style={styles.navButtonText}>Go to Details Page</Text>
+            <Text style={styles.navButtonText}>Enter Game World</Text>
         </TouchableOpacity>
       </View>
 
@@ -87,7 +87,7 @@ const App = () => {
   );
 };
 
-// Styles updated to include new button styles
+// Styles updated for the new button
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   subPlaceholderText: {
     fontSize: 16,
     color: '#ddd',
-    marginBottom: 50, // Added margin below subtitle
+    marginBottom: 50,
   },
   navButton: {
       backgroundColor: primaryColor,
