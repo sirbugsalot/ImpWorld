@@ -36,7 +36,7 @@ jobs:
       - name: Initialize EAS Project in CI
         # Uses the EXPO_TOKEN stored in GitHub Secrets
         # run: eas login
-        env:
+        #env:
           #EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           #CI: true
           #EXPO_PROJECT_ID: e8bf1a0e-2db1-42e2-af27-30ca210d3b51
@@ -44,7 +44,7 @@ jobs:
 
       - name: Publish Update
         # Authentication and non-interactive flags are applied here
-        env:
+        #env:
           # Critical: The secret token must be set in GitHub Secrets
           #EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           # Critical: Suppresses all interactive prompts ("Configure this project?")
