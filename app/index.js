@@ -10,12 +10,10 @@ const textColor = '#1F2937';
 
 // --- Placeholder Handlers (Empty functions for menu items) ---
 const handleVersionInfo = () => {
-    // This will eventually show a modal with version info (OTA bundle ID, native version, etc.)
     alert("Displaying Version Information..."); 
 };
 
 const handleAuth = () => {
-    // This will eventually navigate to a login screen or open a signup modal
     alert("Navigating to Authentication Screen..."); 
 };
 
@@ -45,8 +43,8 @@ const App = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false); 
   const router = useRouter();
 
-  // Function to navigate to the new game.js file (path is now '/game')
-  const navigateToGame = () => {
+  // Function to navigate to the new world.js file (path is now '/world')
+  const navigateToWorld = () => {
       router.push('/world');
   };
 
@@ -71,10 +69,10 @@ const App = () => {
             Use the menu icon to navigate.
         </Text>
 
-        {/* NAVIGATION BUTTON now links to /game */}
+        {/* NAVIGATION BUTTON now links to /world */}
         <TouchableOpacity
             style={styles.navButton}
-            onPress={navigateToGame}
+            onPress={navigateToWorld}
         >
             <Text style={styles.navButtonText}>Enter Game World</Text>
         </TouchableOpacity>
@@ -87,7 +85,7 @@ const App = () => {
   );
 };
 
-// Styles updated for the new button
+// Styles remain the same
 const styles = StyleSheet.create({
   container: {
     flex: 1,
