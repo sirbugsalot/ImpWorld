@@ -141,10 +141,6 @@ const WorldScreen = () => {
     );
 };
 
-// **CRITICAL FIX:** Export the component as default
-export default WorldScreen;
-
-
 const styles = StyleSheet.create({
     fullContainer: {
         flex: 1,
@@ -271,3 +267,5 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     }
 });
+// **CRITICAL FIX:** Export the component as default
+export default WorldScreen;
