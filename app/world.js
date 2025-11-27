@@ -5,21 +5,21 @@ import { Ionicons } from '@expo/vector-icons';
 
 // Game constants
 const MAP_SIZE = Dimensions.get('window').width * 0.8;
-const STEP_SIZE = 16; // Movement speed
+const STEP_SIZE = 16;
 const BLOB_SIZE = 40;
 
 const primaryColor = '#1D4ED8'; 
-const menuColor = '#4B5563'; // Gray-600 for menu background
-const gameBgColor = '#225522'; // Dark moss green for GBA feel
-const dPadColor = '#555555'; // Dark gray for D-pad
+const menuColor = '#4B5563';
+const gameBgColor = '#225522'; 
+const dPadColor = '#555555';
 
-// --- Settings Dropdown Component (Reused for the World screen) ---
+// --- Settings Dropdown Component ---
 const SettingsMenu = ({ onClose }) => {
     const router = useRouter();
     return (
         <View style={styles.dropdownContainer}>
             
-            {/* Home Option: Uses router.replace('/') to go back to index.js */}
+            {/* Home Option */}
             <TouchableOpacity 
                 style={styles.menuItem} 
                 onPress={() => { router.replace('/'); onClose(); }}
@@ -27,7 +27,6 @@ const SettingsMenu = ({ onClose }) => {
                 <Text style={styles.menuItemText}>Home</Text>
             </TouchableOpacity>
 
-            {/* Placeholder Menu Item 1: Version */}
             <TouchableOpacity 
                 style={styles.menuItem} 
                 onPress={() => { alert("Displaying Version Information..."); onClose(); }}
@@ -35,7 +34,6 @@ const SettingsMenu = ({ onClose }) => {
                 <Text style={styles.menuItemText}>Version</Text>
             </TouchableOpacity>
 
-            {/* Placeholder Menu Item 2: Auth */}
             <TouchableOpacity 
                 style={styles.menuItem} 
                 onPress={() => { alert("Navigating to Authentication Screen..."); onClose(); }}
@@ -50,10 +48,8 @@ const SettingsMenu = ({ onClose }) => {
 // The main component for the World UI
 const WorldScreen = () => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    // State for the blob's position 
     const [blobPosition, setBlobPosition] = useState({ x: MAP_SIZE / 2 - BLOB_SIZE / 2, y: MAP_SIZE / 2 - BLOB_SIZE / 2 });
 
-    // Function to handle movement in four directions
     const moveBlob = (direction) => {
         setBlobPosition(currentPos => {
             let newX = currentPos.x;
@@ -66,7 +62,6 @@ const WorldScreen = () => {
                 case 'right': newX += STEP_SIZE; break;
             }
 
-            // Keep the blob within the boundaries of the MAP_SIZE square
             const max = MAP_SIZE - BLOB_SIZE;
             newX = Math.max(0, Math.min(newX, max));
             newY = Math.max(0, Math.min(newY, max));
@@ -87,7 +82,6 @@ const WorldScreen = () => {
             {/* Game Map Area */}
             <View style={styles.gameContainer}>
                 <View style={styles.mapArea}>
-                    {/* Moveable Blob Character */}
                     <View 
                         style={[
                             styles.blob, 
@@ -140,6 +134,10 @@ const WorldScreen = () => {
         </View>
     );
 };
+
+// CRITICAL LINE: Must be a default export!
+export default WorldScreen;
+
 
 const styles = StyleSheet.create({
     fullContainer: {
@@ -267,5 +265,3 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     }
 });
-// **CRITICAL FIX:** Export the component as default
-export default WorldScreen;
