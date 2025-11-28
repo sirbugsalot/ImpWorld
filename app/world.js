@@ -39,7 +39,7 @@ const SettingsMenu = ({ onClose }) => {
 
             <TouchableOpacity 
                 style={styles.menuItem} 
-                onPress={() => navigateAndClose('/profile')}
+                onPress={() => navigateAndClose('/userProfile/profile')}
             >
                 <Text style={styles.menuItemText}>Profile</Text>
             </TouchableOpacity>
