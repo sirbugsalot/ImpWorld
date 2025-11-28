@@ -27,6 +27,14 @@ jobs:
           node-version: 20
           cache: 'npm'
           
+      - name: Get Commit Message
+        id: get_message
+        run: |
+          # Use git log to get the body (%B) of the latest commit (-1)
+          # We sanitize it for multi-line messages, using the first line as the summary.
+          COMMIT_MESSAGE=$(git log -1 --pretty=%B | head -n 1)
+          echo "commit_msg=$COMMIT_MESSAGE" >> $GITHUB_OUTPUT
+
       - name: Install EAS CLI Globally
         run: npm install -g eas-cli
         
@@ -52,7 +60,7 @@ jobs:
           # Aggressive fix: Ensures the CLI knows exactly which project to deploy to
           #EXPO_PROJECT_ID: e8bf1a0e-2db1-42e2-af27-30ca210d3b51 
         # FINAL COMMAND: Runs the update command now that the project is initialized
-        run: npx eas update --non-interactive --branch dev --message "Automated update from GitHub push"
+        run: npx eas update --non-interactive --branch dev --message "${{ steps.get_message.outputs.commit_msg }}"
 
       # # - name: Publish Update
       # #   # Compiles the JS code and pushes the bundle to the 'dev' branch on Expo's servers
