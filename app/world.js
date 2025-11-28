@@ -28,6 +28,10 @@ const pastelGrassEnd = '#7FC060';   // A darker, more distinct shade of pastel g
 // --- Settings Dropdown Component (Reused) ---
 const SettingsMenu = ({ onClose }) => {
     const router = useRouter();
+    const navigateAndClose = (path) => {
+        router.push(path);
+        onClose();
+    };
     return (
         <View style={styles.dropdownContainer}>
             <TouchableOpacity 
