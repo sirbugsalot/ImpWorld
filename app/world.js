@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Platform, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons'; 
-// We are using LinearGradient for visual texture and depth
 import { LinearGradient } from 'expo-linear-gradient'; 
 
 // Constants based on screen size
@@ -10,7 +9,9 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 // Calculate height remaining after header (50+10+20) and controls (120+40)
 const SCREEN_HEIGHT = Dimensions.get('window').height - (Platform.OS === 'android' ? 100 : 120) - 160; 
 
-const STEP_SIZE = 16;
+const STEP_SIZE = 4; // Reduced step size for smoother continuous movement
+const MOVEMENT_SPEED_MS = 25; // How often the movement is updated
+
 const BLOB_SIZE = 40;
 
 // New Pastel/Aesthetic Colors
@@ -19,17 +20,16 @@ const menuColor = '#4B5563';
 const dPadColor = '#555555'; 
 const textColor = '#1F2937';
 
-// Pastel Green/Grass Palette (using two shades for the gradient effect)
+// --- FIXED Gradient Palette ---
+// Increased contrast for better visibility of the texture effect
 const pastelGrassStart = '#A9D18E'; // Light, soft green
-const pastelGrassEnd = '#90EE90';   // Slightly brighter, Lawn Green
+const pastelGrassEnd = '#7FC060';   // A darker, more distinct shade of pastel green 
 
 // --- Settings Dropdown Component (Reused) ---
 const SettingsMenu = ({ onClose }) => {
     const router = useRouter();
     return (
         <View style={styles.dropdownContainer}>
-            
-            {/* Home Option: CRITICAL for navigating back */}
             <TouchableOpacity 
                 style={styles.menuItem} 
                 onPress={() => { router.replace('/'); onClose(); }}
@@ -37,7 +37,6 @@ const SettingsMenu = ({ onClose }) => {
                 <Text style={styles.menuItemText}>Home</Text>
             </TouchableOpacity>
 
-            {/* Placeholder Menu Item 1: Version */}
             <TouchableOpacity 
                 style={styles.menuItem} 
                 onPress={() => { alert("Displaying Version Information..."); onClose(); }}
@@ -45,7 +44,6 @@ const SettingsMenu = ({ onClose }) => {
                 <Text style={styles.menuItemText}>Version</Text>
             </TouchableOpacity>
 
-            {/* Placeholder Menu Item 2: Auth */}
             <TouchableOpacity 
                 style={styles.menuItem} 
                 onPress={() => { alert("Navigating to Authentication Screen..."); onClose(); }}
@@ -60,13 +58,18 @@ const SettingsMenu = ({ onClose }) => {
 // The main component for the World UI
 const WorldScreen = () => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    // State for the blob's position (center of the available screen space)
     const [blobPosition, setBlobPosition] = useState({ 
         x: SCREEN_WIDTH / 2 - BLOB_SIZE / 2, 
         y: SCREEN_HEIGHT / 2 - BLOB_SIZE / 2 
     });
 
-    // Function to handle movement in four directions
+    // State to track the currently active direction (for continuous movement)
+    const [activeDirection, setActiveDirection] = useState(null); 
+    
+    // Ref to hold the interval ID, ensuring it's not recreated on every render
+    const movementIntervalRef = useRef(null);
+
+    // Core function to move the blob one step
     const moveBlob = (direction) => {
         setBlobPosition(currentPos => {
             let newX = currentPos.x;
@@ -77,9 +80,10 @@ const WorldScreen = () => {
                 case 'down': newY += STEP_SIZE; break;
                 case 'left': newX -= STEP_SIZE; break;
                 case 'right': newX += STEP_SIZE; break;
+                default: return currentPos; // No movement if direction is null
             }
 
-            // Boundary Check (now based on SCREEN_WIDTH/HEIGHT)
+            // Boundary Check
             const maxX = SCREEN_WIDTH - BLOB_SIZE;
             const maxY = SCREEN_HEIGHT - BLOB_SIZE;
 
@@ -89,6 +93,51 @@ const WorldScreen = () => {
             return { x: newX, y: newY };
         });
     };
+
+    // --- EFFECT HOOK: Manages the continuous movement loop ---
+    useEffect(() => {
+        if (activeDirection) {
+            // Clear any existing interval before starting a new one
+            clearInterval(movementIntervalRef.current);
+            
+            // Start the interval for continuous movement
+            movementIntervalRef.current = setInterval(() => {
+                // We use the activeDirection in the closure
+                moveBlob(activeDirection); 
+            }, MOVEMENT_SPEED_MS);
+        } else {
+            // Stop movement when the active direction is null (onPressOut)
+            clearInterval(movementIntervalRef.current);
+        }
+
+        // Cleanup function: important to clear the interval when the component unmounts
+        return () => clearInterval(movementIntervalRef.current);
+    }, [activeDirection]); // Reruns whenever the active direction changes
+
+    // --- HANDLERS for D-Pad Touch Events ---
+
+    // Sets the direction and starts the interval (via useEffect)
+    const handlePressIn = (direction) => {
+        setActiveDirection(direction);
+    };
+
+    // Clears the direction and stops the interval (via useEffect)
+    const handlePressOut = () => {
+        // Set a small delay to prevent immediate stop if the user slides to a different button
+        setTimeout(() => setActiveDirection(null), 50); 
+    };
+
+    // Renders a D-Pad button with movement handlers
+    const renderDpadButton = (direction, iconName) => (
+        <TouchableOpacity 
+            style={styles.dPadButton} 
+            // New continuous press events
+            onPressIn={() => handlePressIn(direction)}
+            onPressOut={handlePressOut}
+        >
+            <Ionicons name={iconName} size={20} color="white" />
+        </TouchableOpacity>
+    );
 
     return (
         <View style={styles.fullContainer}>
@@ -101,11 +150,11 @@ const WorldScreen = () => {
 
             {/* Game Map Area (Infinite Look with Gradient Texture) */}
             <View style={styles.gameContainer}>
-                {/* Linear Gradient provides a subtle texture effect */}
                 <LinearGradient
                     colors={[pastelGrassStart, pastelGrassEnd]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
+                    // Adjusting start/end points to make the gradient more diagonal/noticeable
+                    start={{ x: 0.1, y: 0.1 }}
+                    end={{ x: 0.9, y: 0.9 }}
                     style={styles.mapArea}
                 >
                     {/* Moveable Blob Character */}
@@ -125,25 +174,17 @@ const WorldScreen = () => {
                 <View style={styles.dPad}>
                     <View style={styles.dPadRow}>
                         <View style={styles.dPadPlaceholder} />
-                        <TouchableOpacity style={styles.dPadButton} onPress={() => moveBlob('up')}>
-                            <Ionicons name="arrow-up" size={20} color="white" />
-                        </TouchableOpacity>
+                        {renderDpadButton('up', 'arrow-up')}
                         <View style={styles.dPadPlaceholder} />
                     </View>
                     <View style={styles.dPadRow}>
-                        <TouchableOpacity style={styles.dPadButton} onPress={() => moveBlob('left')}>
-                            <Ionicons name="arrow-back" size={20} color="white" />
-                        </TouchableOpacity>
+                        {renderDpadButton('left', 'arrow-back')}
                         <View style={styles.dPadCenter} />
-                        <TouchableOpacity style={styles.dPadButton} onPress={() => moveBlob('right')}>
-                            <Ionicons name="arrow-forward" size={20} color="white" />
-                        </TouchableOpacity>
+                        {renderDpadButton('right', 'arrow-forward')}
                     </View>
                     <View style={styles.dPadRow}>
                         <View style={styles.dPadPlaceholder} />
-                        <TouchableOpacity style={styles.dPadButton} onPress={() => moveBlob('down')}>
-                            <Ionicons name="arrow-down" size={20} color="white" />
-                        </TouchableOpacity>
+                        {renderDpadButton('down', 'arrow-down')}
                         <View style={styles.dPadPlaceholder} />
                     </View>
                 </View>
@@ -185,21 +226,20 @@ const styles = StyleSheet.create({
         color: primaryColor,
     },
     gameContainer: {
-        flex: 1, // Takes up all remaining vertical space
+        flex: 1, 
         width: '100%',
     },
     mapArea: {
-        flex: 1, // Fills the gameContainer
+        flex: 1,
         width: '100%',
         position: 'relative',
-        // Removed border to achieve "infinite" look
     },
     blob: {
         position: 'absolute',
         width: BLOB_SIZE,
         height: BLOB_SIZE,
         borderRadius: BLOB_SIZE / 2,
-        backgroundColor: '#FF66B2', // Pink blob for high contrast
+        backgroundColor: '#FF66B2', 
         zIndex: 10,
     },
     controlsContainer: {
@@ -212,7 +252,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: '#DDDDDD',
     },
-    // --- D-Pad Styles (Rest of styles remain the same for stability) ---
+    // --- D-Pad Styles ---
     dPad: {
         width: 120,
         height: 120,
@@ -233,6 +273,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         margin: 2,
+        // Optional: Adding a slight shadow/depth for better tactile feedback
+        shadowColor: '#000',
+        shadowOpacity: 0.4,
+        shadowRadius: 1,
+        elevation: 2,
     },
     dPadCenter: {
         width: 35,
