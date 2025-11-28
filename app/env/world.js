@@ -4,15 +4,20 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons'; 
 import { LinearGradient } from 'expo-linear-gradient'; 
 
+// Import the Building class from the sibling file in the 'env' folder
+import Building from './building'; 
+
 // Constants based on screen size
 const SCREEN_WIDTH = Dimensions.get('window').width;
 // Calculate height remaining after header (50+10+20) and controls (120+40)
 const SCREEN_HEIGHT = Dimensions.get('window').height - (Platform.OS === 'android' ? 100 : 120) - 160; 
 
-const STEP_SIZE = 4; // Reduced step size for smoother continuous movement
-const MOVEMENT_SPEED_MS = 25; // How often the movement is updated
+const STEP_SIZE = 4;
+const MOVEMENT_SPEED_MS = 25; 
 
 const BLOB_SIZE = 40;
+const BUILDING_WIDTH = 100;
+const BUILDING_HEIGHT = 80;
 
 // New Pastel/Aesthetic Colors
 const primaryColor = '#1D4ED8'; 
@@ -24,11 +29,27 @@ const textColor = '#1F2937';
 const pastelGrassStart = '#A9D18E'; 
 const pastelGrassEnd = '#7FC060';   
 
+// --- INSTANTIATE BUILDING ---
+// Create a fixed instance of a building
+const pokeCenter = new Building('Pokémon Center', 'rectangle', { 
+    width: BUILDING_WIDTH, 
+    height: BUILDING_HEIGHT 
+}, {
+    x: 50, // door position relative to building top-left
+    y: BUILDING_HEIGHT - 5 // door near bottom edge
+});
+
+// Calculate the building's fixed position on the map
+const buildingMapPosition = {
+    x: SCREEN_WIDTH / 2 - BUILDING_WIDTH / 2,
+    y: 50 // Near the top of the map area
+};
+
+
 // --- Settings Dropdown Component ---
 const SettingsMenu = ({ onClose }) => {
     const router = useRouter();
 
-    // Helper function to navigate and close the menu
     const navigateAndClose = (path) => {
         router.push(path);
         onClose();
@@ -36,7 +57,6 @@ const SettingsMenu = ({ onClose }) => {
 
     return (
         <View style={styles.dropdownContainer}>
-            {/* Home Option: Uses router.replace to prevent going back to World */}
             <TouchableOpacity 
                 style={styles.menuItem} 
                 onPress={() => { router.replace('/'); onClose(); }}
@@ -44,7 +64,6 @@ const SettingsMenu = ({ onClose }) => {
                 <Text style={styles.menuItemText}>Home</Text>
             </TouchableOpacity>
 
-            {/* Profile Option: Path remains the same, as userProfile is not moving */}
             <TouchableOpacity 
                 style={styles.menuItem} 
                 onPress={() => navigateAndClose('/userProfile/profile')}
@@ -73,15 +92,14 @@ const SettingsMenu = ({ onClose }) => {
 // The main component for the World UI
 const WorldScreen = () => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    
+    // ADJUSTED BLOB START POSITION: Move it down to 75% of the screen height
     const [blobPosition, setBlobPosition] = useState({ 
         x: SCREEN_WIDTH / 2 - BLOB_SIZE / 2, 
-        y: SCREEN_HEIGHT / 2 - BLOB_SIZE / 2 
+        y: SCREEN_HEIGHT * 0.75 - BLOB_SIZE / 2 
     });
 
-    // State to track the currently active direction (for continuous movement)
     const [activeDirection, setActiveDirection] = useState(null); 
-    
-    // Ref to hold the interval ID, ensuring it's not recreated on every render
     const movementIntervalRef = useRef(null);
 
     // Core function to move the blob one step
@@ -95,7 +113,7 @@ const WorldScreen = () => {
                 case 'down': newY += STEP_SIZE; break;
                 case 'left': newX -= STEP_SIZE; break;
                 case 'right': newX += STEP_SIZE; break;
-                default: return currentPos; // No movement if direction is null
+                default: return currentPos; 
             }
 
             // Boundary Check
@@ -112,41 +130,28 @@ const WorldScreen = () => {
     // --- EFFECT HOOK: Manages the continuous movement loop ---
     useEffect(() => {
         if (activeDirection) {
-            // Clear any existing interval before starting a new one
             clearInterval(movementIntervalRef.current);
-            
-            // Start the interval for continuous movement
             movementIntervalRef.current = setInterval(() => {
-                // We use the activeDirection in the closure
                 moveBlob(activeDirection); 
             }, MOVEMENT_SPEED_MS);
         } else {
-            // Stop movement when the active direction is null (onPressOut)
             clearInterval(movementIntervalRef.current);
         }
-
-        // Cleanup function: important to clear the interval when the component unmounts
         return () => clearInterval(movementIntervalRef.current);
-    }, [activeDirection]); // Reruns whenever the active direction changes
+    }, [activeDirection]); 
 
     // --- HANDLERS for D-Pad Touch Events ---
-
-    // Sets the direction and starts the interval (via useEffect)
     const handlePressIn = (direction) => {
         setActiveDirection(direction);
     };
 
-    // Clears the direction and stops the interval (via useEffect)
     const handlePressOut = () => {
-        // Set a small delay to prevent immediate stop if the user slides to a different button
         setTimeout(() => setActiveDirection(null), 50); 
     };
 
-    // Renders a D-Pad button with movement handlers
     const renderDpadButton = (direction, iconName) => (
         <TouchableOpacity 
             style={styles.dPadButton} 
-            // New continuous press events
             onPressIn={() => handlePressIn(direction)}
             onPressOut={handlePressOut}
         >
@@ -167,11 +172,33 @@ const WorldScreen = () => {
             <View style={styles.gameContainer}>
                 <LinearGradient
                     colors={[pastelGrassStart, pastelGrassEnd]}
-                    // Adjusting start/end points to make the gradient more diagonal/noticeable
                     start={{ x: 0.1, y: 0.1 }}
                     end={{ x: 0.9, y: 0.9 }}
                     style={styles.mapArea}
                 >
+                    {/* --- RENDER BUILDING --- */}
+                    <View 
+                        style={[
+                            styles.building, 
+                            { 
+                                width: pokeCenter.size.width, 
+                                height: pokeCenter.size.height,
+                                transform: [{ translateX: buildingMapPosition.x }, { translateY: buildingMapPosition.y }]
+                            }
+                        ]} 
+                    >
+                        <Text style={styles.buildingLabel}>{pokeCenter.name}</Text>
+                        <View 
+                            style={[
+                                styles.buildingDoor,
+                                {
+                                    left: pokeCenter.door.x - 10, // Adjust door position slightly for visual center
+                                    top: pokeCenter.door.y - 10,
+                                }
+                            ]}
+                        />
+                    </View>
+                    
                     {/* Moveable Blob Character */}
                     <View 
                         style={[
@@ -184,8 +211,6 @@ const WorldScreen = () => {
             
             {/* --- Controls and D-Pad Area --- */}
             <View style={styles.controlsContainer}>
-                
-                {/* D-Pad (Cross) */}
                 <View style={styles.dPad}>
                     <View style={styles.dPadRow}>
                         <View style={styles.dPadPlaceholder} />
@@ -205,14 +230,12 @@ const WorldScreen = () => {
                 </View>
 
                 <View style={styles.actionButtons}>
-                    {/* Placeholder for future A/B buttons */}
                     <View style={styles.buttonPlaceholder}>
                         <Text style={styles.buttonPlaceholderText}>Action Buttons</Text>
                     </View>
                 </View>
             </View>
 
-            {/* Settings Dropdown Overlay */}
             {isSettingsOpen && <SettingsMenu onClose={() => setIsSettingsOpen(false)} />}
         </View>
     );
@@ -249,6 +272,41 @@ const styles = StyleSheet.create({
         width: '100%',
         position: 'relative',
     },
+    // --- BUILDING STYLES ---
+    building: {
+        position: 'absolute',
+        backgroundColor: '#D16666', // Pokémon Center Red/White theme placeholder
+        borderRadius: 5,
+        borderWidth: 3,
+        borderColor: 'white',
+        shadowColor: '#000',
+        shadowOpacity: 0.5,
+        shadowRadius: 5,
+        elevation: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 5,
+    },
+    buildingLabel: {
+        position: 'absolute',
+        top: -20,
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: textColor,
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        paddingHorizontal: 5,
+        borderRadius: 3,
+    },
+    buildingDoor: {
+        position: 'absolute',
+        width: 20,
+        height: 10,
+        backgroundColor: '#A0522D', // Brown door
+        borderRadius: 2,
+        bottom: 0,
+        alignSelf: 'center',
+    },
+    // --- BLOB STYLES ---
     blob: {
         position: 'absolute',
         width: BLOB_SIZE,
@@ -257,6 +315,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#FF66B2', 
         zIndex: 10,
     },
+    // --- CONTROL STYLES (Rest remain the same) ---
     controlsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
@@ -267,7 +326,6 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: '#DDDDDD',
     },
-    // --- D-Pad Styles ---
     dPad: {
         width: 120,
         height: 120,
@@ -288,7 +346,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         margin: 2,
-        // Optional: Adding a slight shadow/depth for better tactile feedback
         shadowColor: '#000',
         shadowOpacity: 0.4,
         shadowRadius: 1,
@@ -319,7 +376,6 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
     },
-    // --- Dropdown Styles ---
     dropdownContainer: {
         position: 'absolute',
         top: Platform.OS === 'android' ? 70 : 100, 
