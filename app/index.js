@@ -45,7 +45,7 @@ const App = () => {
 
   // Function to navigate to the new world.js file (path is now '/world')
   const navigateToWorld = () => {
-      router.push('/world');
+      router.push('/env/world');
   };
 
   return (
