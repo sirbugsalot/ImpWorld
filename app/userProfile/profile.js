@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons'; 
 
 // Import the modular class definition
-import Avatar from '../avatar'; 
+import Avatar from './avatar'; 
 
 // Instantiate the avatar object globally for simplicity in this step
 // In a real app, this would be managed by global state (e.g., Context or Redux)
