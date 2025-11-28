@@ -4,8 +4,9 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons'; 
 
 import Building from './building'; 
-// Import the new background component and its textures
-import WorldBackground, { TEXTURES } from './bckgrd'; 
+import WorldBackground from './bckgrd'; 
+// Updated import to use the new Player component
+import Player, { BLOB_WIDTH, BLOB_HEIGHT } from './player'; 
 
 
 // Constants based on screen size
@@ -15,10 +16,7 @@ const SCREEN_HEIGHT = Dimensions.get('window').height - (Platform.OS === 'androi
 
 const STEP_SIZE = 4;
 const MOVEMENT_SPEED_MS = 25; 
-const BOUNCE_HEIGHT = 4; 
-const BOUNCE_DURATION = 150; 
 
-const BLOB_SIZE = 40;
 const BUILDING_WIDTH = 100;
 const BUILDING_HEIGHT = 80;
 
@@ -29,7 +27,7 @@ const textColor = '#1F2937';
 const dPadColor = '#555555'; 
 
 // --- INSTANTIATE BUILDING ---
-const pokeCenter = new Building('Welcome Center', 'rectangle', { 
+const welcomeCenter = new Building('Welcome Center', 'rectangle', { 
     width: BUILDING_WIDTH, 
     height: BUILDING_HEIGHT 
 }, {
@@ -91,12 +89,16 @@ const SettingsMenu = ({ onClose }) => {
 const WorldScreen = () => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     
-    // Calculate initial offset to ensure the building is visible near the top of the viewport
-    // The world must be translated so the world point (building.x, building.y - 150) is near the center of the screen.
+    // Placeholder for customization (will eventually be loaded from user profile)
+    const [customization] = useState({
+        color: '#8A2BE2', // BlueViolet: Distinct color for customized blob
+    });
+    
+    // Calculate initial offset for world view
     const initialOffsetX = -(buildingMapPosition.x - (SCREEN_WIDTH / 2));
     const initialOffsetY = -(buildingMapPosition.y + 150 - (SCREEN_HEIGHT / 2)); 
     
-    // 1. ANIMATED STATE FOR WORLD OFFSET: Use Animated.ValueXY for smooth, continuous movement
+    // 1. ANIMATED STATE FOR WORLD OFFSET
     const worldOffsetAnim = useRef(new Animated.ValueXY({ x: initialOffsetX, y: initialOffsetY })).current;
     
     // Non-animated ref to track the current raw offset (for logic)
@@ -104,28 +106,6 @@ const WorldScreen = () => {
 
     const [activeDirection, setActiveDirection] = useState(null); 
     const movementIntervalRef = useRef(null);
-    
-    // 2. ANIMATION VALUE: Used for the vertical bounce effect
-    const bounceAnim = useRef(new Animated.Value(0)).current; 
-
-    const triggerBounce = () => {
-        bounceAnim.stopAnimation();
-        
-        Animated.sequence([
-            Animated.timing(bounceAnim, {
-                toValue: -BOUNCE_HEIGHT, 
-                duration: BOUNCE_DURATION / 2,
-                easing: Easing.out(Easing.ease),
-                useNativeDriver: true,
-            }),
-            Animated.timing(bounceAnim, {
-                toValue: 0, 
-                duration: BOUNCE_DURATION / 2,
-                easing: Easing.in(Easing.ease),
-                useNativeDriver: true,
-            }),
-        ]).start();
-    };
 
     // Core function to move the world (by updating the Animated Value)
     const moveWorld = (direction) => {
@@ -147,22 +127,24 @@ const WorldScreen = () => {
         
         // Update the reference for the next calculation
         worldOffsetRef.current = { x: newX, y: newY };
-
-        // Trigger the visual bounce effect on every step
-        triggerBounce();
     };
 
-    // --- EFFECT HOOK: Manages the continuous movement loop ---
+    // --- EFFECT HOOK: Manages the continuous world movement loop ---
     useEffect(() => {
         if (activeDirection) {
             clearInterval(movementIntervalRef.current);
             movementIntervalRef.current = setInterval(() => {
                 moveWorld(activeDirection); 
             }, MOVEMENT_SPEED_MS);
+
         } else {
             clearInterval(movementIntervalRef.current);
         }
-        return () => clearInterval(movementIntervalRef.current);
+        
+        // Cleanup function for effect
+        return () => {
+            clearInterval(movementIntervalRef.current);
+        };
     }, [activeDirection]); 
 
     // --- HANDLERS for D-Pad Touch Events (Unchanged) ---
@@ -171,6 +153,7 @@ const WorldScreen = () => {
     };
 
     const handlePressOut = () => {
+        // Debounce releasing the direction slightly
         setTimeout(() => setActiveDirection(null), 50); 
     };
 
@@ -184,18 +167,14 @@ const WorldScreen = () => {
         </TouchableOpacity>
     );
     
-    // Calculate the fixed center position for the player blob
+    // Calculate the fixed center position for the player avatar using imported constants
     const playerCenterStyle = {
-        left: SCREEN_WIDTH / 2 - BLOB_SIZE / 2,
-        top: SCREEN_HEIGHT / 2 - BLOB_SIZE / 2,
+        left: SCREEN_WIDTH / 2 - BLOB_WIDTH / 2, 
+        top: SCREEN_HEIGHT / 2 - BLOB_HEIGHT / 2, 
     };
 
-    // Extract the transform style from Animated.ValueXY
+    // Extract the transform style from Animated.ValueXY for map content
     const mapContentTransform = worldOffsetAnim.getTranslateTransform();
-
-    // The player blob only moves vertically via the bounceAnim
-    const blobBounceTransform = [{ translateY: bounceAnim }];
-
 
     return (
         <View style={styles.fullContainer}>
@@ -210,15 +189,12 @@ const WorldScreen = () => {
             <View style={styles.gameContainer}>
                 
                 {/* 1. MOVING MAP CONTENT LAYER (Background and objects) */}
-                
-                {/* Pass the Animated transform to the background component */}
                 <WorldBackground 
                     worldTransform={{ transform: mapContentTransform }}
                     textureType="GRASS"
                 />
 
                 {/* --- RENDER MAP OBJECTS (Building) --- */}
-                {/* Map objects must share the same world translation as the background */}
                 <Animated.View
                     style={[
                         styles.mapObjectContainer,
@@ -229,8 +205,8 @@ const WorldScreen = () => {
                         style={[
                             styles.building, 
                             { 
-                                width: pokeCenter.size.width, 
-                                height: pokeCenter.size.height,
+                                width: welcomeCenter.size.width, 
+                                height: welcomeCenter.size.height,
                                 // Position relative to world 0,0
                                 transform: [
                                     { translateX: buildingMapPosition.x }, 
@@ -239,26 +215,24 @@ const WorldScreen = () => {
                             }
                         ]} 
                     >
-                        <Text style={styles.buildingLabel}>{pokeCenter.name}</Text>
+                        <Text style={styles.buildingLabel}>{welcomeCenter.name}</Text>
                         <View 
                             style={[
                                 styles.buildingDoor,
                                 {
-                                    left: pokeCenter.door.x - 10, 
-                                    top: pokeCenter.door.y - 10,
+                                    left: welcomeCenter.door.x - 10, 
+                                    top: welcomeCenter.door.y - 10,
                                 }
                             ]}
                         />
                     </View>
                 </Animated.View>
 
-                {/* 2. FIXED PLAYER BLOB LAYER (Always visually centered) */}
-                <Animated.View 
-                    style={[
-                        styles.blob, 
-                        playerCenterStyle,
-                        { transform: blobBounceTransform } 
-                    ]} 
+                {/* 2. FIXED PLAYER AVATAR LAYER (Always visually centered) */}
+                <Player // Using the renamed Player component
+                    activeDirection={activeDirection}
+                    customization={customization}
+                    playerCenterStyle={playerCenterStyle}
                 />
             </View>
             
@@ -319,16 +293,15 @@ const styles = StyleSheet.create({
     gameContainer: {
         flex: 1, 
         width: '100%',
-        overflow: 'hidden', // Viewport clip
+        overflow: 'hidden', 
         position: 'relative', 
     },
     mapObjectContainer: {
-        // Container for all non-background, movable map objects (like buildings)
         position: 'absolute',
         top: 0,
         left: 0,
     },
-    // --- BUILDING STYLES ---
+    // --- BUILDING STYLES (Unchanged) ---
     building: {
         position: 'absolute',
         backgroundColor: '#D16666', 
@@ -362,16 +335,7 @@ const styles = StyleSheet.create({
         bottom: 0,
         alignSelf: 'center',
     },
-    // --- BLOB STYLES (Fixed in center) ---
-    blob: {
-        position: 'absolute',
-        width: BLOB_SIZE,
-        height: BLOB_SIZE,
-        borderRadius: BLOB_SIZE / 2,
-        backgroundColor: '#FF66B2', 
-        zIndex: 10,
-    },
-    // --- CONTROL STYLES ---
+    // --- CONTROL STYLES (Unchanged) ---
     controlsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
