@@ -21,19 +21,22 @@ const dPadColor = '#555555';
 const textColor = '#1F2937';
 
 // --- FIXED Gradient Palette ---
-// Increased contrast for better visibility of the texture effect
-const pastelGrassStart = '#A9D18E'; // Light, soft green
-const pastelGrassEnd = '#7FC060';   // A darker, more distinct shade of pastel green 
+const pastelGrassStart = '#A9D18E'; 
+const pastelGrassEnd = '#7FC060';   
 
-// --- Settings Dropdown Component (Reused) ---
+// --- Settings Dropdown Component ---
 const SettingsMenu = ({ onClose }) => {
     const router = useRouter();
+
+    // Helper function to navigate and close the menu
     const navigateAndClose = (path) => {
         router.push(path);
         onClose();
     };
+
     return (
         <View style={styles.dropdownContainer}>
+            {/* Home Option: Uses router.replace to prevent going back to World */}
             <TouchableOpacity 
                 style={styles.menuItem} 
                 onPress={() => { router.replace('/'); onClose(); }}
@@ -41,6 +44,7 @@ const SettingsMenu = ({ onClose }) => {
                 <Text style={styles.menuItemText}>Home</Text>
             </TouchableOpacity>
 
+            {/* Profile Option: Path remains the same, as userProfile is not moving */}
             <TouchableOpacity 
                 style={styles.menuItem} 
                 onPress={() => navigateAndClose('/userProfile/profile')}
