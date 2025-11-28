@@ -29,7 +29,7 @@ const textColor = '#1F2937';
 const dPadColor = '#555555'; 
 
 // --- INSTANTIATE BUILDING ---
-const pokeCenter = new Building('Pokémon Center', 'rectangle', { 
+const pokeCenter = new Building('Welcome Center', 'rectangle', { 
     width: BUILDING_WIDTH, 
     height: BUILDING_HEIGHT 
 }, {
