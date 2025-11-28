@@ -1,7 +1,5 @@
 import React from 'react';
-import { StyleSheet, Dimensions } from 'react-native';
-// Need Animated for smooth transformation from the parent component
-import Animated from 'react-native-web/dist/exports/Animated'; 
+import { StyleSheet, Dimensions, Animated } from 'react-native'; 
 import { LinearGradient } from 'expo-linear-gradient';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
