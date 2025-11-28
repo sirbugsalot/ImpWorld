@@ -39,6 +39,13 @@ const SettingsMenu = ({ onClose }) => {
 
             <TouchableOpacity 
                 style={styles.menuItem} 
+                onPress={() => navigateAndClose('/profile')}
+            >
+                <Text style={styles.menuItemText}>Profile</Text>
+            </TouchableOpacity>
+                    
+            <TouchableOpacity 
+                style={styles.menuItem} 
                 onPress={() => { alert("Displaying Version Information..."); onClose(); }}
             >
                 <Text style={styles.menuItemText}>Version</Text>
