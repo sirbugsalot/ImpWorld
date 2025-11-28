@@ -2,19 +2,21 @@ import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Platform, Dimensions, Animated, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons'; 
-import { LinearGradient } from 'expo-linear-gradient'; 
 
-// Import the Building class from the sibling file in the 'env' folder
 import Building from './building'; 
+// Import the new background component and its textures
+import WorldBackground, { TEXTURES } from './bckgrd'; 
+
 
 // Constants based on screen size
 const SCREEN_WIDTH = Dimensions.get('window').width;
+// SCREEN_HEIGHT is the height of the playable map area
 const SCREEN_HEIGHT = Dimensions.get('window').height - (Platform.OS === 'android' ? 100 : 120) - 160; 
 
 const STEP_SIZE = 4;
 const MOVEMENT_SPEED_MS = 25; 
-const BOUNCE_HEIGHT = 4; // Max vertical bounce distance
-const BOUNCE_DURATION = 150; // How fast the bounce completes
+const BOUNCE_HEIGHT = 4; 
+const BOUNCE_DURATION = 150; 
 
 const BLOB_SIZE = 40;
 const BUILDING_WIDTH = 100;
@@ -23,11 +25,8 @@ const BUILDING_HEIGHT = 80;
 // New Pastel/Aesthetic Colors
 const primaryColor = '#1D4ED8'; 
 const menuColor = '#4B5563'; 
-const dPadColor = '#555555'; 
 const textColor = '#1F2937';
-
-const pastelGrassStart = '#A9D18E'; 
-const pastelGrassEnd = '#7FC060';   
+const dPadColor = '#555555'; 
 
 // --- INSTANTIATE BUILDING ---
 const pokeCenter = new Building('Pokémon Center', 'rectangle', { 
@@ -38,9 +37,10 @@ const pokeCenter = new Building('Pokémon Center', 'rectangle', {
     y: BUILDING_HEIGHT - 5 
 });
 
+// The building is placed at world coordinate (50, 100)
 const buildingMapPosition = {
-    x: SCREEN_WIDTH / 2 - BUILDING_WIDTH / 2,
-    y: 50 
+    x: 50, 
+    y: 100 
 };
 
 
@@ -91,9 +91,16 @@ const SettingsMenu = ({ onClose }) => {
 const WorldScreen = () => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     
-    // 1. STATE CHANGE: blobPosition now tracks the *World Offset* (how much the map is translated)
-    // The player is visually fixed at the center of the screen.
-    const [worldOffset, setWorldOffset] = useState({ x: 0, y: 0 });
+    // Calculate initial offset to ensure the building is visible near the top of the viewport
+    // The world must be translated so the world point (building.x, building.y - 150) is near the center of the screen.
+    const initialOffsetX = -(buildingMapPosition.x - (SCREEN_WIDTH / 2));
+    const initialOffsetY = -(buildingMapPosition.y + 150 - (SCREEN_HEIGHT / 2)); 
+    
+    // 1. ANIMATED STATE FOR WORLD OFFSET: Use Animated.ValueXY for smooth, continuous movement
+    const worldOffsetAnim = useRef(new Animated.ValueXY({ x: initialOffsetX, y: initialOffsetY })).current;
+    
+    // Non-animated ref to track the current raw offset (for logic)
+    const worldOffsetRef = useRef({ x: initialOffsetX, y: initialOffsetY });
 
     const [activeDirection, setActiveDirection] = useState(null); 
     const movementIntervalRef = useRef(null);
@@ -101,21 +108,18 @@ const WorldScreen = () => {
     // 2. ANIMATION VALUE: Used for the vertical bounce effect
     const bounceAnim = useRef(new Animated.Value(0)).current; 
 
-    // Function to run the subtle vertical bounce animation
     const triggerBounce = () => {
-        // Stop any current animation
         bounceAnim.stopAnimation();
         
-        // Sequence: Move Up (-BOUNCE_HEIGHT) then return to center (0)
         Animated.sequence([
             Animated.timing(bounceAnim, {
-                toValue: -BOUNCE_HEIGHT, // Move up
+                toValue: -BOUNCE_HEIGHT, 
                 duration: BOUNCE_DURATION / 2,
                 easing: Easing.out(Easing.ease),
                 useNativeDriver: true,
             }),
             Animated.timing(bounceAnim, {
-                toValue: 0, // Return to center
+                toValue: 0, 
                 duration: BOUNCE_DURATION / 2,
                 easing: Easing.in(Easing.ease),
                 useNativeDriver: true,
@@ -123,27 +127,29 @@ const WorldScreen = () => {
         ]).start();
     };
 
-    // Core function to move the world (opposite of direction)
+    // Core function to move the world (by updating the Animated Value)
     const moveWorld = (direction) => {
-        setWorldOffset(currentOffset => {
-            let newX = currentOffset.x;
-            let newY = currentOffset.y;
+        // Calculate the new raw offset
+        let newX = worldOffsetRef.current.x;
+        let newY = worldOffsetRef.current.y;
 
-            // Movement must be *OPPOSITE* to the direction the player is moving
-            // If player moves UP, the world must translate DOWN (increase Y offset)
-            switch (direction) {
-                case 'up': newY += STEP_SIZE; break;
-                case 'down': newY -= STEP_SIZE; break;
-                case 'left': newX += STEP_SIZE; break;
-                case 'right': newX -= STEP_SIZE; break;
-                default: return currentOffset; 
-            }
+        // Movement must be *OPPOSITE* to the direction the player is moving
+        switch (direction) {
+            case 'up': newY += STEP_SIZE; break;
+            case 'down': newY -= STEP_SIZE; break;
+            case 'left': newX += STEP_SIZE; break;
+            case 'right': newX -= STEP_SIZE; break;
+            default: return; 
+        }
 
-            // Trigger the visual bounce effect on every step
-            triggerBounce();
+        // Update the Animated Value
+        worldOffsetAnim.setValue({ x: newX, y: newY });
+        
+        // Update the reference for the next calculation
+        worldOffsetRef.current = { x: newX, y: newY };
 
-            return { x: newX, y: newY };
-        });
+        // Trigger the visual bounce effect on every step
+        triggerBounce();
     };
 
     // --- EFFECT HOOK: Manages the continuous movement loop ---
@@ -151,13 +157,10 @@ const WorldScreen = () => {
         if (activeDirection) {
             clearInterval(movementIntervalRef.current);
             movementIntervalRef.current = setInterval(() => {
-                // Call moveWorld instead of moveBlob
                 moveWorld(activeDirection); 
             }, MOVEMENT_SPEED_MS);
         } else {
             clearInterval(movementIntervalRef.current);
-            // Optionally reset bounce animation when movement stops
-            // Animated.timing(bounceAnim, {toValue: 0, duration: 100, useNativeDriver: true}).start();
         }
         return () => clearInterval(movementIntervalRef.current);
     }, [activeDirection]); 
@@ -187,11 +190,8 @@ const WorldScreen = () => {
         top: SCREEN_HEIGHT / 2 - BLOB_SIZE / 2,
     };
 
-    // The entire map content (building, grass, etc.) moves via worldOffset
-    const mapContentTransform = [
-        { translateX: worldOffset.x },
-        { translateY: worldOffset.y },
-    ];
+    // Extract the transform style from Animated.ValueXY
+    const mapContentTransform = worldOffsetAnim.getTranslateTransform();
 
     // The player blob only moves vertically via the bounceAnim
     const blobBounceTransform = [{ translateY: bounceAnim }];
@@ -206,32 +206,32 @@ const WorldScreen = () => {
                 </TouchableOpacity>
             </View>
 
-            {/* Game Map Area */}
+            {/* Game Map Area (Viewport) */}
             <View style={styles.gameContainer}>
                 
-                {/* --- MOVING MAP CONTENT LAYER --- */}
+                {/* 1. MOVING MAP CONTENT LAYER (Background and objects) */}
+                
+                {/* Pass the Animated transform to the background component */}
+                <WorldBackground 
+                    worldTransform={{ transform: mapContentTransform }}
+                    textureType="GRASS"
+                />
+
+                {/* --- RENDER MAP OBJECTS (Building) --- */}
+                {/* Map objects must share the same world translation as the background */}
                 <Animated.View
                     style={[
-                        styles.mapArea,
+                        styles.mapObjectContainer,
                         { transform: mapContentTransform }
                     ]}
                 >
-                    {/* Background (Always fill the mapArea) */}
-                    <LinearGradient
-                        colors={[pastelGrassStart, pastelGrassEnd]}
-                        start={{ x: 0.1, y: 0.1 }}
-                        end={{ x: 0.9, y: 0.9 }}
-                        style={StyleSheet.absoluteFillObject}
-                    />
-
-                    {/* RENDER BUILDING (Positioned relative to the world coordinate 0,0) */}
                     <View 
                         style={[
                             styles.building, 
                             { 
                                 width: pokeCenter.size.width, 
                                 height: pokeCenter.size.height,
-                                // Building position is relative to world map.
+                                // Position relative to world 0,0
                                 transform: [
                                     { translateX: buildingMapPosition.x }, 
                                     { translateY: buildingMapPosition.y }
@@ -252,12 +252,12 @@ const WorldScreen = () => {
                     </View>
                 </Animated.View>
 
-                {/* --- FIXED PLAYER BLOB LAYER (Always visually centered) --- */}
+                {/* 2. FIXED PLAYER BLOB LAYER (Always visually centered) */}
                 <Animated.View 
                     style={[
                         styles.blob, 
                         playerCenterStyle,
-                        { transform: blobBounceTransform } // Apply the bounce animation here
+                        { transform: blobBounceTransform } 
                     ]} 
                 />
             </View>
@@ -317,18 +317,16 @@ const styles = StyleSheet.create({
         color: primaryColor,
     },
     gameContainer: {
-        // This is the viewing window for the map
         flex: 1, 
         width: '100%',
-        overflow: 'hidden', // Crucial: clips map content outside the view
+        overflow: 'hidden', // Viewport clip
+        position: 'relative', 
     },
-    mapArea: {
-        // This container holds ALL world elements (grass, buildings, etc.)
+    mapObjectContainer: {
+        // Container for all non-background, movable map objects (like buildings)
         position: 'absolute',
         top: 0,
         left: 0,
-        width: SCREEN_WIDTH * 2, // Arbitrarily large map size for infinite scroll illusion
-        height: SCREEN_HEIGHT * 2,
     },
     // --- BUILDING STYLES ---
     building: {
