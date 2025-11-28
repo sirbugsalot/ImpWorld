@@ -1,18 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Platform, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons'; 
+// We are using LinearGradient for visual texture and depth
+import { LinearGradient } from 'expo-linear-gradient'; 
 
-// Game constants
-const MAP_SIZE = Dimensions.get('window').width * 0.8;
-const STEP_SIZE = 16; // Movement speed
+// Constants based on screen size
+const SCREEN_WIDTH = Dimensions.get('window').width;
+// Calculate height remaining after header (50+10+20) and controls (120+40)
+const SCREEN_HEIGHT = Dimensions.get('window').height - (Platform.OS === 'android' ? 100 : 120) - 160; 
+
+const STEP_SIZE = 16;
 const BLOB_SIZE = 40;
 
+// New Pastel/Aesthetic Colors
 const primaryColor = '#1D4ED8'; 
-const menuColor = '#4B5563'; // Gray-600 for D-Pad background
-const gameBgColor = '#225522'; // Dark moss green for GBA feel
-const dPadColor = '#555555'; // Dark gray for D-pad background
+const menuColor = '#4B5563'; 
+const dPadColor = '#555555'; 
 const textColor = '#1F2937';
+
+// Pastel Green/Grass Palette (using two shades for the gradient effect)
+const pastelGrassStart = '#A9D18E'; // Light, soft green
+const pastelGrassEnd = '#90EE90';   // Slightly brighter, Lawn Green
 
 // --- Settings Dropdown Component (Reused) ---
 const SettingsMenu = ({ onClose }) => {
@@ -51,8 +60,11 @@ const SettingsMenu = ({ onClose }) => {
 // The main component for the World UI
 const WorldScreen = () => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    // State for the blob's position (center of the map area initially)
-    const [blobPosition, setBlobPosition] = useState({ x: MAP_SIZE / 2 - BLOB_SIZE / 2, y: MAP_SIZE / 2 - BLOB_SIZE / 2 });
+    // State for the blob's position (center of the available screen space)
+    const [blobPosition, setBlobPosition] = useState({ 
+        x: SCREEN_WIDTH / 2 - BLOB_SIZE / 2, 
+        y: SCREEN_HEIGHT / 2 - BLOB_SIZE / 2 
+    });
 
     // Function to handle movement in four directions
     const moveBlob = (direction) => {
@@ -60,7 +72,6 @@ const WorldScreen = () => {
             let newX = currentPos.x;
             let newY = currentPos.y;
 
-            // Calculate new position based on direction
             switch (direction) {
                 case 'up': newY -= STEP_SIZE; break;
                 case 'down': newY += STEP_SIZE; break;
@@ -68,10 +79,12 @@ const WorldScreen = () => {
                 case 'right': newX += STEP_SIZE; break;
             }
 
-            // Boundary Check: Keep the blob within the map area
-            const max = MAP_SIZE - BLOB_SIZE;
-            newX = Math.max(0, Math.min(newX, max));
-            newY = Math.max(0, Math.min(newY, max));
+            // Boundary Check (now based on SCREEN_WIDTH/HEIGHT)
+            const maxX = SCREEN_WIDTH - BLOB_SIZE;
+            const maxY = SCREEN_HEIGHT - BLOB_SIZE;
+
+            newX = Math.max(0, Math.min(newX, maxX));
+            newY = Math.max(0, Math.min(newY, maxY));
 
             return { x: newX, y: newY };
         });
@@ -86,17 +99,23 @@ const WorldScreen = () => {
                 </TouchableOpacity>
             </View>
 
-            {/* Game Map Area (Dark Green Background) */}
+            {/* Game Map Area (Infinite Look with Gradient Texture) */}
             <View style={styles.gameContainer}>
-                <View style={styles.mapArea}>
-                    {/* Moveable Blob Character - Positioned absolutely via transform */}
+                {/* Linear Gradient provides a subtle texture effect */}
+                <LinearGradient
+                    colors={[pastelGrassStart, pastelGrassEnd]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.mapArea}
+                >
+                    {/* Moveable Blob Character */}
                     <View 
                         style={[
                             styles.blob, 
                             { transform: [{ translateX: blobPosition.x }, { translateY: blobPosition.y }] }
                         ]} 
                     />
-                </View>
+                </LinearGradient>
             </View>
             
             {/* --- Controls and D-Pad Area --- */}
@@ -166,20 +185,14 @@ const styles = StyleSheet.create({
         color: primaryColor,
     },
     gameContainer: {
-        flex: 1, // Takes up most vertical space
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 10,
+        flex: 1, // Takes up all remaining vertical space
+        width: '100%',
     },
     mapArea: {
-        width: MAP_SIZE,
-        height: MAP_SIZE,
-        backgroundColor: gameBgColor, // Dark Green Background
-        borderRadius: 10,
-        overflow: 'hidden', // Ensures blob doesn't move outside the map
+        flex: 1, // Fills the gameContainer
+        width: '100%',
         position: 'relative',
-        borderWidth: 5,
-        borderColor: '#558855', // Lighter green border
+        // Removed border to achieve "infinite" look
     },
     blob: {
         position: 'absolute',
@@ -195,11 +208,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 20,
         width: '100%',
-        backgroundColor: '#EAEAEA', // Light gray background for controls
+        backgroundColor: '#EAEAEA', 
         borderTopWidth: 1,
         borderTopColor: '#DDDDDD',
     },
-    // --- D-Pad Styles ---
+    // --- D-Pad Styles (Rest of styles remain the same for stability) ---
     dPad: {
         width: 120,
         height: 120,
@@ -231,7 +244,6 @@ const styles = StyleSheet.create({
         height: 35,
         margin: 2,
     },
-    // --- Action Buttons Placeholder ---
     actionButtons: {
         width: 120,
         height: 120,
@@ -247,7 +259,7 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
     },
-    // --- Dropdown Styles (Reused) ---
+    // --- Dropdown Styles ---
     dropdownContainer: {
         position: 'absolute',
         top: Platform.OS === 'android' ? 70 : 100, 
