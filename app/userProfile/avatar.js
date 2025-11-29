@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-// --- Firebase Imports (Reverted to Standard Modular Imports for Reliability) ---
-// This structure is often the most reliable way for modern bundlers to handle Firebase.
+// --- Firebase Imports (Standard Modular Imports) ---
+// This is the cleanest and most common way to import Firebase services.
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
-// -------------------------------------------------------------------------------
+// ----------------------------------------------------
 
 // --- FIREBASE CONFIG ---
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -96,7 +96,7 @@ const AvatarCustomizer = () => {
     // 1. Firebase Initialization and Authentication
     useEffect(() => {
         if (!firebaseConfig) {
-            setStatus("Error: Firebase config not found.");
+            setStatus("Error: Firebase config not found. Cannot initialize.");
             return;
         }
 
@@ -114,6 +114,7 @@ const AvatarCustomizer = () => {
                     setStatus('Authenticated. Loading avatar...');
                 } else {
                     try {
+                        // Attempt initial sign-in if no user is found
                         if (initialAuthToken) {
                             await signInWithCustomToken(auth, initialAuthToken);
                         } else {
@@ -149,7 +150,15 @@ const AvatarCustomizer = () => {
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
-                setCustomization(docSnap.data());
+                // IMPORTANT: Ensure the loaded data is spread with defaults in case of missing keys
+                setCustomization(prev => ({
+                    ...defaultCustomization,
+                    ...docSnap.data(),
+                    shape: {
+                        ...defaultCustomization.shape,
+                        ...docSnap.data().shape,
+                    }
+                }));
                 setStatus('Avatar loaded successfully.');
             } else {
                 // If no saved data, save and use the default
@@ -195,7 +204,6 @@ const AvatarCustomizer = () => {
         setCustomization(newCustomization);
     };
 
-    // FIX: Calling saveAvatar instead of recursively calling handleSave
     const handleSave = () => {
         saveAvatar(customization);
     };
@@ -493,4 +501,4 @@ const styles = StyleSheet.create({
     }
 });
 
-                          
+              
