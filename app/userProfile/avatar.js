@@ -1,10 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-// Firebase Imports
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+// --- Firebase Imports (Fixed for Bundler Compatibility) ---
+import * as firebaseApp from 'firebase/app';
+import * as firebaseAuth from 'firebase/auth';
+import * as firebaseFirestore from 'firebase/firestore';
+
+// Destructure the functions from the wildcard imports
+const { initializeApp } = firebaseApp;
+const { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } = firebaseAuth;
+const { getFirestore, doc, setDoc, getDoc } = firebaseFirestore;
+// --------------------------------------------------------
 
 // --- FIREBASE CONFIG ---
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -194,7 +200,7 @@ const AvatarCustomizer = () => {
     };
 
     const handleSave = () => {
-        saveAvatar(customization);
+        handleSave(customization);
     };
 
     // UI helper for sliders (using TextInput for cross-platform compatibility)
@@ -490,4 +496,4 @@ const styles = StyleSheet.create({
     }
 });
 
-      
+        
