@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avatar Customization</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .egg-preview {
+            /* Standard egg shape base */
+            border: 2px solid #1f2937;
+            transition: all 0.3s ease;
+        }
+        /* Style for the slider-like input */
+        .slider-input {
+            appearance: none;
+            width: 100%;
+            height: 10px;
+            background: #d1d5db;
+            border-radius: 5px;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+        .slider-input:hover { opacity: 1; }
+        .slider-input::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #10b981;
+            cursor: pointer;
+        }
+        .slider-input::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #10b981;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app" class="p-4 sm:p-8 max-w-lg mx-auto bg-white shadow-xl rounded-xl mt-8">
+        <h1 class="text-3xl font-extrabold text-blue-700 mb-2">Avatar Customization</h1>
+        <p id="user-id-display" class="text-sm text-gray-500 mb-2">User ID: Signing in...</p>
+        <p id="status-display" class="text-base font-semibold text-blue-500 mb-4">Initializing...</p>
+
+        <!-- Preview Area -->
+        <div class="flex flex-col items-center mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <h2 class="text-xl font-bold text-gray-700 mb-3">Live Preview</h2>
+            <div id="preview-box" class="w-36 h-36 bg-gray-200 rounded-lg flex items-center justify-center">
+                <div id="avatar-renderer" class="egg-preview"></div>
+            </div>
+        </div>
+
+        <!-- Type Selector -->
+        <div class="p-4 bg-white rounded-lg border border-gray-100 mb-6 shadow-sm">
+            <h3 class="text-lg font-bold text-gray-700 border-b pb-2 mb-3">Avatar Type</h3>
+            <div class="flex space-x-4">
+                <button id="type-egg" class="flex-1 p-3 text-center rounded-lg font-semibold transition bg-blue-600 text-white hover:bg-blue-700">Egg</button>
+                <button id="type-human" class="flex-1 p-3 text-center rounded-lg font-semibold transition bg-gray-200 text-gray-700 hover:bg-gray-300">Human (WIP)</button>
+            </div>
+        </div>
+
+        <!-- Egg Customization Controls -->
+        <div id="egg-controls" class="p-4 bg-white rounded-lg border border-gray-100 shadow-sm">
+            <h3 class="text-lg font-bold text-gray-700 border-b pb-2 mb-4">Egg Shape & Color</h3>
+            
+            <!-- Color Input -->
+            <div class="flex items-center space-x-4 mb-4">
+                <label for="color-input" class="text-sm font-medium text-gray-700 w-1/3">Color (Hex):</label>
+                <input type="color" id="color-picker" class="w-10 h-10 rounded-full border-2 border-gray-300" value="#8A2BE2">
+                <input type="text" id="color-input" class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500" maxlength="7" value="#8A2BE2">
+            </div>
+
+            <!-- Width Slider -->
+            <div class="mb-4">
+                <label for="width-slider" id="width-label" class="text-sm font-medium text-gray-700 block mb-1">Width (30):</label>
+                <input type="range" id="width-slider" min="20" max="60" step="1" value="30" class="slider-input">
+            </div>
+
+            <!-- Height Slider -->
+            <div class="mb-4">
+                <label for="height-slider" id="height-label" class="text-sm font-medium text-gray-700 block mb-1">Height (40):</label>
+                <input type="range" id="height-slider" min="20" max="60" step="1" value="40" class="slider-input">
+            </div>
+
+            <!-- Waist Slider -->
+            <div class="mb-4">
+                <label for="waist-slider" id="waist-label" class="text-sm font-medium text-gray-700 block mb-1">Waist Position (20):</label>
+                <input type="range" id="waist-slider" min="0" max="40" step="1" value="20" class="slider-input">
+            </div>
+        </div>
+        
+        <!-- Save Button -->
+        <button id="save-button" class="mt-6 w-full flex items-center justify-center bg-green-600 hover:bg-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition duration-150">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1h4m-4 0V4a1 1 0 00-1-1H9a1 1 0 00-1 1v3m-2 0h2m-4 0V4a1 1 0 011-1h10a1 1 0 011 1v3"></path></svg>
+            Save Customization
+        </button>
+    </div>
+
+    <!-- Load Firebase SDKs via CDN -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
+
+    <script>
+        // --- FIREBASE CONFIG & GLOBALS ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const avatarDocPath = `customization/player_avatar`;
+
+        let db = null;
+        let auth = null;
+        let userId = null;
+        
+        const DEFAULT_COLOR = '#8A2BE2'; 
+        const MIN_DIM = 20;
+        const MAX_DIM = 60;
+        
+        let customization = {
+            type: 'egg',
+            color: DEFAULT_COLOR,
+            shape: {
+                width: 30,
+                height: 40,
+                waist: 20,
+            }
+        };
+
+        // --- DOM ELEMENTS ---
+        const statusDisplay = document.getElementById('status-display');
+        const userIdDisplay = document.getElementById('user-id-display');
+        const avatarRenderer = document.getElementById('avatar-renderer');
+        const eggControls = document.getElementById('egg-controls');
+        
+        const colorInput = document.getElementById('color-input');
+        const colorPicker = document.getElementById('color-picker');
+        const widthSlider = document.getElementById('width-slider');
+        const heightSlider = document.getElementById('height-slider');
+        const waistSlider = document.getElementById('waist-slider');
+        const widthLabel = document.getElementById('width-label');
+        const heightLabel = document.getElementById('height-label');
+        const waistLabel = document.getElementById('waist-label');
+        
+        const typeEggButton = document.getElementById('type-egg');
+        const typeHumanButton = document.getElementById('type-human');
+        const saveButton = document.getElementById('save-button');
+
+        // --- RENDERER FUNCTION ---
+        function updateAvatarRenderer() {
+            const { type, color, shape } = customization;
+            avatarRenderer.innerHTML = '';
+            avatarRenderer.className = 'egg-preview';
+            
+            if (type === 'egg') {
+                const PREVIEW_SCALE = 2.5; 
+                const { width, height, waist } = shape;
+                
+                const previewWidth = width * PREVIEW_SCALE; 
+                const previewHeight = height * PREVIEW_SCALE; 
+                
+                const radiusFactor = 0.5;
+                const topRadius = (waist < height / 2) ? width * radiusFactor * 1.5 : width * radiusFactor * 0.5;
+                const bottomRadius = (waist > height / 2) ? width * radiusFactor * 1.5 : width * radiusFactor * 0.5;
+                const minRadius = width * 0.2; 
+
+                // Set styles for the egg shape
+                avatarRenderer.style.width = `${previewWidth}px`;
+                avatarRenderer.style.height = `${previewHeight}px`;
+                avatarRenderer.style.backgroundColor = color;
+                avatarRenderer.style.borderRadius = 
+                    `${Math.max(topRadius, minRadius)}px ${Math.max(topRadius, minRadius)}px ${Math.max(bottomRadius, minRadius)}px ${Math.max(bottomRadius, minRadius)}px`;
+
+                // Update UI Labels
+                widthLabel.textContent = `Width (${width}):`;
+                heightLabel.textContent = `Height (${height}):`;
+                waistLabel.textContent = `Waist Position (${waist}):`;
+
+            } else if (type === 'human') {
+                // Placeholder for Human avatar
+                avatarRenderer.style.width = '50px';
+                avatarRenderer.style.height = '80px';
+                avatarRenderer.style.backgroundColor = color;
+                avatarRenderer.style.borderRadius = '5px';
+                avatarRenderer.innerHTML = `
+                    <div style="width: 20px; height: 20px; border-radius: 50%; background: white; border: 1px solid black; margin-bottom: 2px;"></div>
+                    <div style="width: 30px; height: 40px; background: white; border: 1px solid black; border-radius: 8px;"></div>
+                `;
+            }
+
+            eggControls.style.display = (type === 'egg') ? 'block' : 'none';
+            typeEggButton.classList.toggle('bg-blue-600', type === 'egg');
+            typeEggButton.classList.toggle('text-white', type === 'egg');
+            typeEggButton.classList.toggle('bg-gray-200', type !== 'egg');
+            typeEggButton.classList.toggle('text-gray-700', type !== 'egg');
+
+            typeHumanButton.classList.toggle('bg-blue-600', type === 'human');
+            typeHumanButton.classList.toggle('text-white', type === 'human');
+            typeHumanButton.classList.toggle('bg-gray-200', type !== 'human');
+            typeHumanButton.classList.toggle('text-gray-700', type !== 'human');
+        }
+
+        // --- FIREBASE OPERATIONS ---
+
+        async function saveAvatar(data) {
+            if (!db || !userId) return;
+            statusDisplay.textContent = 'Saving...';
+
+            try {
+                const docRef = firebase.firestore.doc(db, `artifacts/${appId}/users/${userId}/${avatarDocPath}`);
+                await firebase.firestore.setDoc(docRef, data);
+                customization = data;
+                updateAvatarRenderer();
+                statusDisplay.textContent = 'Avatar saved successfully!';
+            } catch (e) {
+                console.error("Save Avatar Error:", e);
+                statusDisplay.textContent = 'Error saving avatar.';
+            }
+        }
+
+        async function loadAvatar() {
+            if (!db || !userId) return;
+            statusDisplay.textContent = 'Loading avatar...';
+
+            try {
+                const docRef = firebase.firestore.doc(db, `artifacts/${appId}/users/${userId}/${avatarDocPath}`);
+                const docSnap = await firebase.firestore.getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const loadedData = docSnap.data();
+                    customization = {
+                        ...DEFAULT_COLOR,
+                        ...loadedData,
+                        shape: {
+                            ...customization.shape,
+                            ...loadedData.shape
+                        }
+                    };
+                    
+                    // Update UI inputs with loaded values
+                    colorInput.value = customization.color;
+                    colorPicker.value = customization.color;
+                    widthSlider.value = customization.shape.width;
+                    heightSlider.value = customization.shape.height;
+                    waistSlider.max = customization.shape.height; // Important: update max constraint
+                    waistSlider.value = customization.shape.waist;
+
+                    statusDisplay.textContent = 'Avatar loaded successfully.';
+                } else {
+                    // Initialize with default if document doesn't exist
+                    await saveAvatar(customization);
+                }
+                updateAvatarRenderer();
+            } catch (e) {
+                console.error("Load Avatar Error:", e);
+                statusDisplay.textContent = 'Error loading avatar.';
+            }
+        }
+
+        // --- EVENT HANDLERS ---
+        function handleUpdate() {
+            // Update color
+            customization.color = colorInput.value;
+            colorPicker.value = colorInput.value;
+            
+            // Update shape
+            const width = parseInt(widthSlider.value);
+            const height = parseInt(heightSlider.value);
+            let waist = parseInt(waistSlider.value);
+            
+            // Ensure waist constraint is updated first
+            waistSlider.max = height;
+            if (waist > height) {
+                waist = height;
+                waistSlider.value = height;
+            }
+            
+            customization.shape = { width, height, waist };
+
+            updateAvatarRenderer();
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            if (!firebaseConfig) {
+                statusDisplay.textContent = "Error: Firebase config not found.";
+                return;
+            }
+
+            try {
+                const app = firebase.initializeApp(firebaseConfig);
+                auth = firebase.auth.getAuth(app);
+                db = firebase.firestore.getFirestore(app);
+
+                firebase.auth.onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        userIdDisplay.textContent = `User ID: ${userId}`;
+                        await loadAvatar();
+                    } else {
+                        try {
+                            if (initialAuthToken) {
+                                await firebase.auth.signInWithCustomToken(auth, initialAuthToken);
+                            } else {
+                                await firebase.auth.signInAnonymously(auth);
+                            }
+                        } catch (error) {
+                            console.error("Firebase Auth Error:", error);
+                            statusDisplay.textContent = 'Error signing in.';
+                        }
+                    }
+                });
+
+                // Attach Event Listeners
+                widthSlider.addEventListener('input', handleUpdate);
+                heightSlider.addEventListener('input', handleUpdate);
+                waistSlider.addEventListener('input', handleUpdate);
+                colorInput.addEventListener('input', handleUpdate);
+                colorPicker.addEventListener('input', (e) => {
+                    colorInput.value = e.target.value;
+                    handleUpdate();
+                });
+
+                typeEggButton.addEventListener('click', () => {
+                    customization.type = 'egg';
+                    updateAvatarRenderer();
+                });
+                
+                typeHumanButton.addEventListener('click', () => {
+                    customization.type = 'human';
+                    updateAvatarRenderer();
+                });
+
+                saveButton.addEventListener('click', () => saveAvatar(customization));
+
+                updateAvatarRenderer(); // Initial render
+            } catch (e) {
+                console.error("Initialization Error:", e);
+                statusDisplay.textContent = `Fatal Error during init: ${e.message}`;
+            }
+        };
+
+    </script>
+</body>
+</html>
+
