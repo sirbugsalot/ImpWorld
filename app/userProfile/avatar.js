@@ -1,16 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-// --- Firebase Imports (Fixed for Bundler Compatibility) ---
-import * as firebaseApp from 'firebase/app';
-import * as firebaseAuth from 'firebase/auth';
-import * as firebaseFirestore from 'firebase/firestore';
-
-// Destructure the functions from the wildcard imports
-const { initializeApp } = firebaseApp;
-const { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } = firebaseAuth;
-const { getFirestore, doc, setDoc, getDoc } = firebaseFirestore;
-// --------------------------------------------------------
+// --- Firebase Imports (Reverted to Standard Modular Imports for Reliability) ---
+// This structure is often the most reliable way for modern bundlers to handle Firebase.
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+// -------------------------------------------------------------------------------
 
 // --- FIREBASE CONFIG ---
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -199,8 +195,9 @@ const AvatarCustomizer = () => {
         setCustomization(newCustomization);
     };
 
+    // FIX: Calling saveAvatar instead of recursively calling handleSave
     const handleSave = () => {
-        handleSave(customization);
+        saveAvatar(customization);
     };
 
     // UI helper for sliders (using TextInput for cross-platform compatibility)
@@ -496,4 +493,4 @@ const styles = StyleSheet.create({
     }
 });
 
-        
+                          
