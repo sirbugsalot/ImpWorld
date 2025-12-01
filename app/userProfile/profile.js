@@ -1,124 +1,115 @@
-import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Dimensions } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons'; 
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// Import the modular class definition
-import Avatar from './avatar'; 
+// --- GLOBAL FIREBASE SETUP VARIABLES ---
+// These global variables will be populated by the CDN load process inside useFirebaseCdnLoader.
+let firebase = null;
+let auth = null;
+let db = null;
 
-// Instantiate the avatar object globally for simplicity in this step
-// In a real app, this would be managed by global state (e.g., Context or Redux)
-const playerAvatar = new Avatar(); 
+// Global configuration variables passed by the environment
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-const primaryColor = '#1D4ED8'; 
-const BLOB_SIZE = 100;
+const AuthContext = createContext();
 
-const ProfileScreen = () => {
-    const router = useRouter();
-    
-    // Get the color defined by the Avatar class (default is 'blue')
-    const avatarColor = playerAvatar.getBlobColor();
+/**
+ * Custom hook to handle loading Firebase SDKs via CDN.
+ * This is crucial for environments where standard npm imports fail.
+ */
+const useFirebaseCdnLoader = () => {
+    const [isCdnLoaded, setIsCdnLoaded] = useState(false);
 
-    return (
-        <View style={styles.container}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()}>
-                    <Ionicons name="chevron-back" size={32} color={primaryColor} />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Player Profile</Text>
-                <View style={{ width: 32 }} /> {/* Spacer */}
-            </View>
+    useEffect(() => {
+        if (isCdnLoaded) return;
 
-            <View style={styles.content}>
-                <Text style={styles.label}>Your Avatar (V0 Blob)</Text>
-                <Text style={styles.subLabel}>Skin Tone: {avatarColor}</Text>
+        const loadScript = (url) => new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = url;
+            script.onload = resolve;
+            script.onerror = resolve; 
+            document.head.appendChild(script);
+        });
 
-                {/* Avatar Visual Placeholder (the blob) */}
-                <View style={[
-                    styles.avatarBlob, 
-                    { backgroundColor: avatarColor }
-                ]} />
-                
-                {/* Status Display of Avatar Properties */}
-                <View style={styles.statsContainer}>
-                    <Text style={styles.statText}>Hat: {playerAvatar.hat}</Text>
-                    <Text style={styles.statText}>Shirt: {playerAvatar.shirt}</Text>
-                    <Text style={styles.statText}>Pants: {playerAvatar.pants}</Text>
-                    <Text style={styles.statText}>Shoes: {playerAvatar.shoes}</Text>
-                    <Text style={styles.statText}>Arms Style: {playerAvatar.arms.style}</Text>
-                    <Text style={styles.statText}>Legs Style: {playerAvatar.legs.style}</Text>
-                </View>
-                
-            </View>
-        </View>
-    );
+        // Load Firebase Core, Auth, and Firestore SDKs
+        Promise.all([
+            loadScript("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"),
+            loadScript("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"),
+            loadScript("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"),
+        ]).then(() => {
+            if (window.firebase) {
+                firebase = window.firebase;
+                const appInstance = firebase.initializeApp(firebaseConfig);
+                auth = firebase.getAuth(appInstance);
+                db = firebase.getFirestore(appInstance);
+                firebase.setLogLevel('debug'); // Enable Firestore logging
+                setIsCdnLoaded(true);
+            } else {
+                console.error("Profile: Firebase SDK failed to load globally.");
+            }
+        });
+    }, [isCdnLoaded]);
+
+    return isCdnLoaded;
 };
 
-export default ProfileScreen;
+/**
+ * Provider component to manage Firebase Authentication state.
+ */
+export const AuthProvider = ({ children }) => {
+    const isCdnLoaded = useFirebaseCdnLoader();
+    const [userId, setUserId] = useState(null);
+    const [isAuthReady, setIsAuthReady] = useState(false);
+    const [loadingMessage, setLoadingMessage] = useState('Loading Firebase SDKs...');
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F9FAFB', 
-        paddingTop: 50,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        marginBottom: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-        paddingBottom: 10,
-    },
-    headerTitle: {
-        fontSize: 24,
-        fontWeight: '700',
-        color: primaryColor,
-    },
-    content: {
-        flex: 1,
-        alignItems: 'center',
-        padding: 20,
-    },
-    label: {
-        fontSize: 20,
-        fontWeight: '600',
-        color: '#1F2937',
-        marginBottom: 5,
-    },
-    subLabel: {
-        fontSize: 16,
-        color: '#4B5563',
-        marginBottom: 30,
-    },
-    avatarBlob: {
-        width: BLOB_SIZE,
-        height: BLOB_SIZE,
-        borderRadius: BLOB_SIZE / 2,
-        marginBottom: 40,
-        // Added shadow for depth
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.4,
-        shadowRadius: 10,
-        elevation: 10,
-    },
-    statsContainer: {
-        width: '80%',
-        padding: 15,
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        shadowColor: '#000',
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
-    },
-    statText: {
-        fontSize: 16,
-        color: '#4B5563',
-        lineHeight: 24,
-    }
-});
+    // Effect to handle the initial anonymous sign-in process
+    useEffect(() => {
+        if (isCdnLoaded && auth && !userId) {
+            setLoadingMessage('Authenticating...');
+
+            const unsubscribe = auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    setUserId(user.uid);
+                    setIsAuthReady(true);
+                    setLoadingMessage('Connection established. Profile ready.');
+                } else {
+                    // No user, attempt initial sign-in
+                    try {
+                        if (initialAuthToken) {
+                            await firebase.signInWithCustomToken(auth, initialAuthToken);
+                        } else {
+                            // Sign in anonymously for Guest profile
+                            await firebase.signInAnonymously(auth);
+                        }
+                    } catch (e) {
+                        setLoadingMessage(`Authentication Failed: ${e.message}`);
+                        console.error("Fatal Auth Error:", e);
+                    }
+                }
+            });
+            return () => {
+                if (unsubscribe) unsubscribe();
+            };
+        }
+    }, [isCdnLoaded]);
+
+
+    const value = {
+        userId,
+        dbInstance: db,
+        isAuthReady,
+        loadingMessage,
+        appId,
+        firebase, // Export firebase global for doc, setDoc utilities in components
+    };
+
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+/**
+ * Custom hook for consuming authentication state and utility functions.
+ */
+export const useAuth = () => {
+    return useContext(AuthContext);
+};
+
