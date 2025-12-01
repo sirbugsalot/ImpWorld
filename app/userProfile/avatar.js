@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from './profile'; // Corrected import path
+import { useAuth } from '../utils/firebase_auth'; // Corrected import path
 
 const AVATAR_DOC_PATH = `customization/player_avatar`;
 const DEFAULT_CUSTOMIZATION = {
@@ -9,7 +9,9 @@ const DEFAULT_CUSTOMIZATION = {
 };
 
 const AvatarCustomizer = ({ onCustomizationComplete }) => {
-    const { userId, dbInstance, isAuthReady, appId, firebase } = useAuth();
+    const { userId, dbInstance, isAuthReady, appId, fsUtils } = useAuth();
+    const { doc, getDoc, setDoc } = fsUtils; // Destructure Firestore utilities
+    
     const [customization, setCustomization] = useState(DEFAULT_CUSTOMIZATION);
     const [status, setStatus] = useState('Awaiting connection...');
     
@@ -20,17 +22,15 @@ const AvatarCustomizer = ({ onCustomizationComplete }) => {
         if (isAuthReady && userId && dbInstance) {
             loadAvatar(userId);
         }
-        // NOTE: The dependency array includes isAuthReady, userId, and dbInstance 
-        // to ensure we only load data once authentication is successful and dependencies are available.
     }, [isAuthReady, userId, dbInstance]); 
 
     const loadAvatar = useCallback(async (uid) => {
-        if (!dbInstance || !uid || !firebase) return;
+        if (!dbInstance || !uid || !fsUtils) return;
         setStatus('Loading avatar...');
 
         try {
-            const docRef = firebase.doc(dbInstance, `artifacts/${appId}/users/${uid}/${AVATAR_DOC_PATH}`);
-            const docSnap = await firebase.getDoc(docRef);
+            const docRef = doc(dbInstance, `artifacts/${appId}/users/${uid}/${AVATAR_DOC_PATH}`);
+            const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
                 const loadedData = docSnap.data();
@@ -49,25 +49,24 @@ const AvatarCustomizer = ({ onCustomizationComplete }) => {
             console.error("Load Avatar Error:", e);
             setStatus(`Error loading avatar: ${e.message}`);
         }
-    }, [dbInstance, appId, firebase]);
+    }, [dbInstance, appId, fsUtils]);
 
     const saveAvatar = useCallback(async (data, uid = userId) => {
-        if (!dbInstance || !uid || !firebase) return;
+        if (!dbInstance || !uid || !fsUtils) return;
         setStatus('Saving...');
 
         try {
-            const docRef = firebase.doc(dbInstance, `artifacts/${appId}/users/${uid}/${AVATAR_DOC_PATH}`);
-            await firebase.setDoc(docRef, data);
+            const docRef = doc(dbInstance, `artifacts/${appId}/users/${uid}/${AVATAR_DOC_PATH}`);
+            await setDoc(docRef, data);
             setCustomization(data);
             setStatus('Avatar saved successfully!');
         } catch (e) {
             console.error("Save Avatar Error:", e);
             setStatus(`Error saving avatar: ${e.message}`);
         }
-    }, [dbInstance, appId, userId, firebase]);
+    }, [dbInstance, appId, userId, fsUtils]);
 
-    // --- UI/Handler Functions ---
-    
+    // --- UI/Handler Functions (Unchanged) ---
     const handleShapeChange = (name, value) => {
         const newShape = { ...customization.shape, [name]: parseInt(value) };
         if (name === 'height' && newShape.waist > newShape.height) { newShape.waist = newShape.height; }
@@ -210,4 +209,4 @@ const AvatarCustomizer = ({ onCustomizationComplete }) => {
 
 export default AvatarCustomizer;
 
-                    
+            
