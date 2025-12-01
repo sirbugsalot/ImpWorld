@@ -111,7 +111,9 @@
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
 
     <script type="module">
-        import { initializeAndAuthenticate } from './app/utils/firebase_auth.js';
+        // --- CORRECTED IMPORT PATH ---
+        // Since avatar.html is in app/userProfile/, we go up two levels to get to app/utils/
+        import { initializeAndAuthenticate } from '../../utils/firebase_auth.js'; 
         
         // Use standard modular imports for Firestore operations
         import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -293,11 +295,15 @@
         // --- INITIALIZATION ---
         window.onload = async function() {
             try {
+                // Use the centralized utility
                 const { db: initializedDb, userId: initializedUserId } = await initializeAndAuthenticate();
                 db = initializedDb;
                 userId = initializedUserId;
                 
-                userIdDisplay.textContent = `User ID: ${userId} (Guest)`;
+                // Show the user ID and status
+                const auth = firebase.auth.getAuth(); // Get the auth instance to check if it's anonymous
+                const isAnonymous = auth.currentUser.isAnonymous;
+                userIdDisplay.textContent = `User ID: ${userId} (${isAnonymous ? 'Guest' : 'Linked'})`;
                 
                 // Load data after successful authentication
                 await loadAvatar(); 
@@ -325,7 +331,8 @@
                 saveButton.addEventListener('click', () => saveAvatar(customization));
 
             } catch (e) {
-                statusDisplay.textContent = `FATAL ERROR: ${e.message}`;
+                statusDisplay.textContent = `FATAL ERROR: Failed to initialize. Check console for details.`;
+                console.error("Initialization Error in avatar.html:", e);
             }
         };
 
@@ -333,4 +340,3 @@
 </body>
 </html>
 
-    
