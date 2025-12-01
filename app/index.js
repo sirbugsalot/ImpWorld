@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { AuthProvider, useAuth } from './userProfile/profile';
+import { AuthProvider, useAuth } from './utils/firebase_auth'; // Corrected import path
 import AvatarCustomizer from './userProfile/avatar';
-import WorldView from './env/world'; // Renamed import
+import WorldView from './env/world';
 
 const SCREENS = {
     CUSTOMIZER: 'customizer',
-    WORLD: 'world' // Updated screen name
+    WORLD: 'world'
 };
 const DEFAULT_AVATAR = {
     type: 'egg',
@@ -16,7 +16,6 @@ const DEFAULT_AVATAR = {
 // --- Settings Menu Dropdown Component (Web/Tailwind) ---
 const SettingsMenu = ({ onNavigate, onClose }) => {
     
-    // Placeholder function to avoid using alert()
     const handleAction = (action) => {
         console.log(`Action: ${action}`);
     };
