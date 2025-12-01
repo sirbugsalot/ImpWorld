@@ -1,103 +1,78 @@
-// --- Firebase Authentication Utility ---
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// Load Firebase SDKs via CDN - required imports for pure JS module
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+// --- STANDARD ES MODULE FIREBASE IMPORTS ---
+// This is the fix for the 'Unable to resolve module' error in Expo/Metro.
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, getDoc, setDoc, setLogLevel } from 'firebase/firestore'; 
 
+const AuthContext = createContext();
+
+// Global configuration variables passed by the environment
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-// Global Firebase instance references
-let firebaseApp = null;
-let authInstance = null;
-let dbInstance = null;
-let isInitializing = false;
+// --- INITIALIZE FIREBASE SERVICES (Runs once) ---
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+setLogLevel('debug'); // Enable Firestore logging
 
 /**
- * Initializes Firebase, authenticates the user (anonymously or via token),
- * and waits until the auth state is confirmed.
- * @returns {Promise<{auth: firebase.auth.Auth, db: firebase.firestore.Firestore, userId: string}>}
+ * Provider component to manage Firebase Authentication state.
  */
-export async function initializeAndAuthenticate() {
-    if (dbInstance && authInstance) {
-        // Already initialized and authenticated
-        return { auth: authInstance, db: dbInstance, userId: authInstance.currentUser.uid };
-    }
-    
-    if (isInitializing) {
-        // Prevent concurrent initialization attempts
-        return new Promise(resolve => {
-            const check = setInterval(() => {
-                if (dbInstance && authInstance) {
-                    clearInterval(check);
-                    resolve({ auth: authInstance, db: dbInstance, userId: authInstance.currentUser.uid });
-                }
-            }, 100);
-        });
-    }
+export const AuthProvider = ({ children }) => {
+    const [userId, setUserId] = useState(null);
+    const [isAuthReady, setIsAuthReady] = useState(false);
+    const [loadingMessage, setLoadingMessage] = useState('Initializing Firebase...');
 
-    isInitializing = true;
-    
-    if (!firebaseConfig) {
-        console.error("FIREBASE_AUTH_UTIL: Firebase config not found.");
-        throw new Error("Firebase configuration is missing.");
-    }
-
-    try {
-        firebaseApp = initializeApp(firebaseConfig);
-        authInstance = getAuth(firebaseApp);
-        dbInstance = getFirestore(firebaseApp);
-        
-        // Use a promise to wait for the initial authentication state
-        const user = await new Promise(resolve => {
-            const unsubscribe = onAuthStateChanged(authInstance, (user) => {
-                // If a user is already signed in (e.g., retained session), resolve immediately
-                if (user) {
-                    unsubscribe();
-                    resolve(user);
-                }
-            });
-
-            // If no user is immediately found, attempt sign-in
-            (async () => {
+    // Effect to handle the initial anonymous sign-in process
+    useEffect(() => {
+        // Set up the listener immediately
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                setUserId(user.uid);
+                setIsAuthReady(true);
+                setLoadingMessage('Connection established. Profile ready.');
+            } else {
+                // If no user is found (first load), attempt sign-in
                 try {
-                    let userCredential;
                     if (initialAuthToken) {
-                        userCredential = await signInWithCustomToken(authInstance, initialAuthToken);
+                        await signInWithCustomToken(auth, initialAuthToken);
                     } else {
-                        // Default to Anonymous sign-in for the "Guest Account" experience
-                        userCredential = await signInAnonymously(authInstance);
-                    }
-                    // Wait for onAuthStateChanged to pick this up, but ensure we resolve if successful
-                    if (userCredential && userCredential.user) {
-                        unsubscribe();
-                        resolve(userCredential.user);
+                        // Sign in anonymously for Guest profile
+                        await signInAnonymously(auth);
                     }
                 } catch (e) {
-                    console.error("FIREBASE_AUTH_UTIL: Initial sign-in error.", e);
-                    // Resolve with null if sign-in fails, allowing the caller to handle the error
-                    resolve(null); 
+                    setLoadingMessage(`Authentication Failed: ${e.message}`);
+                    console.error("Fatal Auth Error:", e);
                 }
-            })();
+            }
         });
-        
-        isInitializing = false;
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
+    }, []);
 
-        if (!user) {
-            throw new Error("Failed to sign in and retrieve user ID.");
-        }
 
-        return { auth: authInstance, db: dbInstance, userId: user.uid };
+    const value = {
+        userId,
+        dbInstance: db,
+        isAuthReady,
+        loadingMessage,
+        appId,
+        // Pass the required utility functions for components to use
+        fsUtils: { doc, getDoc, setDoc, auth }, 
+    };
 
-    } catch (e) {
-        isInitializing = false;
-        console.error("FIREBASE_AUTH_UTIL: Initialization failed:", e);
-        throw e;
-    }
-}
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
 
-// Export the core application parts for use by other modules
-export const getAuthInstance = () => authInstance;
-export const getDbInstance = () => dbInstance;
+/**
+ * Custom hook for consuming authentication state and utility functions.
+ */
+export const useAuth = () => {
+    return useContext(AuthContext);
+};
+
