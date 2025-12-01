@@ -105,20 +105,22 @@
         </button>
     </div>
 
-    <!-- Load Firebase SDKs via CDN -->
+    <!-- The HTML File must load the Firebase SDKs for the utility to import them -->
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
 
-    <script>
-        // --- FIREBASE CONFIG & GLOBALS ---
+    <script type="module">
+        import { initializeAndAuthenticate } from './app/utils/firebase_auth.js';
+        
+        // Use standard modular imports for Firestore operations
+        import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- FIREBASE GLOBALS ---
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
         const avatarDocPath = `customization/player_avatar`;
 
         let db = null;
-        let auth = null;
         let userId = null;
         
         const DEFAULT_COLOR = '#8A2BE2'; 
@@ -135,7 +137,7 @@
             }
         };
 
-        // --- DOM ELEMENTS ---
+        // --- DOM ELEMENTS (same as before) ---
         const statusDisplay = document.getElementById('status-display');
         const userIdDisplay = document.getElementById('user-id-display');
         const avatarRenderer = document.getElementById('avatar-renderer');
@@ -154,7 +156,7 @@
         const typeHumanButton = document.getElementById('type-human');
         const saveButton = document.getElementById('save-button');
 
-        // --- RENDERER FUNCTION ---
+        // --- RENDERER FUNCTION (same as before) ---
         function updateAvatarRenderer() {
             const { type, color, shape } = customization;
             avatarRenderer.innerHTML = '';
@@ -208,15 +210,15 @@
             typeHumanButton.classList.toggle('text-gray-700', type !== 'human');
         }
 
-        // --- FIREBASE OPERATIONS ---
+        // --- FIREBASE OPERATIONS (simplified) ---
 
         async function saveAvatar(data) {
             if (!db || !userId) return;
             statusDisplay.textContent = 'Saving...';
 
             try {
-                const docRef = firebase.firestore.doc(db, `artifacts/${appId}/users/${userId}/${avatarDocPath}`);
-                await firebase.firestore.setDoc(docRef, data);
+                const docRef = doc(db, `artifacts/${appId}/users/${userId}/${avatarDocPath}`);
+                await setDoc(docRef, data);
                 customization = data;
                 updateAvatarRenderer();
                 statusDisplay.textContent = 'Avatar saved successfully!';
@@ -231,13 +233,13 @@
             statusDisplay.textContent = 'Loading avatar...';
 
             try {
-                const docRef = firebase.firestore.doc(db, `artifacts/${appId}/users/${userId}/${avatarDocPath}`);
-                const docSnap = await firebase.firestore.getDoc(docRef);
+                const docRef = doc(db, `artifacts/${appId}/users/${userId}/${avatarDocPath}`);
+                const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
                     const loadedData = docSnap.data();
                     customization = {
-                        ...DEFAULT_COLOR,
+                        ...customization, // Use existing defaults
                         ...loadedData,
                         shape: {
                             ...customization.shape,
@@ -250,7 +252,7 @@
                     colorPicker.value = customization.color;
                     widthSlider.value = customization.shape.width;
                     heightSlider.value = customization.shape.height;
-                    waistSlider.max = customization.shape.height; // Important: update max constraint
+                    waistSlider.max = customization.shape.height; 
                     waistSlider.value = customization.shape.waist;
 
                     statusDisplay.textContent = 'Avatar loaded successfully.';
@@ -265,7 +267,7 @@
             }
         }
 
-        // --- EVENT HANDLERS ---
+        // --- EVENT HANDLERS (same as before) ---
         function handleUpdate() {
             // Update color
             customization.color = colorInput.value;
@@ -289,36 +291,17 @@
         }
 
         // --- INITIALIZATION ---
-        window.onload = function() {
-            if (!firebaseConfig) {
-                statusDisplay.textContent = "Error: Firebase config not found.";
-                return;
-            }
-
+        window.onload = async function() {
             try {
-                const app = firebase.initializeApp(firebaseConfig);
-                auth = firebase.auth.getAuth(app);
-                db = firebase.firestore.getFirestore(app);
-
-                firebase.auth.onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        userIdDisplay.textContent = `User ID: ${userId}`;
-                        await loadAvatar();
-                    } else {
-                        try {
-                            if (initialAuthToken) {
-                                await firebase.auth.signInWithCustomToken(auth, initialAuthToken);
-                            } else {
-                                await firebase.auth.signInAnonymously(auth);
-                            }
-                        } catch (error) {
-                            console.error("Firebase Auth Error:", error);
-                            statusDisplay.textContent = 'Error signing in.';
-                        }
-                    }
-                });
-
+                const { db: initializedDb, userId: initializedUserId } = await initializeAndAuthenticate();
+                db = initializedDb;
+                userId = initializedUserId;
+                
+                userIdDisplay.textContent = `User ID: ${userId} (Guest)`;
+                
+                // Load data after successful authentication
+                await loadAvatar(); 
+                
                 // Attach Event Listeners
                 widthSlider.addEventListener('input', handleUpdate);
                 heightSlider.addEventListener('input', handleUpdate);
@@ -341,10 +324,8 @@
 
                 saveButton.addEventListener('click', () => saveAvatar(customization));
 
-                updateAvatarRenderer(); // Initial render
             } catch (e) {
-                console.error("Initialization Error:", e);
-                statusDisplay.textContent = `Fatal Error during init: ${e.message}`;
+                statusDisplay.textContent = `FATAL ERROR: ${e.message}`;
             }
         };
 
@@ -352,3 +333,4 @@
 </body>
 </html>
 
+    
