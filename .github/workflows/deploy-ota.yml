@@ -3,7 +3,7 @@ name: Expo OTA Update
 on:
   push:
     branches:
-      - dev
+      - STD_00.0.0
 
 jobs:
   publish:
