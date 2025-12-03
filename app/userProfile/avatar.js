@@ -473,6 +473,635 @@ const styles = StyleSheet.create({
     },
     horizontalTrack: {
         flex: 1,
+        import React, { useState, useCallback, useMemo } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Dimensions, Platform, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons'; 
+
+const { width: screenWidth } = Dimensions.get('window');
+
+const primaryColor = '#1D4ED8'; // Blue
+const accentColor = '#10B981'; // Green
+const backgroundColor = '#F9FAFB';
+
+// Fixed set of colors for the palette picker
+const COLOR_PALETTE = [
+    '#8A2BE2', '#10B981', '#F59E0B', '#EF4444', 
+    '#0EA5E9', '#EC4899', '#6B7280', '#FFD700',
+];
+
+const MIN_DIMENSION = 20;
+const MAX_HEIGHT = 80;
+const MAX_WIDTH = 80; // Increased max width for wider bar
+const BASE_DIAMETER = 80; // Base size for the shape (will be scaled)
+
+const DEFAULT_CUSTOMIZATION = {
+    type: 'egg', // We keep 'egg' as the type name but render an oval
+    color: '#8A2BE2',
+    shape: { width: 40, height: 60, waist: 30 }
+};
+
+// --- Helper Components for Sliders ---
+
+/**
+ * Reusable component for horizontal or vertical slider track interaction.
+ */
+const InteractiveSliderTrack = ({ parameterKey, value, min, max, orientation, handleUpdate, shapeHeight }) => {
+    const [trackDimension, setTrackDimension] = useState(0);
+    const isVertical = orientation === 'vertical';
+    const range = max - min;
+    
+    // Normalize the value to a percentage position (0 to 100)
+    const normalizedValue = ((value - min) / range) * 100;
+
+    // Handler for direct sliding/tapping on the track
+    const handleSlide = useCallback((e) => {
+        if (!trackDimension) return;
+
+        // Use locationY for vertical, locationX for horizontal
+        const touchPos = isVertical ? e.nativeEvent.locationY : e.nativeEvent.locationX;
+        const dimension = trackDimension;
+
+        // Calculate normalized position (0 to 1)
+        let normalizedPos = touchPos / dimension;
+        
+        // Vertical sliders often go from bottom (0) to top (1). Reverse if vertical.
+        if (isVertical) {
+            normalizedPos = 1 - normalizedPos; 
+        }
+
+        // Calculate new value based on normalized position
+        let newValue = Math.round(min + normalizedPos * range);
+        
+        // Waist specific clamping (Waist cannot exceed height)
+        if (parameterKey === 'waist') {
+            newValue = Math.min(newValue, shapeHeight);
+        }
+
+        // Apply general clamping
+        const clampedValue = Math.max(min, Math.min(max, newValue));
+
+        handleUpdate(parameterKey, clampedValue);
+    }, [trackDimension, isVertical, min, range, parameterKey, handleUpdate, shapeHeight, max]);
+
+    const trackStyle = isVertical ? styles.verticalTrack : styles.horizontalTrack;
+    const fillStyle = isVertical ? styles.verticalFill : styles.horizontalFill;
+    const thumbStyle = isVertical ? styles.verticalThumb : styles.horizontalThumb;
+    
+    // Style for the fill and thumb position
+    const fillPosition = isVertical 
+        ? { height: `${normalizedValue}%`, alignSelf: 'flex-end' } // Grow from bottom
+        : { width: `${normalizedValue}%` };
+
+    const thumbPosition = isVertical 
+        ? { bottom: `${normalizedValue}%`, transform: [{ translateY: normalizedValue === 100 ? 0 : 9 }] } // From bottom
+        : { left: `${normalizedValue}%`, transform: [{ translateX: normalizedValue === 0 ? 0 : -9 }] }; // From left
+
+    return (
+        <View 
+            style={[trackStyle, styles.interactiveTrackShadow]}
+            onLayout={(e) => setTrackDimension(isVertical ? e.nativeEvent.layout.height : e.nativeEvent.layout.width)}
+            onTouchStart={handleSlide} 
+            onTouchMove={handleSlide}
+        >
+            {/* Fill Indicator */}
+            <View style={[fillStyle, fillPosition]} />
+            {/* Thumb Indicator */}
+            <View style={[thumbStyle, thumbPosition]} />
+        </View>
+    );
+};
+
+
+/**
+ * AvatarCustomizer component
+ */
+const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
+    const [customization, setCustomization] = useState(initialCustomization || DEFAULT_CUSTOMIZATION);
+    const [status, setStatus] = useState('Customize your avatar.');
+    const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
+    
+    const { shape } = customization;
+
+    // --- Core Handler ---
+    const handleShapeUpdate = useCallback((key, newValue) => {
+        const min = key === 'waist' ? 0 : MIN_DIMENSION;
+        const max = key === 'width' ? MAX_WIDTH : MAX_HEIGHT; // Dynamic max based on key
+
+        // Apply general clamping
+        const clampedValue = Math.max(min, Math.min(max, newValue));
+
+        let newShape = { ...shape, [key]: clampedValue };
+        
+        // Ensure waist does not exceed height after update
+        if (key === 'height' && newShape.waist > clampedValue) {
+            newShape.waist = clampedValue;
+        }
+
+        setCustomization(prev => ({ ...prev, shape: newShape }));
+    }, [shape]);
+
+    const handleColorChange = (newColor) => {
+        setCustomization(prev => ({ ...prev, color: newColor }));
+        setIsColorPickerVisible(false);
+    };
+
+    const handleTypeChange = (type) => {
+        setCustomization(prev => ({ ...prev, type }));
+    };
+    
+    /**
+     * Renders the preview using scale transform for a true oval.
+     */
+    const renderEggPreview = useMemo(() => {
+        const { color, shape } = customization;
+        const { width, height, waist } = shape;
+        
+        // Calculate scale factors relative to the BASE_DIAMETER (80)
+        // This creates the perfect oval shape using the width and height inputs.
+        const scaleX = width / BASE_DIAMETER; 
+        const scaleY = height / BASE_DIAMETER; 
+        
+        // Waist ratio controls the vertical line position (0 = top, 1 = bottom)
+        const waistRatio = waist / height; 
+        
+        // Position the line relative to the base height (80)
+        const topPosition = (1 - waistRatio) * BASE_DIAMETER;
+
+        return (
+            <View style={styles.previewWindow}>
+                <View 
+                    style={[
+                        styles.eggPreview, 
+                        {
+                            // Base size is a 80x80 circle
+                            width: BASE_DIAMETER,
+                            height: BASE_DIAMETER,
+                            borderRadius: BASE_DIAMETER / 2, // 50% for a perfect circle/oval
+                            backgroundColor: color,
+                            
+                            // Apply scaling to stretch into an oval
+                            transform: [
+                                { scaleX: scaleX },
+                                { scaleY: scaleY },
+                            ],
+                        }
+                    ]}
+                >
+                    {/* Waist Indicator Line */}
+                    <View 
+                        style={[
+                            styles.waistLine, 
+                            { 
+                                // Position the line inside the scaled element
+                                top: topPosition, 
+                                // Adjust for half line height, scaled back to normalized coordinates
+                                transform: [{ translateY: -1 / scaleY }], 
+                                width: '100%' 
+                            }
+                        ]} 
+                    />
+                </View>
+                
+                {/* Color Picker Trigger Icon (Hatched Circle) */}
+                <TouchableOpacity style={styles.colorTriggerIcon} onPress={() => setIsColorPickerVisible(true)}>
+                    <Ionicons name="color-palette-outline" size={24} color={primaryColor} />
+                </TouchableOpacity>
+            </View>
+        );
+    }, [customization]);
+
+    /**
+     * Renders the simple modal-style color picker.
+     */
+    const renderColorPicker = () => (
+        <View style={styles.colorPickerModal}>
+            <View style={styles.colorPaletteGrid}>
+                {COLOR_PALETTE.map((color, index) => (
+                    <TouchableOpacity
+                        key={index}
+                        style={[styles.paletteSwatch, { backgroundColor: color }]}
+                        onPress={() => handleColorChange(color)}
+                    >
+                        {customization.color === color && (
+                            <Ionicons name="checkmark-circle" size={20} color="white" style={styles.checkmarkIcon} />
+                        )}
+                    </TouchableOpacity>
+                ))}
+            </View>
+            <TouchableOpacity onPress={() => setIsColorPickerVisible(false)} style={styles.colorPickerCloseButton}>
+                <Text style={styles.colorPickerCloseText}>Close</Text>
+            </TouchableOpacity>
+        </View>
+    );
+    
+    // A simplified slider for Waist control, keeping the touch interactivity.
+    const renderWaistSlider = (min, max) => {
+        const value = shape.waist;
+        return (
+            <View style={styles.waistSliderContainer}>
+                <Text style={styles.sliderLabel}>Waist Position: {value}</Text>
+                <View style={styles.sliderControlRow}>
+
+                    {/* Interactive Track for dragging */}
+                    <InteractiveSliderTrack
+                        parameterKey="waist"
+                        value={value}
+                        min={min}
+                        max={max}
+                        orientation="horizontal"
+                        handleUpdate={handleShapeUpdate}
+                        shapeHeight={shape.height}
+                    />
+
+                </View>
+            </View>
+        );
+    };
+
+
+    return (
+        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={onCancel}>
+                    <Ionicons name="chevron-back" size={32} color={primaryColor} />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Customize your avatar</Text>
+                <View style={{ width: 32 }} />
+            </View>
+            
+            <View style={styles.card}>
+                <Text style={styles.statusText}>{status}</Text>
+                
+                {/* --- PREVIEW AREA AS PER SKETCH --- */}
+                <View style={styles.previewArea}>
+                    
+                    {/* 1. Vertical Slider (Height) - LEFT */}
+                    <View style={styles.verticalSliderWrapper}>
+                        <InteractiveSliderTrack
+                            parameterKey="height"
+                            value={shape.height}
+                            min={MIN_DIMENSION}
+                            max={MAX_HEIGHT}
+                            orientation="vertical"
+                            handleUpdate={handleShapeUpdate}
+                        />
+                        <Text style={styles.sliderValueText}>H:{shape.height}</Text>
+                    </View>
+
+                    {/* 2. Oval Preview + Color Picker Icon */}
+                    {renderEggPreview}
+                    {isColorPickerVisible && renderColorPicker()}
+                </View>
+                
+                    {/* 3. Horizontal Slider (Width) - BOTTOM */}
+                    <View style={styles.horizontalSliderWrapper}>
+                        <InteractiveSliderTrack
+                            parameterKey="width"
+                            value={shape.width}
+                            min={MIN_DIMENSION}
+                            max={MAX_WIDTH} // Using the new max value
+                            orientation="horizontal"
+                            handleUpdate={handleShapeUpdate}
+                        />
+                        <Text style={styles.sliderValueText}>W:{shape.width}</Text>
+                    </View>
+
+                {/* Waist Control (Below the main visual area) */}
+                {renderWaistSlider(0, shape.height)}
+
+
+                {/* --- TYPE SELECTOR AND SAVE --- */}
+                
+                <View style={styles.controlSection}>
+                    <View style={styles.buttonRow}>
+                        <TouchableOpacity 
+                          onPress={() => handleTypeChange('egg')}
+                          style={[styles.typeButton, customization.type === 'egg' && styles.typeButtonActive]}
+                        >
+                            <Text style={[styles.typeButtonText, customization.type === 'egg' && styles.typeButtonTextActive]}>EGG</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                          onPress={() => handleTypeChange('human')}
+                          style={[styles.typeButton, customization.type === 'human' && styles.typeButtonActive]}
+                        >
+                            <Text style={[styles.typeButtonText, customization.type === 'human' && styles.typeButtonTextActive]}>HUMAN</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Save Button */}
+                <TouchableOpacity 
+                  onPress={() => {
+                      setStatus('Customization saved locally!');
+                      onSave(customization);
+                  }}
+                  style={[styles.actionButton, { backgroundColor: accentColor }]}
+                >
+                    <Ionicons name="save-outline" size={24} color="white" style={{ marginRight: 10 }} />
+                    <Text style={styles.actionButtonText}>SAVE</Text>
+                </TouchableOpacity>
+            </View>
+        </ScrollView>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: backgroundColor,
+    },
+    contentContainer: {
+        paddingTop: Platform.OS === 'android' ? 30 : 50,
+        paddingBottom: 40,
+        alignItems: 'center',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: screenWidth * 0.9,
+        marginBottom: 20,
+        paddingBottom: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E7EB',
+    },
+    headerTitle: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: primaryColor,
+    },
+    card: {
+        width: screenWidth * 0.9,
+        maxWidth: 500,
+        backgroundColor: 'white',
+        borderRadius: 15,
+        padding: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+    statusText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: primaryColor,
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+    
+    // --- SKETCH LAYOUT STYLES ---
+    previewArea: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 10,
+    },
+    verticalSliderWrapper: {
+        height: 200, // Fixed height for vertical slider
+        marginRight: 10,
+        alignItems: 'center',
+        justifyContent: 'flex-end', // Ensure value text is at the bottom
+    },
+    previewWindow: {
+        width: 190, // Fixed size for the frame
+        height: 220, // Fixed height for the frame
+        backgroundColor: '#F3F4F6',
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        position: 'relative',
+    },
+    eggPreview: {
+        borderWidth: 2,
+        borderColor: '#4B5563',
+        // The width, height, and borderRadius are fixed here (80x80 circle), 
+        // and the transform property handles the stretching into an oval.
+        // This makes the waist line positioning relative to the base size easier.
+    },
+    colorTriggerIcon: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        backgroundColor: 'white',
+        padding: 5,
+        borderRadius: 15,
+        borderWidth: 1,
+        borderColor: '#D1D5DB',
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+    },
+    horizontalSliderWrapper: {
+        width: 140, // Match preview window width
+        alignSelf: 'center',
+        marginTop: 5,
+        alignItems: 'center',
+    },
+    sliderValueText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#4B5563',
+        marginTop: 5,
+    },
+    waistLine: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        height: 2,
+        backgroundColor: '#4B5563',
+        opacity: 0.5,
+    },
+
+    // --- SLIDER TRACK STYLES ---
+    interactiveTrackShadow: {
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    verticalTrack: {
+        width: 10,
+        height: '100%',
+        backgroundColor: '#E5E7EB',
+        borderRadius: 5,
+        position: 'relative',
+    },
+    verticalFill: {
+        width: 10,
+        backgroundColor: accentColor,
+        position: 'absolute',
+        bottom: 0,
+        borderRadius: 5,
+    },
+    verticalThumb: {
+        width: 18,
+        height: 18,
+        borderRadius: 9,
+        backgroundColor: primaryColor,
+        borderWidth: 3,
+        borderColor: 'white',
+        position: 'absolute',
+        left: -4,
+    },
+    horizontalTrack: {
+        flex: 1,
+        width: '100%',
+        height: 10,
+        backgroundColor: '#E5E7EB',
+        borderRadius: 5,
+        position: 'relative',
+    },
+    horizontalFill: {
+        height: 10,
+        backgroundColor: accentColor,
+        borderRadius: 5,
+        position: 'absolute',
+    },
+    horizontalThumb: {
+        width: 18,
+        height: 18,
+        borderRadius: 9,
+        backgroundColor: primaryColor,
+        borderWidth: 3,
+        borderColor: 'white',
+        position: 'absolute',
+        top: -4,
+    },
+    
+    // --- WAIST SLIDER STYLES (Kept separate with buttons) ---
+    waistSliderContainer: {
+        paddingVertical: 15,
+        borderTopWidth: 1,
+        borderTopColor: '#F3F4F6',
+        marginTop: 10,
+    },
+    sliderLabel: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: '#4B5563',
+        marginBottom: 8,
+    },
+    sliderControlRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    smallButton: {
+        width: 30,
+        height: 30,
+        backgroundColor: primaryColor,
+        borderRadius: 6,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    sliderButtonDisabled: {
+        backgroundColor: '#D1D5DB',
+    },
+
+    // --- GENERAL CONTROL STYLES ---
+    controlSection: {
+        paddingVertical: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F3F4F6',
+    },
+    buttonRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginTop: 15,
+    },
+    typeButton: {
+        flex: 1,
+        padding: 12,
+        borderRadius: 8,
+        backgroundColor: '#E5E7EB',
+        marginHorizontal: 5,
+    },
+    typeButtonActive: {
+        backgroundColor: primaryColor,
+    },
+    typeButtonText: {
+        textAlign: 'center',
+        fontWeight: '700',
+        color: '#4B5563',
+        letterSpacing: 1,
+    },
+    typeButtonTextActive: {
+        color: 'white',
+    },
+    actionButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 15,
+        borderRadius: 10,
+        marginTop: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 4,
+    },
+    actionButtonText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: 'bold',
+        letterSpacing: 1,
+    },
+    
+    // --- COLOR PICKER STYLES ---
+    colorPickerModal: {
+        position: 'absolute',
+        top: 40,
+        right: 0,
+        width: 180,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 10,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        shadowColor: '#000',
+        shadowOpacity: 0.15,
+        shadowRadius: 5,
+        elevation: 8,
+        zIndex: 100, 
+    },
+    colorPaletteGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    paletteSwatch: {
+        width: 35,
+        height: 35,
+        borderRadius: 17.5,
+        margin: 4,
+        borderWidth: 2,
+        borderColor: '#D1D5DB',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    checkmarkIcon: {
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        borderRadius: 10,
+    },
+    colorPickerCloseButton: {
+        padding: 5,
+        alignItems: 'center',
+        backgroundColor: '#F3F4F6',
+        borderRadius: 8,
+        marginTop: 5,
+    },
+    colorPickerCloseText: {
+        color: '#4B5563',
+        fontWeight: '600',
+        fontSize: 12,
+    }
+});
+
+export default AvatarCustomizer;
         height: 10,
         backgroundColor: '#E5E7EB',
         borderRadius: 5,
