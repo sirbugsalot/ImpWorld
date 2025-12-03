@@ -12,29 +12,28 @@ const backgroundColor = '#F9FAFB';
 const DEFAULT_CUSTOMIZATION = {
     type: 'egg',
     color: '#8A2BE2',
-    shape: { width: 30, height: 40, waist: 20 }
+    shape: { width: 40, height: 60, waist: 30 } // Adjusted defaults for better ellipsoid shape
 };
 
 /**
  * AvatarCustomizer component allows users to modify the appearance of their avatar.
- * It operates solely on local state and passes the final data via a callback.
- * * @param {object} initialCustomization - The starting avatar data (passed from ProfileScreen).
- * @param {function} onSave - Callback function to call when the user saves/enters the world.
- * @param {function} onCancel - Callback function to exit the customizer.
  */
 const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
-    // Initialize state from props or use default if none provided
     const [customization, setCustomization] = useState(initialCustomization || DEFAULT_CUSTOMIZATION);
     const [status, setStatus] = useState('Customize your avatar.');
 
     // --- Handlers ---
-    const handleShapeChange = (name, value) => {
-        const newValue = parseInt(value, 10);
-        let newShape = { ...customization.shape, [name]: newValue };
+    const handleShapeChange = (key, newValue) => {
+        // Clamp values within bounds
+        const min = key === 'waist' ? 0 : 20;
+        const max = key === 'waist' ? customization.shape.height : 80;
+        let clampedValue = Math.max(min, Math.min(max, newValue));
+
+        let newShape = { ...customization.shape, [key]: clampedValue };
         
-        // Ensure waist does not exceed height
-        if (name === 'height' && newShape.waist > newValue) {
-            newShape.waist = newValue;
+        // Dependency check: Ensure waist does not exceed height
+        if (key === 'height' && newShape.waist > clampedValue) {
+            newShape.waist = clampedValue;
         }
 
         setCustomization(prev => ({ ...prev, shape: newShape }));
@@ -52,16 +51,20 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
     // --- Render Functions ---
     const renderEggPreview = () => {
         const { color, shape } = customization;
-        const PREVIEW_SCALE = 2.5; 
+        // Scale the user-defined shape for preview purposes
+        const PREVIEW_SCALE = 2.0; 
         const { width, height, waist } = shape;
         const previewWidth = width * PREVIEW_SCALE; 
         const previewHeight = height * PREVIEW_SCALE; 
         
-        // Dynamic radius calculation for an egg shape
-        const radiusFactor = 0.5;
-        const topRadius = (waist < height / 2) ? width * radiusFactor * 1.5 : width * radiusFactor * 0.5;
-        const bottomRadius = (waist > height / 2) ? width * radiusFactor * 1.5 : width * radiusFactor * 0.5;
-        const minRadius = width * 0.2; 
+        // Calculate dynamic border radius for asymmetric ellipsoid (egg/pear shape).
+        // The 'waist' controls the ratio of the top vs. bottom curvature.
+        const topCurvature = (waist / height) * 100; // 0 to 100
+        const bottomCurvature = 100 - topCurvature;
+
+        // Ensure a balanced, smooth transition for the four corners
+        const radiusTop = `${topCurvature * 0.8}px ${topCurvature * 0.8}px`; // Top is narrower
+        const radiusBottom = `${bottomCurvature * 0.4}px ${bottomCurvature * 0.4}px`; // Bottom is wider
 
         return (
             <View 
@@ -71,41 +74,59 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                         width: previewWidth,
                         height: previewHeight,
                         backgroundColor: color,
-                        borderTopLeftRadius: Math.max(topRadius, minRadius),
-                        borderTopRightRadius: Math.max(topRadius, minRadius),
-                        borderBottomLeftRadius: Math.max(bottomRadius, minRadius),
-                        borderBottomRightRadius: Math.max(bottomRadius, minRadius),
+                        // This uses percentage-like values to create the asymmetric shape
+                        borderTopLeftRadius: topCurvature * 1.5,
+                        borderTopRightRadius: topCurvature * 1.5,
+                        borderBottomLeftRadius: bottomCurvature * 1.5,
+                        borderBottomRightRadius: bottomCurvature * 1.5,
+                        // Ensure it's centered visually
+                        marginBottom: (previewHeight / 4) * (bottomCurvature / 100 - topCurvature / 100) 
                     }
                 ]}
             />
         );
     };
 
-    const renderSlider = (key, min, max, isColor = false) => {
+    /**
+     * Renders a simulated slider control with +/- buttons.
+     */
+    const renderSlider = (key, min, max) => {
         const value = customization.shape[key];
-        const percent = ((value - min) / (max - min)) * 100;
-        
-        // Note: React Native does not support dynamic range input styling like Web CSS. 
-        // We will just use standard components for simplicity here.
+        // Calculate percentage fill for the visual track
+        const range = max - min;
+        const percent = ((value - min) / range) * 100;
         
         return (
             <View style={styles.sliderContainer} key={key}>
                 <Text style={styles.sliderLabel}>
                     {key.charAt(0).toUpperCase() + key.slice(1)}: {value}
                 </Text>
-                {/* A simple mock slider representation in RN */}
-                <View style={styles.mockSliderTrack}>
-                    <View style={[styles.mockSliderFill, { width: `${percent}%` }]} />
-                    <View style={[styles.mockSliderThumb, { left: `${percent}%` }]} />
+                
+                <View style={styles.sliderControlRow}>
+                    {/* Decrement Button (-) */}
+                    <TouchableOpacity
+                        onPress={() => handleShapeChange(key, value - 1)}
+                        disabled={value <= min}
+                        style={[styles.sliderButton, value <= min && styles.sliderButtonDisabled]}
+                    >
+                        <Text style={styles.sliderButtonText}>-</Text>
+                    </TouchableOpacity>
+                    
+                    {/* Visual Track (Simulated Slider Bar) */}
+                    <View style={styles.mockSliderTrack}>
+                        <View style={[styles.mockSliderFill, { width: `${percent}%` }]} />
+                    </View>
+
+                    {/* Increment Button (+) */}
+                    <TouchableOpacity
+                        onPress={() => handleShapeChange(key, value + 1)}
+                        disabled={value >= max}
+                        style={[styles.sliderButton, value >= max && styles.sliderButtonDisabled]}
+                    >
+                        <Text style={styles.sliderButtonText}>+</Text>
+                    </TouchableOpacity>
                 </View>
-                {/* Since RN does not have a native slider component available in this environment, 
-                    we will use a text input as a stand-in for easy value adjustment/testing. */}
-                <TextInput
-                    style={styles.numericInput}
-                    keyboardType="numeric"
-                    value={String(value)}
-                    onChangeText={(text) => handleShapeChange(key, text)}
-                />
+                
             </View>
         );
     };
@@ -125,7 +146,7 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
 
                 {/* Preview Area */}
                 <View style={styles.previewArea}>
-                    <Text style={styles.previewTitle}>Live Preview</Text>
+                    <Text style={styles.previewTitle}>Live Ellipsoid Preview</Text>
                     <View style={styles.previewWindow}>
                         {renderEggPreview()}
                     </View>
@@ -139,7 +160,7 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                           onPress={() => handleTypeChange('egg')}
                           style={[styles.typeButton, customization.type === 'egg' && styles.typeButtonActive]}
                         >
-                            <Text style={[styles.typeButtonText, customization.type === 'egg' && styles.typeButtonTextActive]}>Egg</Text>
+                            <Text style={[styles.typeButtonText, customization.type === 'egg' && styles.typeButtonTextActive]}>Egg/Ellipsoid</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
                           onPress={() => handleTypeChange('human')}
@@ -153,12 +174,11 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                 {/* Egg Customization Controls */}
                 {customization.type === 'egg' && (
                     <View style={styles.controlSection}>
-                        <Text style={styles.controlTitle}>Egg Shape & Color</Text>
+                        <Text style={styles.controlTitle}>Ellipsoid Shape & Color</Text>
                         
                         {/* Color Input */}
                         <View style={styles.colorInputRow}>
                             <Text style={styles.sliderLabel}>Color:</Text>
-                            {/* Color preview circle based on state */}
                             <View style={[styles.colorSwatch, { backgroundColor: customization.color }]} />
                             <TextInput 
                               style={styles.colorTextInput}
@@ -170,9 +190,10 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                         </View>
 
                         {/* Shape Sliders/Inputs */}
-                        {renderSlider('width', 20, 60)}
-                        {renderSlider('height', 20, 60)}
-                        {renderSlider('waist', 0, customization.shape.height)}
+                        {renderSlider('width', 20, 80)}
+                        {renderSlider('height', 20, 80)}
+                        {/* Note: Max for waist is dynamic based on height */}
+                        {renderSlider('waist', 0, customization.shape.height)} 
                     </View>
                 )}
 
@@ -262,7 +283,6 @@ const styles = StyleSheet.create({
     eggPreview: {
         borderWidth: 2,
         borderColor: '#4B5563',
-        transition: 'all 300ms',
     },
     controlSection: {
         paddingVertical: 15,
@@ -325,42 +345,43 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '500',
         color: '#4B5563',
-        marginBottom: 5,
+        marginBottom: 8,
+    },
+    sliderControlRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    sliderButton: {
+        width: 40,
+        height: 40,
+        backgroundColor: primaryColor,
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    sliderButtonDisabled: {
+        backgroundColor: '#D1D5DB',
+    },
+    sliderButtonText: {
+        color: 'white',
+        fontSize: 20,
+        fontWeight: 'bold',
     },
     mockSliderTrack: {
+        flex: 1,
         height: 10,
-        backgroundColor: '#D1D5DB',
+        backgroundColor: '#E5E7EB',
         borderRadius: 5,
         position: 'relative',
-        marginBottom: 5,
+        marginHorizontal: 10,
+        overflow: 'hidden',
     },
     mockSliderFill: {
         height: 10,
         backgroundColor: accentColor,
         borderRadius: 5,
         position: 'absolute',
-    },
-    mockSliderThumb: {
-        width: 18,
-        height: 18,
-        borderRadius: 9,
-        backgroundColor: primaryColor,
-        position: 'absolute',
-        top: -4,
-        transform: [{ translateX: -9 }],
-        shadowColor: '#000',
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
-        elevation: 3,
-    },
-    numericInput: {
-        padding: 8,
-        borderWidth: 1,
-        borderColor: '#D1D5DB',
-        borderRadius: 8,
-        fontSize: 16,
-        textAlign: 'center',
-        width: '100%',
     },
     actionButton: {
         flexDirection: 'row',
