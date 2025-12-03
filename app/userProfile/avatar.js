@@ -14,10 +14,15 @@ const COLOR_PALETTE = [
     '#0EA5E9', '#EC4899', '#6B7280', '#FFD700',
 ];
 
+const MIN_DIMENSION = 20;
+const MAX_HEIGHT = 80;
+const MAX_WIDTH = 120; // Increased max width for wider bar
+const BASE_DIAMETER = 80; // Base size for the shape (will be scaled)
+
 const DEFAULT_CUSTOMIZATION = {
-    type: 'egg',
+    type: 'egg', // We keep 'egg' as the type name but render an oval
     color: '#8A2BE2',
-    shape: { width: 40, height: 60, waist: 30 } // Max: 80, Min: 20
+    shape: { width: 40, height: 60, waist: 30 }
 };
 
 // --- Helper Components for Sliders ---
@@ -30,7 +35,7 @@ const InteractiveSliderTrack = ({ parameterKey, value, min, max, orientation, ha
     const isVertical = orientation === 'vertical';
     const range = max - min;
     
-    // Convert value to a percentage position (0 to 100)
+    // Normalize the value to a percentage position (0 to 100)
     const normalizedValue = ((value - min) / range) * 100;
 
     // Handler for direct sliding/tapping on the track
@@ -73,8 +78,8 @@ const InteractiveSliderTrack = ({ parameterKey, value, min, max, orientation, ha
         : { width: `${normalizedValue}%` };
 
     const thumbPosition = isVertical 
-        ? { bottom: `${normalizedValue}%`, transform: [{ translateY: normalizedValue === 100 ? 0 : 10 }] } // From bottom
-        : { left: `${normalizedValue}%`, transform: [{ translateX: normalizedValue === 0 ? 0 : -10 }] }; // From left
+        ? { bottom: `${normalizedValue}%`, transform: [{ translateY: normalizedValue === 100 ? 0 : 9 }] } // From bottom
+        : { left: `${normalizedValue}%`, transform: [{ translateX: normalizedValue === 0 ? 0 : -9 }] }; // From left
 
     return (
         <View 
@@ -104,9 +109,10 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
 
     // --- Core Handler ---
     const handleShapeUpdate = useCallback((key, newValue) => {
-        // Clamp values within bounds (handled partially in InteractiveSliderTrack, but good to have here too)
-        const min = key === 'waist' ? 0 : 20;
-        const max = key === 'waist' ? shape.height : 80;
+        const min = key === 'waist' ? 0 : MIN_DIMENSION;
+        const max = key === 'width' ? MAX_WIDTH : MAX_HEIGHT; // Dynamic max based on key
+
+        // Apply general clamping
         const clampedValue = Math.max(min, Math.min(max, newValue));
 
         let newShape = { ...shape, [key]: clampedValue };
@@ -123,41 +129,28 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
         setCustomization(prev => ({ ...prev, color: newColor }));
         setIsColorPickerVisible(false);
     };
-    
-    // --- Render Functions ---
 
+    const handleTypeChange = (type) => {
+        setCustomization(prev => ({ ...prev, type }));
+    };
+    
     /**
-     * Renders the preview using dynamic border radii for an asymmetric ellipsoid.
+     * Renders the preview using scale transform for a true oval.
      */
     const renderEggPreview = useMemo(() => {
         const { color, shape } = customization;
-        const PREVIEW_SCALE = 2.0; 
         const { width, height, waist } = shape;
-        const previewWidth = width * PREVIEW_SCALE; 
-        const previewHeight = height * PREVIEW_SCALE; 
         
-        // Waist ratio controls asymmetry (0 = pointy top, round bottom; 1 = round top, pointy bottom)
+        // Calculate scale factors relative to the BASE_DIAMETER (80)
+        // This creates the perfect oval shape using the width and height inputs.
+        const scaleX = width / BASE_DIAMETER; 
+        const scaleY = height / BASE_DIAMETER; 
+        
+        // Waist ratio controls the vertical line position (0 = top, 1 = bottom)
         const waistRatio = waist / height; 
         
-        // Calculate dynamic radii based on waist ratio
-        const majorRadius = previewWidth / 2;
-        
-        // Use a power function to make the change curve more dramatic (more egg-like)
-        const topRadiusScale = Math.pow(waistRatio, 0.6) * 2;
-        const bottomRadiusScale = Math.pow(1 - waistRatio, 0.6) * 2;
-
-        const dynamicRadii = {
-            borderTopLeftRadius: majorRadius * topRadiusScale,
-            borderTopRightRadius: majorRadius * topRadiusScale,
-            borderBottomLeftRadius: majorRadius * bottomRadiusScale,
-            borderBottomRightRadius: majorRadius * bottomRadiusScale,
-            // Fallback for sphere when waist == height/2
-            borderRadius: waistRatio === 0.5 ? majorRadius : undefined, 
-        };
-
-        // Calculate the vertical position of the waist line for the internal indicator
-        const waistLinePosition = `${(1 - waistRatio) * 100}%`;
-        const waistLineTranslate = (1 - waistRatio * 2) * -5; // Compensate for visual centering
+        // Position the line relative to the base height (80)
+        const topPosition = (1 - waistRatio) * BASE_DIAMETER;
 
         return (
             <View style={styles.previewWindow}>
@@ -165,20 +158,33 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                     style={[
                         styles.eggPreview, 
                         {
-                            width: previewWidth,
-                            height: previewHeight,
+                            // Base size is a 80x80 circle
+                            width: BASE_DIAMETER,
+                            height: BASE_DIAMETER,
+                            borderRadius: BASE_DIAMETER / 2, // 50% for a perfect circle/oval
                             backgroundColor: color,
-                            ...dynamicRadii,
+                            
+                            // Apply scaling to stretch into an oval
+                            transform: [
+                                { scaleX: scaleX },
+                                { scaleY: scaleY },
+                            ],
                         }
                     ]}
                 >
-                    {/* Waist Indicator Line and Arrows */}
-                    <View style={[styles.waistLine, { top: waistLinePosition, transform: [{ translateY: waistLineTranslate }] }]} />
-                    
-                    <View style={[styles.waistArrows, { top: waistLinePosition, transform: [{ translateY: waistLineTranslate }] }]}>
-                        <Ionicons name="arrow-up" size={14} color="#4B5563" />
-                        <Ionicons name="arrow-down" size={14} color="#4B5563" />
-                    </View>
+                    {/* Waist Indicator Line */}
+                    <View 
+                        style={[
+                            styles.waistLine, 
+                            { 
+                                // Position the line inside the scaled element
+                                top: topPosition, 
+                                // Adjust for half line height, scaled back to normalized coordinates
+                                transform: [{ translateY: -1 / scaleY }], 
+                                width: '100%' 
+                            }
+                        ]} 
+                    />
                 </View>
                 
                 {/* Color Picker Trigger Icon (Hatched Circle) */}
@@ -187,7 +193,7 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                 </TouchableOpacity>
             </View>
         );
-    }, [customization]); // Re-render only when customization changes
+    }, [customization]);
 
     /**
      * Renders the simple modal-style color picker.
@@ -275,15 +281,15 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                         <InteractiveSliderTrack
                             parameterKey="height"
                             value={shape.height}
-                            min={20}
-                            max={80}
+                            min={MIN_DIMENSION}
+                            max={MAX_HEIGHT}
                             orientation="vertical"
                             handleUpdate={handleShapeUpdate}
                         />
                         <Text style={styles.sliderValueText}>H:{shape.height}</Text>
                     </View>
 
-                    {/* 2. Egg Preview + Color Picker Icon */}
+                    {/* 2. Oval Preview + Color Picker Icon */}
                     {renderEggPreview}
                     {isColorPickerVisible && renderColorPicker()}
                 </View>
@@ -293,8 +299,8 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                     <InteractiveSliderTrack
                         parameterKey="width"
                         value={shape.width}
-                        min={20}
-                        max={80}
+                        min={MIN_DIMENSION}
+                        max={MAX_WIDTH} // Using the new max value
                         orientation="horizontal"
                         handleUpdate={handleShapeUpdate}
                     />
@@ -310,13 +316,13 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                 <View style={styles.controlSection}>
                     <View style={styles.buttonRow}>
                         <TouchableOpacity 
-                          onPress={() => setCustomization(prev => ({ ...prev, type: 'egg' }))}
+                          onPress={() => handleTypeChange('egg')}
                           style={[styles.typeButton, customization.type === 'egg' && styles.typeButtonActive]}
                         >
                             <Text style={[styles.typeButtonText, customization.type === 'egg' && styles.typeButtonTextActive]}>EGG</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
-                          onPress={() => setCustomization(prev => ({ ...prev, type: 'human' }))}
+                          onPress={() => handleTypeChange('human')}
                           style={[styles.typeButton, customization.type === 'human' && styles.typeButtonActive]}
                         >
                             <Text style={[styles.typeButtonText, customization.type === 'human' && styles.typeButtonTextActive]}>HUMAN</Text>
@@ -396,6 +402,7 @@ const styles = StyleSheet.create({
         height: 200, // Fixed height for vertical slider
         marginRight: 10,
         alignItems: 'center',
+        justifyContent: 'flex-end', // Ensure value text is at the bottom
     },
     previewWindow: {
         width: 140, // Fixed size for the frame
@@ -411,7 +418,9 @@ const styles = StyleSheet.create({
     eggPreview: {
         borderWidth: 2,
         borderColor: '#4B5563',
-        // Dynamic border radius applied in JS
+        // The width, height, and borderRadius are fixed here (80x80 circle), 
+        // and the transform property handles the stretching into an oval.
+        // This makes the waist line positioning relative to the base size easier.
     },
     colorTriggerIcon: {
         position: 'absolute',
@@ -445,14 +454,6 @@ const styles = StyleSheet.create({
         height: 2,
         backgroundColor: '#4B5563',
         opacity: 0.5,
-    },
-    waistArrows: {
-        position: 'absolute',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: 40,
-        alignSelf: 'center',
     },
 
     // --- SLIDER TRACK STYLES ---
