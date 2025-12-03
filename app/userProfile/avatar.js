@@ -16,7 +16,7 @@ const COLOR_PALETTE = [
 
 const MIN_DIMENSION = 20;
 const MAX_HEIGHT = 80;
-const MAX_WIDTH = 120; // Increased max width for wider bar
+const MAX_WIDTH = 80; // Increased max width for wider bar
 const BASE_DIAMETER = 80; // Base size for the shape (will be scaled)
 
 const DEFAULT_CUSTOMIZATION = {
@@ -226,14 +226,6 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
             <View style={styles.waistSliderContainer}>
                 <Text style={styles.sliderLabel}>Waist Position: {value}</Text>
                 <View style={styles.sliderControlRow}>
-                    {/* Minus button for fine tuning */}
-                    <TouchableOpacity
-                        onPress={() => handleShapeUpdate('waist', value - 1)}
-                        disabled={value <= min}
-                        style={[styles.smallButton, value <= min && styles.sliderButtonDisabled]}
-                    >
-                        <Ionicons name="remove-outline" size={20} color="white" />
-                    </TouchableOpacity>
 
                     {/* Interactive Track for dragging */}
                     <InteractiveSliderTrack
@@ -246,14 +238,6 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                         shapeHeight={shape.height}
                     />
 
-                    {/* Plus button for fine tuning */}
-                    <TouchableOpacity
-                        onPress={() => handleShapeUpdate('waist', value + 1)}
-                        disabled={value >= max}
-                        style={[styles.smallButton, value >= max && styles.sliderButtonDisabled]}
-                    >
-                        <Ionicons name="add-outline" size={20} color="white" />
-                    </TouchableOpacity>
                 </View>
             </View>
         );
@@ -294,18 +278,18 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                     {isColorPickerVisible && renderColorPicker()}
                 </View>
                 
-                {/* 3. Horizontal Slider (Width) - BOTTOM */}
-                <View style={styles.horizontalSliderWrapper}>
-                    <InteractiveSliderTrack
-                        parameterKey="width"
-                        value={shape.width}
-                        min={MIN_DIMENSION}
-                        max={MAX_WIDTH} // Using the new max value
-                        orientation="horizontal"
-                        handleUpdate={handleShapeUpdate}
-                    />
-                    <Text style={styles.sliderValueText}>W:{shape.width}</Text>
-                </View>
+                    {/* 3. Horizontal Slider (Width) - BOTTOM */}
+                    <View style={styles.horizontalSliderWrapper}>
+                        <InteractiveSliderTrack
+                            parameterKey="width"
+                            value={shape.width}
+                            min={MIN_DIMENSION}
+                            max={MAX_WIDTH} // Using the new max value
+                            orientation="horizontal"
+                            handleUpdate={handleShapeUpdate}
+                        />
+                        <Text style={styles.sliderValueText}>W:{shape.width}</Text>
+                    </View>
 
                 {/* Waist Control (Below the main visual area) */}
                 {renderWaistSlider(0, shape.height)}
