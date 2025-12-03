@@ -1,18 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Dimensions, TextInput, Platform, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
 
 const { width } = Dimensions.get('window');
 
 const primaryColor = '#1D4ED8'; 
-const accentColor = '#10B981'; // Green for success/save
+const accentColor = '#10B981'; 
 const backgroundColor = '#F9FAFB';
 
-// Default state structure
+// Fixed set of colors for the palette picker
+const COLOR_PALETTE = [
+    '#8A2BE2', // Blue Violet (Default)
+    '#10B981', // Emerald
+    '#F59E0B', // Amber
+    '#EF4444', // Red
+    '#0EA5E9', // Sky Blue
+    '#EC4899', // Pink
+    '#6B7280', // Gray
+    '#FFD700', // Gold
+];
+
 const DEFAULT_CUSTOMIZATION = {
     type: 'egg',
     color: '#8A2BE2',
-    shape: { width: 40, height: 60, waist: 30 } // Adjusted defaults for better ellipsoid shape
+    shape: { width: 40, height: 60, waist: 30 }
 };
 
 /**
@@ -21,50 +32,54 @@ const DEFAULT_CUSTOMIZATION = {
 const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
     const [customization, setCustomization] = useState(initialCustomization || DEFAULT_CUSTOMIZATION);
     const [status, setStatus] = useState('Customize your avatar.');
+    const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
 
-    // --- Handlers ---
-    const handleShapeChange = (key, newValue) => {
-        // Clamp values within bounds
-        const min = key === 'waist' ? 0 : 20;
-        const max = key === 'waist' ? customization.shape.height : 80;
-        let clampedValue = Math.max(min, Math.min(max, newValue));
-
-        let newShape = { ...customization.shape, [key]: clampedValue };
+    // --- Core Handler ---
+    const updateCustomization = useCallback((key, newValue) => {
+        let newShape = { ...customization.shape, [key]: newValue };
         
         // Dependency check: Ensure waist does not exceed height
-        if (key === 'height' && newShape.waist > clampedValue) {
-            newShape.waist = clampedValue;
+        if (key === 'height' && newShape.waist > newValue) {
+            newShape.waist = newValue;
         }
 
         setCustomization(prev => ({ ...prev, shape: newShape }));
-    };
+    }, [customization.shape]);
 
-    const handleColorChange = (e) => {
-        // For React Native, text inputs pass the value directly
-        setCustomization(prev => ({ ...prev, color: e.nativeEvent.text }));
-    };
+    const handleShapeChange = useCallback((key, value) => {
+        const min = key === 'waist' ? 0 : 20;
+        const max = key === 'waist' ? customization.shape.height : 80;
+        const clampedValue = Math.max(min, Math.min(max, value));
+        updateCustomization(key, clampedValue);
+    }, [customization.shape.height, updateCustomization]);
 
-    const handleTypeChange = (type) => {
-        setCustomization(prev => ({ ...prev, type }));
+    const handleColorChange = (newColor) => {
+        setCustomization(prev => ({ ...prev, color: newColor }));
+        setIsColorPickerVisible(false);
     };
     
     // --- Render Functions ---
+
+    /**
+     * Renders the preview using dynamic border radii for an asymmetric ellipsoid.
+     */
     const renderEggPreview = () => {
         const { color, shape } = customization;
-        // Scale the user-defined shape for preview purposes
         const PREVIEW_SCALE = 2.0; 
         const { width, height, waist } = shape;
         const previewWidth = width * PREVIEW_SCALE; 
         const previewHeight = height * PREVIEW_SCALE; 
         
-        // Calculate dynamic border radius for asymmetric ellipsoid (egg/pear shape).
-        // The 'waist' controls the ratio of the top vs. bottom curvature.
-        const topCurvature = (waist / height) * 100; // 0 to 100
-        const bottomCurvature = 100 - topCurvature;
+        // Calculate the ratio of the "waist" point relative to the height (0 to 1)
+        const waistRatio = waist / height; 
+        
+        // The top radius should be smaller (pointier) if waist is low (close to 0)
+        // The bottom radius should be larger (rounder) if waist is high (close to 1)
+        const topRadiusScale = waistRatio * 2.5;
+        const bottomRadiusScale = (1 - waistRatio) * 2.5;
 
-        // Ensure a balanced, smooth transition for the four corners
-        const radiusTop = `${topCurvature * 0.8}px ${topCurvature * 0.8}px`; // Top is narrower
-        const radiusBottom = `${bottomCurvature * 0.4}px ${bottomCurvature * 0.4}px`; // Bottom is wider
+        // Use the scaled width for the primary curvature
+        const majorRadius = previewWidth / 2;
 
         return (
             <View 
@@ -74,13 +89,13 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                         width: previewWidth,
                         height: previewHeight,
                         backgroundColor: color,
-                        // This uses percentage-like values to create the asymmetric shape
-                        borderTopLeftRadius: topCurvature * 1.5,
-                        borderTopRightRadius: topCurvature * 1.5,
-                        borderBottomLeftRadius: bottomCurvature * 1.5,
-                        borderBottomRightRadius: bottomCurvature * 1.5,
-                        // Ensure it's centered visually
-                        marginBottom: (previewHeight / 4) * (bottomCurvature / 100 - topCurvature / 100) 
+                        // Apply dynamic radii for smooth ellipsoid shape
+                        borderTopLeftRadius: majorRadius * topRadiusScale,
+                        borderTopRightRadius: majorRadius * topRadiusScale,
+                        borderBottomLeftRadius: majorRadius * bottomRadiusScale,
+                        borderBottomRightRadius: majorRadius * bottomRadiusScale,
+                        // Center the object vertically for a more balanced look
+                        transform: [{ translateY: (waistRatio - 0.5) * -10 }] 
                     }
                 ]}
             />
@@ -88,13 +103,28 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
     };
 
     /**
-     * Renders a simulated slider control with +/- buttons.
+     * Renders a custom touch-enabled slider bar with +/- buttons.
      */
     const renderSlider = (key, min, max) => {
         const value = customization.shape[key];
-        // Calculate percentage fill for the visual track
+        const [trackWidth, setTrackWidth] = useState(0);
         const range = max - min;
         const percent = ((value - min) / range) * 100;
+        
+        // Handler for direct sliding/tapping on the track
+        const handleSlide = (e) => {
+            if (!trackWidth) return;
+
+            // Get touch position relative to the track
+            const touchX = e.nativeEvent.locationX;
+            const normalizedX = touchX / trackWidth;
+
+            // Calculate new value based on normalized position
+            let newValue = Math.round(min + normalizedX * range);
+            
+            // Update the state
+            handleShapeChange(key, newValue);
+        };
         
         return (
             <View style={styles.sliderContainer} key={key}>
@@ -109,12 +139,20 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                         disabled={value <= min}
                         style={[styles.sliderButton, value <= min && styles.sliderButtonDisabled]}
                     >
-                        <Text style={styles.sliderButtonText}>-</Text>
+                        <Ionicons name="remove-outline" size={24} color="white" />
                     </TouchableOpacity>
                     
-                    {/* Visual Track (Simulated Slider Bar) */}
-                    <View style={styles.mockSliderTrack}>
+                    {/* Interactive Slider Track */}
+                    <View 
+                        style={styles.mockSliderTrack}
+                        onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
+                        onTouchStart={handleSlide} // Tap to set value
+                        onTouchMove={handleSlide} // Drag to set value
+                    >
+                        {/* Fill Indicator */}
                         <View style={[styles.mockSliderFill, { width: `${percent}%` }]} />
+                        {/* Thumb Indicator (A small dot on top of the fill) */}
+                        <View style={[styles.mockSliderThumb, { left: `${percent}%` }]} />
                     </View>
 
                     {/* Increment Button (+) */}
@@ -123,13 +161,37 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                         disabled={value >= max}
                         style={[styles.sliderButton, value >= max && styles.sliderButtonDisabled]}
                     >
-                        <Text style={styles.sliderButtonText}>+</Text>
+                        <Ionicons name="add-outline" size={24} color="white" />
                     </TouchableOpacity>
                 </View>
-                
             </View>
         );
     };
+    
+    /**
+     * Renders the simple modal-style color picker.
+     */
+    const renderColorPicker = () => (
+        <View style={styles.colorPickerModal}>
+            <View style={styles.colorPaletteGrid}>
+                {COLOR_PALETTE.map((color, index) => (
+                    <TouchableOpacity
+                        key={index}
+                        style={[styles.paletteSwatch, { backgroundColor: color }]}
+                        onPress={() => handleColorChange(color)}
+                    >
+                        {customization.color === color && (
+                            <Ionicons name="checkmark-circle" size={20} color="white" style={styles.checkmarkIcon} />
+                        )}
+                    </TouchableOpacity>
+                ))}
+            </View>
+            <TouchableOpacity onPress={() => setIsColorPickerVisible(false)} style={styles.colorPickerCloseButton}>
+                <Text style={styles.colorPickerCloseText}>Close</Text>
+            </TouchableOpacity>
+        </View>
+    );
+
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -152,7 +214,7 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                     </View>
                 </View>
 
-                {/* Type Selector */}
+                {/* Type Selector (Unchanged) */}
                 <View style={styles.controlSection}>
                     <Text style={styles.controlTitle}>Avatar Type</Text>
                     <View style={styles.buttonRow}>
@@ -160,7 +222,7 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                           onPress={() => handleTypeChange('egg')}
                           style={[styles.typeButton, customization.type === 'egg' && styles.typeButtonActive]}
                         >
-                            <Text style={[styles.typeButtonText, customization.type === 'egg' && styles.typeButtonTextActive]}>Egg/Ellipsoid</Text>
+                            <Text style={[styles.typeButtonText, customization.type === 'egg' && styles.typeButtonTextActive]}>Ellipsoid</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
                           onPress={() => handleTypeChange('human')}
@@ -171,28 +233,28 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                     </View>
                 </View>
 
-                {/* Egg Customization Controls */}
+                {/* Ellipsoid Customization Controls */}
                 {customization.type === 'egg' && (
                     <View style={styles.controlSection}>
-                        <Text style={styles.controlTitle}>Ellipsoid Shape & Color</Text>
+                        <Text style={styles.controlTitle}>Shape & Color</Text>
                         
                         {/* Color Input */}
                         <View style={styles.colorInputRow}>
                             <Text style={styles.sliderLabel}>Color:</Text>
-                            <View style={[styles.colorSwatch, { backgroundColor: customization.color }]} />
-                            <TextInput 
-                              style={styles.colorTextInput}
-                              value={customization.color} 
-                              onChange={handleColorChange}
-                              placeholder="#RRGGBB"
-                              maxLength={7}
-                            />
+                            <TouchableOpacity onPress={() => setIsColorPickerVisible(true)}>
+                                {/* Color preview circle/button */}
+                                <View style={[styles.colorSwatch, { backgroundColor: customization.color }]} />
+                            </TouchableOpacity>
+                            {/* Display hex code, but keep the TextInput hidden/removed as requested */}
+                            <Text style={styles.colorHexText}>{customization.color}</Text>
                         </View>
+                        
+                        {/* Color Picker Modal */}
+                        {isColorPickerVisible && renderColorPicker()}
 
                         {/* Shape Sliders/Inputs */}
                         {renderSlider('width', 20, 80)}
                         {renderSlider('height', 20, 80)}
-                        {/* Note: Max for waist is dynamic based on height */}
                         {renderSlider('waist', 0, customization.shape.height)} 
                     </View>
                 )}
@@ -283,6 +345,7 @@ const styles = StyleSheet.create({
     eggPreview: {
         borderWidth: 2,
         borderColor: '#4B5563',
+        // Note: borderRadius is set dynamically inside renderEggPreview
     },
     controlSection: {
         paddingVertical: 15,
@@ -321,22 +384,21 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 15,
+        position: 'relative', // for modal positioning
     },
     colorSwatch: {
-        width: 30,
-        height: 30,
-        borderRadius: 15,
+        width: 35,
+        height: 35,
+        borderRadius: 17.5,
         borderWidth: 2,
-        borderColor: '#D1D5DB',
+        borderColor: primaryColor,
         marginHorizontal: 10,
     },
-    colorTextInput: {
-        flex: 1,
-        padding: 8,
-        borderWidth: 1,
-        borderColor: '#D1D5DB',
-        borderRadius: 8,
+    colorHexText: {
         fontSize: 16,
+        fontWeight: '600',
+        color: '#4B5563',
+        marginLeft: 10,
     },
     sliderContainer: {
         marginBottom: 15,
@@ -363,11 +425,6 @@ const styles = StyleSheet.create({
     sliderButtonDisabled: {
         backgroundColor: '#D1D5DB',
     },
-    sliderButtonText: {
-        color: 'white',
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
     mockSliderTrack: {
         flex: 1,
         height: 10,
@@ -382,6 +439,21 @@ const styles = StyleSheet.create({
         backgroundColor: accentColor,
         borderRadius: 5,
         position: 'absolute',
+    },
+    mockSliderThumb: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: primaryColor,
+        borderWidth: 3,
+        borderColor: 'white',
+        position: 'absolute',
+        top: -5,
+        transform: [{ translateX: -10 }],
+        shadowColor: '#000',
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+        elevation: 3,
     },
     actionButton: {
         flexDirection: 'row',
@@ -400,6 +472,53 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 18,
         fontWeight: 'bold',
+    },
+    // --- Color Picker Styles ---
+    colorPickerModal: {
+        position: 'absolute',
+        top: 50,
+        left: 0,
+        right: 0,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 15,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        elevation: 5,
+        zIndex: 10, // Ensure it floats above other controls
+    },
+    colorPaletteGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        marginBottom: 10,
+    },
+    paletteSwatch: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        margin: 5,
+        borderWidth: 2,
+        borderColor: '#D1D5DB',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    checkmarkIcon: {
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        borderRadius: 10,
+    },
+    colorPickerCloseButton: {
+        padding: 8,
+        alignItems: 'center',
+        backgroundColor: '#F3F4F6',
+        borderRadius: 8,
+    },
+    colorPickerCloseText: {
+        color: '#4B5563',
+        fontWeight: '600',
     }
 });
 
