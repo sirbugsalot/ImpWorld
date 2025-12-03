@@ -555,4 +555,89 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 12,
         borderRadius: 8,
-        
+        backgroundColor: '#E5E7EB',
+        marginHorizontal: 5,
+    },
+    typeButtonActive: {
+        backgroundColor: primaryColor,
+    },
+    typeButtonText: {
+        textAlign: 'center',
+        fontWeight: '700',
+        color: '#4B5563',
+        letterSpacing: 1,
+    },
+    typeButtonTextActive: {
+        color: 'white',
+    },
+    actionButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 15,
+        borderRadius: 10,
+        marginTop: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 4,
+    },
+    actionButtonText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: 'bold',
+        letterSpacing: 1,
+    },
+    
+    // --- COLOR PICKER STYLES ---
+    colorPickerModal: {
+        position: 'absolute',
+        top: 40,
+        right: 0,
+        width: 180,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 10,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        shadowColor: '#000',
+        shadowOpacity: 0.15,
+        shadowRadius: 5,
+        elevation: 8,
+        zIndex: 100, 
+    },
+    colorPaletteGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    paletteSwatch: {
+        width: 35,
+        height: 35,
+        borderRadius: 17.5,
+        margin: 4,
+        borderWidth: 2,
+        borderColor: '#D1D5DB',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    checkmarkIcon: {
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        borderRadius: 10,
+    },
+    colorPickerCloseButton: {
+        padding: 5,
+        alignItems: 'center',
+        backgroundColor: '#F3F4F6',
+        borderRadius: 8,
+        marginTop: 5,
+    },
+    colorPickerCloseText: {
+        color: '#4B5563',
+        fontWeight: '600',
+        fontSize: 12,
+    }
+});
+
+export default AvatarCustomizer;
