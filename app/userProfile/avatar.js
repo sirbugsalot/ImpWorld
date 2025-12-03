@@ -1,163 +1,385 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Dimensions, TextInput, Platform, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons'; 
 
-const AVATAR_DOC_PATH = `customization/player_avatar`;
+const { width } = Dimensions.get('window');
+
+const primaryColor = '#1D4ED8'; 
+const accentColor = '#10B981'; // Green for success/save
+const backgroundColor = '#F9FAFB';
+
+// Default state structure
 const DEFAULT_CUSTOMIZATION = {
     type: 'egg',
     color: '#8A2BE2',
     shape: { width: 30, height: 40, waist: 20 }
 };
 
-const AvatarCustomizer = ({ onCustomizationComplete }) => {
-    const [customization, setCustomization] = useState(DEFAULT_CUSTOMIZATION);
-    const [status, setStatus] = useState('Awaiting connection...');
+/**
+ * AvatarCustomizer component allows users to modify the appearance of their avatar.
+ * It operates solely on local state and passes the final data via a callback.
+ * * @param {object} initialCustomization - The starting avatar data (passed from ProfileScreen).
+ * @param {function} onSave - Callback function to call when the user saves/enters the world.
+ * @param {function} onCancel - Callback function to exit the customizer.
+ */
+const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
+    // Initialize state from props or use default if none provided
+    const [customization, setCustomization] = useState(initialCustomization || DEFAULT_CUSTOMIZATION);
+    const [status, setStatus] = useState('Customize your avatar.');
 
-    // --- UI/Handler Functions (Same as previous implementation) ---
-    
+    // --- Handlers ---
     const handleShapeChange = (name, value) => {
-        const newShape = {
-            ...customization.shape,
-            [name]: parseInt(value),
-        };
-        if (name === 'height' && newShape.waist > newShape.height) {
-            newShape.waist = newShape.height;
+        const newValue = parseInt(value, 10);
+        let newShape = { ...customization.shape, [name]: newValue };
+        
+        // Ensure waist does not exceed height
+        if (name === 'height' && newShape.waist > newValue) {
+            newShape.waist = newValue;
         }
+
         setCustomization(prev => ({ ...prev, shape: newShape }));
     };
 
     const handleColorChange = (e) => {
-        setCustomization(prev => ({ ...prev, color: e.target.value }));
+        // For React Native, text inputs pass the value directly
+        setCustomization(prev => ({ ...prev, color: e.nativeEvent.text }));
     };
 
     const handleTypeChange = (type) => {
         setCustomization(prev => ({ ...prev, type }));
     };
-
+    
+    // --- Render Functions ---
     const renderEggPreview = () => {
-        // ... (Rendering logic remains the same for the preview)
         const { color, shape } = customization;
         const PREVIEW_SCALE = 2.5; 
         const { width, height, waist } = shape;
         const previewWidth = width * PREVIEW_SCALE; 
         const previewHeight = height * PREVIEW_SCALE; 
+        
+        // Dynamic radius calculation for an egg shape
         const radiusFactor = 0.5;
         const topRadius = (waist < height / 2) ? width * radiusFactor * 1.5 : width * radiusFactor * 0.5;
         const bottomRadius = (waist > height / 2) ? width * radiusFactor * 1.5 : width * radiusFactor * 0.5;
         const minRadius = width * 0.2; 
 
         return (
-            <div 
-                className="egg-preview border-2 border-gray-700 transition-all duration-300"
-                style={{
-                    width: `${previewWidth}px`,
-                    height: `${previewHeight}px`,
-                    backgroundColor: color,
-                    borderRadius: 
-                        `${Math.max(topRadius, minRadius)}px ${Math.max(topRadius, minRadius)}px ${Math.max(bottomRadius, minRadius)}px ${Math.max(bottomRadius, minRadius)}px`,
-                }}
+            <View 
+                style={[
+                    styles.eggPreview, 
+                    {
+                        width: previewWidth,
+                        height: previewHeight,
+                        backgroundColor: color,
+                        borderTopLeftRadius: Math.max(topRadius, minRadius),
+                        borderTopRightRadius: Math.max(topRadius, minRadius),
+                        borderBottomLeftRadius: Math.max(bottomRadius, minRadius),
+                        borderBottomRightRadius: Math.max(bottomRadius, minRadius),
+                    }
+                ]}
             />
         );
     };
 
+    const renderSlider = (key, min, max, isColor = false) => {
+        const value = customization.shape[key];
+        const percent = ((value - min) / (max - min)) * 100;
+        
+        // Note: React Native does not support dynamic range input styling like Web CSS. 
+        // We will just use standard components for simplicity here.
+        
+        return (
+            <View style={styles.sliderContainer} key={key}>
+                <Text style={styles.sliderLabel}>
+                    {key.charAt(0).toUpperCase() + key.slice(1)}: {value}
+                </Text>
+                {/* A simple mock slider representation in RN */}
+                <View style={styles.mockSliderTrack}>
+                    <View style={[styles.mockSliderFill, { width: `${percent}%` }]} />
+                    <View style={[styles.mockSliderThumb, { left: `${percent}%` }]} />
+                </View>
+                {/* Since RN does not have a native slider component available in this environment, 
+                    we will use a text input as a stand-in for easy value adjustment/testing. */}
+                <TextInput
+                    style={styles.numericInput}
+                    keyboardType="numeric"
+                    value={String(value)}
+                    onChangeText={(text) => handleShapeChange(key, text)}
+                />
+            </View>
+        );
+    };
+
     return (
-        <div className="p-4 sm:p-8 max-w-lg mx-auto bg-white shadow-2xl rounded-xl w-full">
-            <h1 className="text-3xl font-extrabold text-blue-700 mb-2">Avatar Customization</h1>
-            <p className="text-sm text-gray-500 mb-2">
-                User ID: {userId || 'N/A'} ({isAnonymous ? 'Guest' : 'Linked'})
-            </p>
-            <p className={`text-base font-semibold mb-4 ${status.includes('Error') ? 'text-red-500' : 'text-blue-500'}`}>{status}</p>
+        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={onCancel}>
+                    <Ionicons name="chevron-back" size={32} color={primaryColor} />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Avatar Customizer</Text>
+                <View style={{ width: 32 }} />
+            </View>
+            
+            <View style={styles.card}>
+                <Text style={styles.statusText}>{status}</Text>
 
-            {/* Preview Area */}
-            <div className="flex flex-col items-center mb-6 p-4 bg-gray-100 rounded-xl border border-gray-200 shadow-inner">
-                <h2 className="text-xl font-bold text-gray-700 mb-3">Live Preview</h2>
-                <div className="w-36 h-36 bg-white rounded-lg flex items-center justify-center">
-                    {renderEggPreview()}
-                </div>
-            </div>
+                {/* Preview Area */}
+                <View style={styles.previewArea}>
+                    <Text style={styles.previewTitle}>Live Preview</Text>
+                    <View style={styles.previewWindow}>
+                        {renderEggPreview()}
+                    </View>
+                </View>
 
-            {/* Controls */}
-            <div className="space-y-6">
                 {/* Type Selector */}
-                <div className="p-4 bg-gray-50 rounded-xl shadow-inner">
-                    <h3 className="text-lg font-bold text-gray-700 border-b pb-2 mb-3">Avatar Type</h3>
-                    <div className="flex space-x-4">
-                        <button 
-                          onClick={() => handleTypeChange('egg')}
-                          className={`flex-1 p-3 text-center rounded-lg font-semibold transition ${customization.type === 'egg' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
-                          Egg
-                        </button>
-                        <button 
-                          onClick={() => handleTypeChange('human')}
-                          className={`flex-1 p-3 text-center rounded-lg font-semibold transition ${customization.type === 'human' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
-                          Human (WIP)
-                        </button>
-                    </div>
-                </div>
+                <View style={styles.controlSection}>
+                    <Text style={styles.controlTitle}>Avatar Type</Text>
+                    <View style={styles.buttonRow}>
+                        <TouchableOpacity 
+                          onPress={() => handleTypeChange('egg')}
+                          style={[styles.typeButton, customization.type === 'egg' && styles.typeButtonActive]}
+                        >
+                            <Text style={[styles.typeButtonText, customization.type === 'egg' && styles.typeButtonTextActive]}>Egg</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                          onPress={() => handleTypeChange('human')}
+                          style={[styles.typeButton, customization.type === 'human' && styles.typeButtonActive]}
+                        >
+                            <Text style={[styles.typeButtonText, customization.type === 'human' && styles.typeButtonTextActive]}>Human (WIP)</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
 
                 {/* Egg Customization Controls */}
-                <div className={`p-4 bg-white rounded-xl shadow-md border border-gray-100 ${customization.type === 'egg' ? 'block' : 'hidden'}`}>
-                    <h3 className="text-lg font-bold text-gray-700 border-b pb-2 mb-4">Egg Shape & Color</h3>
+                {customization.type === 'egg' && (
+                    <View style={styles.controlSection}>
+                        <Text style={styles.controlTitle}>Egg Shape & Color</Text>
+                        
+                        {/* Color Input */}
+                        <View style={styles.colorInputRow}>
+                            <Text style={styles.sliderLabel}>Color:</Text>
+                            {/* Color preview circle based on state */}
+                            <View style={[styles.colorSwatch, { backgroundColor: customization.color }]} />
+                            <TextInput 
+                              style={styles.colorTextInput}
+                              value={customization.color} 
+                              onChange={handleColorChange}
+                              placeholder="#RRGGBB"
+                              maxLength={7}
+                            />
+                        </View>
 
-                    {/* Color Input */}
-                    <div className="flex items-center space-x-4 mb-4">
-                        <label htmlFor="color-picker" className="text-sm font-medium text-gray-700 w-1/3">Color:</label>
-                        <input 
-                          type="color" 
-                          id="color-picker" 
-                          className="w-10 h-10 rounded-full border-2 border-gray-300" 
-                          value={customization.color} 
-                          onChange={handleColorChange}
-                        />
-                        <input 
-                          type="text" 
-                          id="color-input" 
-                          className="flex-1 p-2 border border-gray-300 rounded-lg" 
-                          maxLength="7" 
-                          value={customization.color} 
-                          onChange={handleColorChange}
-                        />
-                    </div>
+                        {/* Shape Sliders/Inputs */}
+                        {renderSlider('width', 20, 60)}
+                        {renderSlider('height', 20, 60)}
+                        {renderSlider('waist', 0, customization.shape.height)}
+                    </View>
+                )}
 
-                    {/* Shape Sliders */}
-                    {['width', 'height', 'waist'].map(key => (
-                      <div className="mb-4" key={key}>
-                        <label className="text-sm font-medium text-gray-700 block mb-1">
-                          {key.charAt(0).toUpperCase() + key.slice(1)} ({customization.shape[key]}):
-                        </label>
-                        <input 
-                          type="range" 
-                          min={key === 'waist' ? 0 : 20} 
-                          max={key === 'waist' ? customization.shape.height : 60} 
-                          step="1" 
-                          value={customization.shape[key]} 
-                          onChange={(e) => handleShapeChange(key, e.target.value)}
-                          className="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer range-lg transition duration-200"
-                          style={{
-                              background: `linear-gradient(to right, #10b981 0%, #10b981 ${((customization.shape[key] - (key === 'waist' ? 0 : 20)) / ((key === 'waist' ? customization.shape.height : 60) - (key === 'waist' ? 0 : 20))) * 100}%, #d1d5db ${((customization.shape[key] - (key === 'waist' ? 0 : 20)) / ((key === 'waist' ? customization.shape.height : 60) - (key === 'waist' ? 0 : 20))) * 100}%, #d1d5db 100%)`
-                          }}
-                        />
-                      </div>
-                    ))}
-                </div>
-
-                {/* Save Button */}
-                <button 
-                  onClick={() => onCustomizationComplete(customization)}
-                  className={`w-full flex items-center justify-center font-bold py-3 px-4 rounded-lg shadow-lg transition duration-150 USERNAME`}
+                {/* Save and Enter Button */}
+                <TouchableOpacity 
+                  onPress={() => {
+                      setStatus('Customization saved locally!');
+                      onSave(customization);
+                  }}
+                  style={[styles.actionButton, { backgroundColor: accentColor }]}
                 >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1h4m-4 0V4a1 1 0 00-1-1H9a1 1 0 00-1 1v3m-2 0h2m-4 0V4a1 1 0 011-1h10a1 1 0 011 1v3"></path></svg>
-                </button>
-
-                {/* Enter Game Button */}
-                <button 
-                    onClick={() => onCustomizationComplete(customization)}
-                    className={`w-full flex items-center justify-center font-bold py-3 px-4 rounded-lg shadow-lg transition duration-150 border-2 border-blue-600 USERNAME`}
-                >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                    Enter Game World
-                </button>
-            </div>
-        </div>
+                    <Ionicons name="save-outline" size={24} color="white" style={{ marginRight: 10 }} />
+                    <Text style={styles.actionButtonText}>Save & Enter World</Text>
+                </TouchableOpacity>
+            </View>
+        </ScrollView>
     );
 };
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: backgroundColor,
+    },
+    contentContainer: {
+        paddingTop: Platform.OS === 'android' ? 30 : 50,
+        paddingBottom: 40,
+        alignItems: 'center',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: width * 0.9,
+        marginBottom: 20,
+        paddingBottom: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E7EB',
+    },
+    headerTitle: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: primaryColor,
+    },
+    card: {
+        width: width * 0.9,
+        maxWidth: 500,
+        backgroundColor: 'white',
+        borderRadius: 15,
+        padding: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+    statusText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: primaryColor,
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+    previewArea: {
+        alignItems: 'center',
+        marginBottom: 30,
+        padding: 15,
+        backgroundColor: '#F3F4F6',
+        borderRadius: 10,
+    },
+    previewTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#4B5563',
+        marginBottom: 10,
+    },
+    previewWindow: {
+        width: 140,
+        height: 140,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+    },
+    eggPreview: {
+        borderWidth: 2,
+        borderColor: '#4B5563',
+        transition: 'all 300ms',
+    },
+    controlSection: {
+        paddingVertical: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F3F4F6',
+    },
+    controlTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#1F2937',
+        marginBottom: 15,
+    },
+    buttonRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+    },
+    typeButton: {
+        flex: 1,
+        padding: 12,
+        borderRadius: 8,
+        backgroundColor: '#E5E7EB',
+        marginHorizontal: 5,
+    },
+    typeButtonActive: {
+        backgroundColor: primaryColor,
+    },
+    typeButtonText: {
+        textAlign: 'center',
+        fontWeight: '600',
+        color: '#4B5563',
+    },
+    typeButtonTextActive: {
+        color: 'white',
+    },
+    colorInputRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    colorSwatch: {
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        borderWidth: 2,
+        borderColor: '#D1D5DB',
+        marginHorizontal: 10,
+    },
+    colorTextInput: {
+        flex: 1,
+        padding: 8,
+        borderWidth: 1,
+        borderColor: '#D1D5DB',
+        borderRadius: 8,
+        fontSize: 16,
+    },
+    sliderContainer: {
+        marginBottom: 15,
+    },
+    sliderLabel: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: '#4B5563',
+        marginBottom: 5,
+    },
+    mockSliderTrack: {
+        height: 10,
+        backgroundColor: '#D1D5DB',
+        borderRadius: 5,
+        position: 'relative',
+        marginBottom: 5,
+    },
+    mockSliderFill: {
+        height: 10,
+        backgroundColor: accentColor,
+        borderRadius: 5,
+        position: 'absolute',
+    },
+    mockSliderThumb: {
+        width: 18,
+        height: 18,
+        borderRadius: 9,
+        backgroundColor: primaryColor,
+        position: 'absolute',
+        top: -4,
+        transform: [{ translateX: -9 }],
+        shadowColor: '#000',
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+        elevation: 3,
+    },
+    numericInput: {
+        padding: 8,
+        borderWidth: 1,
+        borderColor: '#D1D5DB',
+        borderRadius: 8,
+        fontSize: 16,
+        textAlign: 'center',
+        width: '100%',
+    },
+    actionButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 15,
+        borderRadius: 10,
+        marginTop: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 4,
+    },
+    actionButtonText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: 'bold',
+    }
+});
 
 export default AvatarCustomizer;
