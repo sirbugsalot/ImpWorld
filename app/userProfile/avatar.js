@@ -16,7 +16,11 @@ const COLOR_PALETTE = [
 
 const MIN_DIMENSION = 20;
 const MAX_DIMENSION = 80; // Max for both Width and Height
-const PREVIEW_SCALE = 1.8; // Scale factor for visual sizing
+const PREVIEW_SCALE = 1.8; // Increased scale factor for better visibility and larger shape
+
+// UI Constants for enhanced usability
+const TRACK_THICKNESS = 16;
+const THUMB_SIZE = 24;
 
 const DEFAULT_CUSTOMIZATION = {
     type: 'egg',
@@ -76,9 +80,11 @@ const InteractiveSliderTrack = ({ parameterKey, value, min, max, orientation, ha
         ? { height: `${normalizedValue}%`, alignSelf: 'flex-end' } // Grow from bottom
         : { width: `${normalizedValue}%` };
 
+    // Calculate thumb translation based on its size (THUMB_SIZE / 2)
+    const thumbTranslation = THUMB_SIZE / 2;
     const thumbPosition = isVertical 
-        ? { bottom: `${normalizedValue}%`, transform: [{ translateY: normalizedValue === 100 ? 0 : 9 }] } // From bottom
-        : { left: `${normalizedValue}%`, transform: [{ translateX: normalizedValue === 0 ? 0 : -9 }] }; // From left
+        ? { bottom: `${normalizedValue}%`, transform: [{ translateY: normalizedValue === 100 ? 0 : thumbTranslation }] } 
+        : { left: `${normalizedValue}%`, transform: [{ translateX: normalizedValue === 0 ? 0 : -thumbTranslation }] }; 
 
     return (
         <View 
@@ -134,8 +140,10 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
     };
     
     /**
-     * Renders the egg preview using two joined half-ovals via border radii.
-     * Geometry: Width = Minor Axis. Top Half Height = Top Major Axis. Bottom Half Height = Bottom Major Axis.
+     * Renders the egg preview using the two-half-oval geometry model.
+     * Horizontal Radii (Minor Axis / 2)
+     * Vertical Top Radii (Top Major Axis = H - Waist)
+     * Vertical Bottom Radii (Bottom Major Axis = Waist)
      */
     const renderEggPreview = useMemo(() => {
         const { color, shape } = customization;
@@ -147,19 +155,16 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
 
         // --- RADIUS LOGIC based on Half-Oval Geometry ---
         
-        // 1. Horizontal Curvature (Minor Axis / 2)
+        // 1. Horizontal Curvature (Minor Axis / 2). This is the width radius.
         const sideRadius = previewWidth / 2;
         
-        // 2. Vertical Curvature (Top Half Major Axis = H_top * scale)
-        // H_top = total height - waist position (from bottom)
+        // 2. Vertical Curvature (Top Major Axis = H - Waist). This is the height radius for the top half.
         const topRadius = (height - waist) * PREVIEW_SCALE; 
         
-        // 3. Vertical Curvature (Bottom Half Major Axis = H_bottom * scale)
-        // H_bottom = waist position (from bottom)
+        // 3. Vertical Curvature (Bottom Major Axis = Waist). This is the height radius for the bottom half.
         const bottomRadius = waist * PREVIEW_SCALE; 
 
-        // Waist line position: proportional to height, determined by waist ratio
-        // Note: waistRatio here is (waist/height), which is the ratio of bottom-half height to total height.
+        // Waist line position: ratio of bottom-half height to total height.
         const waistRatio = waist / height; 
         const waistLinePosition = `${(1 - waistRatio) * 100}%`; 
 
@@ -173,28 +178,26 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                             height: previewHeight,
                             backgroundColor: color,
                             
-                            // 1. Horizontal Radii (Minor Axis)
+                            // Apply all radii: We use the single border radius properties, 
+                            // setting them to the calculated major and minor axes.
+                            
+                            // Horizontal (Minor) Radius definition:
+                            // The left/right curvatures are defined by sideRadius
                             borderTopLeftRadius: sideRadius,
                             borderTopRightRadius: sideRadius,
                             borderBottomLeftRadius: sideRadius,
                             borderBottomRightRadius: sideRadius,
-                            
-                            // 2. Vertical Top Radii (Top Major Axis)
-                            // Note: These radii define the curvature along the horizontal axis
-                            borderTopStartRadius: topRadius, 
-                            borderTopEndRadius: topRadius,
-                            
-                            // 3. Vertical Bottom Radii (Bottom Major Axis)
-                            borderBottomStartRadius: bottomRadius,
-                            borderBottomEndRadius: bottomRadius,
-                            
-                            // Use standard RN properties for max compatibility
+
+                            // Vertical (Major) Radius definition:
+                            // Top curvature is defined by topRadius
                             borderTopLeftRadius: topRadius, 
                             borderTopRightRadius: topRadius,
+
+                            // Bottom curvature is defined by bottomRadius
                             borderBottomLeftRadius: bottomRadius,
                             borderBottomRightRadius: bottomRadius,
 
-                            // Ensure it's centered for visual stability
+                            // Adjust vertical positioning slightly to center the whole shape visually
                             transform: [{ translateY: (waistRatio - 0.5) * -10 }] 
                         }
                     ]}
@@ -261,6 +264,7 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                     </TouchableOpacity>
 
                     {/* Interactive Track for dragging */}
+                    {/* The track is now much wider */}
                     <InteractiveSliderTrack
                         parameterKey="waist"
                         value={value}
@@ -301,7 +305,7 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                 {/* --- PREVIEW AREA --- */}
                 <View style={styles.previewArea}>
                     
-                    {/* 1. Vertical Slider (Height) - LEFT */}
+                    {/* 1. Vertical Slider (Height) - LEFT - Wider Target Area */}
                     <View style={styles.verticalSliderWrapper}>
                         <InteractiveSliderTrack
                             parameterKey="height"
@@ -319,7 +323,7 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                     {isColorPickerVisible && renderColorPicker()}
                 </View>
                 
-                {/* 3. Horizontal Slider (Width) - BOTTOM */}
+                {/* 3. Horizontal Slider (Width) - BOTTOM - Taller Target Area */}
                 <View style={styles.horizontalSliderWrapper}>
                     <InteractiveSliderTrack
                         parameterKey="width"
@@ -423,15 +427,17 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginBottom: 10,
     },
+    // Increased target area for vertical slider
     verticalSliderWrapper: {
-        height: 200, // Fixed height for vertical slider
-        marginRight: 10,
+        height: 200, 
+        marginRight: 20, // Increased margin for spacing
+        width: 40, // Ensure space for the wider track
         alignItems: 'center',
         justifyContent: 'flex-end',
     },
     previewWindow: {
-        width: 140, // Fixed size for the frame
-        height: 200, // Fixed height for the frame
+        width: 180, // Increased size for the frame to accommodate larger shape
+        height: 200, 
         backgroundColor: '#F3F4F6',
         borderRadius: 10,
         justifyContent: 'center',
@@ -443,7 +449,6 @@ const styles = StyleSheet.create({
     eggPreview: {
         borderWidth: 2,
         borderColor: '#4B5563',
-        // Dynamic properties (width, height, borderRadius) set in JS
     },
     colorTriggerIcon: {
         position: 'absolute',
@@ -458,11 +463,14 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 2,
     },
+    // Increased target area for horizontal slider
     horizontalSliderWrapper: {
-        width: 140, // Match preview window width
+        width: 180, // Match preview window width
         alignSelf: 'center',
-        marginTop: 5,
+        marginTop: 15, // Increased margin
+        height: 40, // Give height for track and value text
         alignItems: 'center',
+        justifyContent: 'center',
     },
     sliderValueText: {
         fontSize: 12,
@@ -479,7 +487,7 @@ const styles = StyleSheet.create({
         opacity: 0.5,
     },
 
-    // --- SLIDER TRACK STYLES ---
+    // --- SLIDER TRACK STYLES (Enlarged) ---
     interactiveTrackShadow: {
         shadowColor: '#000',
         shadowOpacity: 0.1,
@@ -487,54 +495,54 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     verticalTrack: {
-        width: 10,
+        width: TRACK_THICKNESS, // Thicker track
         height: '100%',
         backgroundColor: '#E5E7EB',
-        borderRadius: 5,
+        borderRadius: TRACK_THICKNESS / 2,
         position: 'relative',
     },
     verticalFill: {
-        width: 10,
+        width: TRACK_THICKNESS,
         backgroundColor: accentColor,
         position: 'absolute',
         bottom: 0,
-        borderRadius: 5,
+        borderRadius: TRACK_THICKNESS / 2,
     },
     verticalThumb: {
-        width: 18,
-        height: 18,
-        borderRadius: 9,
+        width: THUMB_SIZE,
+        height: THUMB_SIZE,
+        borderRadius: THUMB_SIZE / 2,
         backgroundColor: primaryColor,
         borderWidth: 3,
         borderColor: 'white',
         position: 'absolute',
-        left: -4,
+        left: -(THUMB_SIZE - TRACK_THICKNESS) / 2, // Center thumb
     },
     horizontalTrack: {
         flex: 1,
-        height: 10,
+        height: TRACK_THICKNESS, // Taller track
         backgroundColor: '#E5E7EB',
-        borderRadius: 5,
+        borderRadius: TRACK_THICKNESS / 2,
         position: 'relative',
     },
     horizontalFill: {
-        height: 10,
+        height: TRACK_THICKNESS,
         backgroundColor: accentColor,
-        borderRadius: 5,
+        borderRadius: TRACK_THICKNESS / 2,
         position: 'absolute',
     },
     horizontalThumb: {
-        width: 18,
-        height: 18,
-        borderRadius: 9,
+        width: THUMB_SIZE,
+        height: THUMB_SIZE,
+        borderRadius: THUMB_SIZE / 2,
         backgroundColor: primaryColor,
         borderWidth: 3,
         borderColor: 'white',
         position: 'absolute',
-        top: -4,
+        top: -(THUMB_SIZE - TRACK_THICKNESS) / 2, // Center thumb
     },
     
-    // --- WAIST SLIDER STYLES (Kept separate with buttons) ---
+    // --- WAIST SLIDER STYLES (Used the new thick tracks) ---
     waistSliderContainer: {
         paddingVertical: 15,
         borderTopWidth: 1,
@@ -553,10 +561,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     smallButton: {
-        width: 30,
-        height: 30,
+        width: 40, // Increased size
+        height: 40, // Increased size
         backgroundColor: primaryColor,
-        borderRadius: 6,
+        borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
     },
