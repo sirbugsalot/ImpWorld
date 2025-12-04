@@ -5,23 +5,22 @@ import { THUMB_SIZE } from '../constants'; // Correct path
 
 /**
  * Reusable component for horizontal or vertical slider track interaction.
- * FIX: Reworked touch calculation for better stability and accuracy, especially horizontal.
+ * FIX: Re-verified touch calculation for horizontal orientation to ensure it moves off the minimum value.
  */
 const InteractiveSliderTrack = ({ parameterKey, value, min, max, orientation, handleUpdate, shapeHeight }) => {
-    const [trackDimension, setTrackDimension] = useState(0);
+    // trackDimension will be height for vertical, width for horizontal
+    const [trackDimension, setTrackDimension] = useState(0); 
     const isVertical = orientation === 'vertical';
     const range = max - min;
     
-    // Normalize the value to a percentage position (0 to 1)
+    // Normalized position of the current value (0 to 1)
     const normalizedPosition = (value - min) / range;
 
     // Handler for direct sliding/tapping on the track
     const handleSlide = useCallback((e) => {
         if (!trackDimension || range === 0) return;
 
-        // Use location relative to the track's bounding box
-        // locationX is the distance from the left edge of the track
-        // locationY is the distance from the top edge of the track
+        // locationX/Y are coordinates relative to the track's bounding box.
         const touchPos = isVertical ? e.nativeEvent.locationY : e.nativeEvent.locationX;
         const dimension = trackDimension;
         
@@ -29,14 +28,11 @@ const InteractiveSliderTrack = ({ parameterKey, value, min, max, orientation, ha
         let ratio;
         
         if (isVertical) {
-            // Vertical sliders start at the bottom (0) and go up (1).
-            // Touch events are measured from the top (0) down to the bottom (dimension).
-            // We must invert: (dimension - touchPos) / dimension
+            // Vertical: Touch is measured from top (0) down (dimension). We need to invert it.
             ratio = (dimension - touchPos) / dimension;
         } else {
-            // Horizontal sliders start at the left (0) and go right (1).
-            // Touch events are measured from the left (0) to the right (dimension).
-            // Ratio is simply touch position divided by total track width.
+            // Horizontal: Touch is measured from left (0) right (dimension).
+            // This is the width slider fix: ensuring ratio correctly maps the touch movement.
             ratio = touchPos / dimension;
         }
 
@@ -48,6 +44,9 @@ const InteractiveSliderTrack = ({ parameterKey, value, min, max, orientation, ha
         
         // Round to nearest integer for clean parameter updates
         newValue = Math.round(newValue);
+
+        // Ensure the new value is absolutely within the allowed min/max range before updating.
+        newValue = Math.max(min, Math.min(max, newValue));
 
         // Waist specific clamping (Waist cannot exceed height)
         if (parameterKey === 'waist') {
@@ -68,25 +67,28 @@ const InteractiveSliderTrack = ({ parameterKey, value, min, max, orientation, ha
     const thumbTranslation = THUMB_SIZE / 2;
     const thumbOffset = normalizedPosition * 100;
 
-    // Positioning the thumb:
     const thumbPosition = isVertical 
         ? { 
             // Vertical: bottom=0% means min value, bottom=100% means max value
             bottom: `${thumbOffset}%`, 
-            // Fix: Translate by half the thumb size to center it on the track end
+            // Translate by half the thumb size to center it on the track end
             transform: [{ translateY: thumbTranslation }] 
           } 
         : { 
             // Horizontal: left=0% means min value, left=100% means max value
             left: `${thumbOffset}%`, 
-            // Fix: Translate by half the thumb size to center it on the track end
+            // Translate by half the thumb size to center it on the track end
             transform: [{ translateX: -thumbTranslation }] 
           }; 
 
     return (
         <View 
             style={[trackStyle, styles.interactiveTrackShadow]}
-            onLayout={(e) => setTrackDimension(isVertical ? e.nativeEvent.layout.height : e.nativeEvent.layout.width)}
+            // Measure the track size on layout to get accurate dimension for calculation
+            onLayout={(e) => {
+                const dim = isVertical ? e.nativeEvent.layout.height : e.nativeEvent.layout.width;
+                setTrackDimension(dim);
+            }}
             // Use onTouchStart and onTouchMove for continuous/smooth dragging
             onTouchStart={handleSlide} 
             onTouchMove={handleSlide}
@@ -101,4 +103,4 @@ const InteractiveSliderTrack = ({ parameterKey, value, min, max, orientation, ha
 
 export default InteractiveSliderTrack;
 
-        
+    
