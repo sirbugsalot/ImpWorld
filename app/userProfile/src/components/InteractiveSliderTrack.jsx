@@ -5,7 +5,7 @@ import { THUMB_SIZE } from '../constants'; // Correct path
 
 /**
  * Reusable component for horizontal or vertical slider track interaction.
- * FIX: Reworked touch calculation for better stability and accuracy.
+ * FIX: Reworked touch calculation for better stability and accuracy, especially horizontal.
  */
 const InteractiveSliderTrack = ({ parameterKey, value, min, max, orientation, handleUpdate, shapeHeight }) => {
     const [trackDimension, setTrackDimension] = useState(0);
@@ -20,6 +20,8 @@ const InteractiveSliderTrack = ({ parameterKey, value, min, max, orientation, ha
         if (!trackDimension || range === 0) return;
 
         // Use location relative to the track's bounding box
+        // locationX is the distance from the left edge of the track
+        // locationY is the distance from the top edge of the track
         const touchPos = isVertical ? e.nativeEvent.locationY : e.nativeEvent.locationX;
         const dimension = trackDimension;
         
@@ -34,6 +36,7 @@ const InteractiveSliderTrack = ({ parameterKey, value, min, max, orientation, ha
         } else {
             // Horizontal sliders start at the left (0) and go right (1).
             // Touch events are measured from the left (0) to the right (dimension).
+            // Ratio is simply touch position divided by total track width.
             ratio = touchPos / dimension;
         }
 
@@ -65,14 +68,26 @@ const InteractiveSliderTrack = ({ parameterKey, value, min, max, orientation, ha
     const thumbTranslation = THUMB_SIZE / 2;
     const thumbOffset = normalizedPosition * 100;
 
+    // Positioning the thumb:
     const thumbPosition = isVertical 
-        ? { bottom: `${thumbOffset}%`, transform: [{ translateY: thumbOffset === 100 ? 0 : thumbTranslation }] } 
-        : { left: `${thumbOffset}%`, transform: [{ translateX: thumbOffset === 0 ? 0 : -thumbTranslation }] }; 
+        ? { 
+            // Vertical: bottom=0% means min value, bottom=100% means max value
+            bottom: `${thumbOffset}%`, 
+            // Fix: Translate by half the thumb size to center it on the track end
+            transform: [{ translateY: thumbTranslation }] 
+          } 
+        : { 
+            // Horizontal: left=0% means min value, left=100% means max value
+            left: `${thumbOffset}%`, 
+            // Fix: Translate by half the thumb size to center it on the track end
+            transform: [{ translateX: -thumbTranslation }] 
+          }; 
 
     return (
         <View 
             style={[trackStyle, styles.interactiveTrackShadow]}
             onLayout={(e) => setTrackDimension(isVertical ? e.nativeEvent.layout.height : e.nativeEvent.layout.width)}
+            // Use onTouchStart and onTouchMove for continuous/smooth dragging
             onTouchStart={handleSlide} 
             onTouchMove={handleSlide}
         >
@@ -86,3 +101,4 @@ const InteractiveSliderTrack = ({ parameterKey, value, min, max, orientation, ha
 
 export default InteractiveSliderTrack;
 
+        
