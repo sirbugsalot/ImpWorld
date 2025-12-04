@@ -86,7 +86,6 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                     </View>
 
                     {/* 2. Egg Preview Window (Holds Egg and Color Picker Icon) */}
-                    {/* FIX 2: Color icon is now positioned relative to this window */}
                     <View style={styles.previewWindow}>
                         <EggPreviewSVG color={customization.color} shape={shape} />
                         
@@ -105,7 +104,6 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                 </View>
                 
                 {/* 3. Horizontal Slider (Width) */}
-                {/* FIX 3: Using horizontalSliderContainer to ensure the slider is wider */}
                 <View style={styles.horizontalSliderContainer}>
                     <Text style={styles.sliderLabel}>Width: {shape.width}</Text>
                     <View style={styles.horizontalSliderWrapper}>
@@ -121,6 +119,7 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                 </View>
 
                 {/* Waist Control */}
+                {/* FIX 4: WaistSlider ensures only the waist bar moves, not the egg edges. */}
                 <WaistSlider shape={shape} handleShapeUpdate={handleShapeUpdate} />
 
 
