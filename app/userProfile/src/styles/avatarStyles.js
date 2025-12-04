@@ -92,15 +92,16 @@ export const styles = StyleSheet.create({
         zIndex: 10, // Ensure it sits above the egg SVG
     },
     horizontalSliderContainer: { // New container to make the width slider wider
-        width: '95%', 
+        width: '100%', // Use full width of the card padding area
         alignSelf: 'center',
         marginTop: 15, 
-        paddingHorizontal: 10,
+        paddingHorizontal: 0, // Removed padding here
     },
     horizontalSliderWrapper: { // Inner wrapper for the track
         height: 40, 
         alignItems: 'center',
         justifyContent: 'center',
+        paddingHorizontal: 15, // Added internal padding for visual space from edges
     },
     sliderValueText: {
         fontSize: 12,
