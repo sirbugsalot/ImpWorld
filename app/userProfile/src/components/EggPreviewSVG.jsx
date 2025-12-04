@@ -8,55 +8,54 @@ import {
 
 /**
  * Renders the custom avatar shape (Egg or Humanoid) using SVG.
- * * @param {object} props - Component props.
+ * FIX: Anchored the base of the shape to Y=90 for stability.
+ * @param {object} props - Component props.
  * @param {string} props.color - Fill color of the shape.
  * @param {object} props.shape - Shape parameters (width, height, waist).
  */
 const EggPreviewSVG = ({ color, shape }) => {
     const { width, height, waist } = shape;
 
-    // The component is displayed within a 180x200 window.
     // We normalize the dimensions (50-100) to fit within the SVG viewbox (0-100).
-    // Max dimension (100) maps to 100 in the view box. Min dimension (50) maps to 50.
-    const normalizedWidth = width; // 50-100
-    const normalizedHeight = height; // 50-100
+    const W = width; // 50-100
+    const H = height; // 50-100
     const normalizedWaist = waist; // 0-100 (position of the waist line, 100 is top)
     
-    // Scale factor to map 50-100 to a suitable size within a 100x100 SVG viewbox
-    const W = normalizedWidth;
-    const H = normalizedHeight;
+    // Scale factor to map dimensions to a suitable size within a 100x100 SVG viewbox
+    const scaleFactor = 0.5;
+    const shapeWidth = W * scaleFactor; // Scaled width (25 to 50)
+    const shapeHeight = H * scaleFactor; // Scaled height (25 to 50)
 
-    // Calculate the center point for the shape
+    // --- FIX 1: Anchor the base of the shape at Y=90 (relative to 100 viewbox) ---
+    const BASE_Y = 90; 
+    
+    // Bottom Y coordinate is fixed
+    const bottomY = BASE_Y; 
+    
+    // Top Y coordinate changes with height
+    const topY = bottomY - (2 * shapeHeight); 
+    
+    // X coordinates remain centered
     const centerX = 50; 
-    const centerY = 50;
-    
-    // Scale the dimensions to fit the 100x100 grid for rendering
-    // We are scaling based on the max possible range (50) and centering it.
-    const shapeWidth = W * 0.5; // Scaled width (25 to 50)
-    const shapeHeight = H * 0.5; // Scaled height (25 to 50)
-    
-    // Top and Bottom Y coordinates
-    const topY = centerY - shapeHeight; // Y coordinate of the very top point
-    const bottomY = centerY + shapeHeight; // Y coordinate of the very bottom point
-    
-    // Waist Y coordinate (Waist parameter: 0 is bottom, 100 is top)
-    // The waist parameter controls the position of the maximum width (equator).
-    // NormalizedWaist 0 (bottom) -> bottomY (center + H)
-    // NormalizedWaist 100 (top) -> topY (center - H)
-    const waistY = topY + ((100 - normalizedWaist) / 100) * (bottomY - topY);
-
-    // X coordinates
     const leftX = centerX - shapeWidth;
     const rightX = centerX + shapeWidth;
 
-    // --- FIX: Use two semi-ellipses (half ovals) joined at the waistY line ---
+    // Waist Y coordinate (Waist parameter: 0 is bottom, 100 is top)
+    const shapeTotalHeight = bottomY - topY;
+    
+    // Calculate vertical offset from the top based on the normalized waist value
+    // (100 - normalizedWaist) / 100 gives a ratio where 0 is top, 1 is bottom.
+    const waistVerticalRatio = (100 - normalizedWaist) / 100;
+    
+    // waistY is calculated from the top point (topY) downwards
+    const waistY = topY + (waistVerticalRatio * shapeTotalHeight);
+
+    // --- Path Generation for two semi-ellipses (Half Ovals) ---
     
     // 1. Top Semi-Ellipse (from topY to waistY)
-    // rx = shapeWidth, ry = waistY - topY
     const topRadiusY = waistY - topY;
 
     // 2. Bottom Semi-Ellipse (from waistY to bottomY)
-    // rx = shapeWidth, ry = bottomY - waistY
     const bottomRadiusY = bottomY - waistY;
 
     // Start at the left waist point (leftX, waistY)
@@ -95,4 +94,3 @@ const EggPreviewSVG = ({ color, shape }) => {
 };
 
 export default EggPreviewSVG;
-
