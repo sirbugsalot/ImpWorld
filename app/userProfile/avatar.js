@@ -15,8 +15,8 @@ const COLOR_PALETTE = [
 ];
 
 const MIN_DIMENSION = 20;
-const MAX_DIMENSION = 80; // Max for both Width and Height, adjusted from 120
-const BASE_DIMENSION = 100; // Base size for the preview window
+const MAX_DIMENSION = 80; // Max for both Width and Height
+const PREVIEW_SCALE = 1.8; // Scale factor for visual sizing
 
 const DEFAULT_CUSTOMIZATION = {
     type: 'egg',
@@ -109,7 +109,7 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
     // --- Core Handler ---
     const handleShapeUpdate = useCallback((key, newValue) => {
         const min = key === 'waist' ? 0 : MIN_DIMENSION;
-        const max = MAX_DIMENSION; // Max is now 80 for both width/height
+        const max = MAX_DIMENSION; 
 
         // Apply general clamping
         const clampedValue = Math.max(min, Math.min(max, newValue));
@@ -134,37 +134,33 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
     };
     
     /**
-     * Renders the preview using dynamic border radii for the asymmetric egg.
-     * Constraint: borderTopRadius + borderBottomRadius = height.
-     * waist controls the ratio of top/bottom radius.
+     * Renders the egg preview using two joined half-ovals via border radii.
+     * Geometry: Width = Minor Axis. Top Half Height = Top Major Axis. Bottom Half Height = Bottom Major Axis.
      */
     const renderEggPreview = useMemo(() => {
         const { color, shape } = customization;
         const { width, height, waist } = shape;
         
         // --- SCALING ---
-        // Scale factor to fit max 80x80 shape into the 140x200 container while looking good
-        const PREVIEW_SCALE = 1.5; 
         const previewWidth = width * PREVIEW_SCALE;
         const previewHeight = height * PREVIEW_SCALE;
 
-        // --- WAIST/RADIUS LOGIC ---
-        const waistRatio = waist / height; // Ratio from 0 (top pointier) to 1 (bottom pointier)
+        // --- RADIUS LOGIC based on Half-Oval Geometry ---
         
-        // The effective radius of the sides is half the width
+        // 1. Horizontal Curvature (Minor Axis / 2)
         const sideRadius = previewWidth / 2;
         
-        // The top/bottom radii sum up to the total height to ensure a closed shape
-        // We use the waist ratio to divide the total height between top and bottom curvature.
-        const totalVerticalRadius = previewHeight;
-
-        // 1. Top Radius: Small if waist is low (pointy top)
-        const topRadius = totalVerticalRadius * (1 - waistRatio); 
+        // 2. Vertical Curvature (Top Half Major Axis = H_top * scale)
+        // H_top = total height - waist position (from bottom)
+        const topRadius = (height - waist) * PREVIEW_SCALE; 
         
-        // 2. Bottom Radius: Large if waist is low (round bottom)
-        const bottomRadius = totalVerticalRadius * waistRatio; 
+        // 3. Vertical Curvature (Bottom Half Major Axis = H_bottom * scale)
+        // H_bottom = waist position (from bottom)
+        const bottomRadius = waist * PREVIEW_SCALE; 
 
         // Waist line position: proportional to height, determined by waist ratio
+        // Note: waistRatio here is (waist/height), which is the ratio of bottom-half height to total height.
+        const waistRatio = waist / height; 
         const waistLinePosition = `${(1 - waistRatio) * 100}%`; 
 
         return (
@@ -177,20 +173,22 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                             height: previewHeight,
                             backgroundColor: color,
                             
-                            // Apply custom asymmetric radii based on constraints
+                            // 1. Horizontal Radii (Minor Axis)
                             borderTopLeftRadius: sideRadius,
                             borderTopRightRadius: sideRadius,
                             borderBottomLeftRadius: sideRadius,
                             borderBottomRightRadius: sideRadius,
                             
-                            // The radii properties define the curvature along the sides
-                            // Using the undocumented/inconsistent RN feature for asymmetric radii
+                            // 2. Vertical Top Radii (Top Major Axis)
+                            // Note: These radii define the curvature along the horizontal axis
                             borderTopStartRadius: topRadius, 
                             borderTopEndRadius: topRadius,
+                            
+                            // 3. Vertical Bottom Radii (Bottom Major Axis)
                             borderBottomStartRadius: bottomRadius,
                             borderBottomEndRadius: bottomRadius,
                             
-                            // Using the more explicit standard RN properties for safety
+                            // Use standard RN properties for max compatibility
                             borderTopLeftRadius: topRadius, 
                             borderTopRightRadius: topRadius,
                             borderBottomLeftRadius: bottomRadius,
@@ -207,7 +205,6 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                             styles.waistLine, 
                             { 
                                 top: waistLinePosition, 
-                                // Adjust position slightly for visual center
                                 transform: [{ translateY: -1 }], 
                                 width: '100%' 
                             }
