@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, Dimensions, Platform } from '
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons'; 
 
-// Import the new AvatarCustomizer component
+// Corrected import: The main customizer logic is now exported from the './avatar' file.
 import AvatarCustomizer from './avatar'; 
 
 const primaryColor = '#1D4ED8'; 
