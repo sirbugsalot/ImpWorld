@@ -2,7 +2,7 @@ import { StyleSheet, Dimensions } from 'react-native';
 import { 
     primaryColor, accentColor, backgroundColor, 
     TRACK_THICKNESS, THUMB_SIZE 
-} from '../constants';
+} from '../constants'; // Correct path
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -65,7 +65,7 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'flex-end',
     },
-    previewWindow: {
+    previewWindow: { // This is the container for the egg and the color icon
         width: 180, 
         height: 200, 
         backgroundColor: '#F3F4F6',
@@ -74,7 +74,7 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
         borderWidth: 1,
         borderColor: '#E5E7EB',
-        position: 'relative',
+        position: 'relative', // IMPORTANT: This ensures the icon is positioned correctly
     },
     colorTriggerIcon: {
         position: 'absolute',
@@ -89,11 +89,15 @@ export const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 2,
         elevation: 2,
+        zIndex: 10, // Ensure it sits above the egg SVG
     },
-    horizontalSliderWrapper: {
-        width: 180, 
+    horizontalSliderContainer: { // New container to make the width slider wider
+        width: '95%', 
         alignSelf: 'center',
         marginTop: 15, 
+        paddingHorizontal: 10,
+    },
+    horizontalSliderWrapper: { // Inner wrapper for the track
         height: 40, 
         alignItems: 'center',
         justifyContent: 'center',
@@ -103,6 +107,7 @@ export const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#4B5563',
         marginTop: 5,
+        textAlign: 'center', // Center value text
     },
     waistLine: {
         position: 'absolute',
