@@ -85,11 +85,11 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                         <Text style={styles.sliderValueText}>H:{shape.height}</Text>
                     </View>
 
-                    {/* 2. Egg Preview + Color Picker */}
-                    <View>
+                    {/* 2. Egg Preview Window (Holds Egg and Color Picker Icon) */}
+                    {/* FIX 2: Color icon is now positioned relative to this window */}
+                    <View style={styles.previewWindow}>
                         <EggPreviewSVG color={customization.color} shape={shape} />
                         
-                        {/* Color Picker Trigger Icon positioned on the preview frame */}
                         <TouchableOpacity style={styles.colorTriggerIcon} onPress={() => setIsColorPickerVisible(true)}>
                             <Ionicons name="color-palette-outline" size={24} color={primaryColor} />
                         </TouchableOpacity>
@@ -105,16 +105,19 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                 </View>
                 
                 {/* 3. Horizontal Slider (Width) */}
-                <View style={styles.horizontalSliderWrapper}>
-                    <InteractiveSliderTrack
-                        parameterKey="width"
-                        value={shape.width}
-                        min={MIN_DIMENSION}
-                        max={MAX_DIMENSION}
-                        orientation="horizontal"
-                        handleUpdate={handleShapeUpdate}
-                    />
-                    <Text style={styles.sliderValueText}>W:{shape.width}</Text>
+                {/* FIX 3: Using horizontalSliderContainer to ensure the slider is wider */}
+                <View style={styles.horizontalSliderContainer}>
+                    <Text style={styles.sliderLabel}>Width: {shape.width}</Text>
+                    <View style={styles.horizontalSliderWrapper}>
+                        <InteractiveSliderTrack
+                            parameterKey="width"
+                            value={shape.width}
+                            min={MIN_DIMENSION}
+                            max={MAX_DIMENSION}
+                            orientation="horizontal"
+                            handleUpdate={handleShapeUpdate}
+                        />
+                    </View>
                 </View>
 
                 {/* Waist Control */}
@@ -156,3 +159,4 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
 };
 
 export default AvatarCustomizer;
+
