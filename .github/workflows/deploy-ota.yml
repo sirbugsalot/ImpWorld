@@ -41,6 +41,9 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Install GUI Dependencies
+        run: npm install react-native-svg
+
       - name: Initialize EAS Project in CI
         # Uses the EXPO_TOKEN stored in GitHub Secrets
         # run: eas login
