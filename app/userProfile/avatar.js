@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Dimensions, Platform, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
+// Use react-native-svg for precise, mathematically driven shapes
+import Svg, { Path } from 'react-native-svg';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -15,8 +17,8 @@ const COLOR_PALETTE = [
 ];
 
 const MIN_DIMENSION = 20;
-const MAX_DIMENSION = 80; // Max for both Width and Height
-const PREVIEW_SCALE = 1.8; // Increased scale factor for better visibility and larger shape
+const MAX_DIMENSION = 80; 
+const PREVIEW_SCALE = 2.0; // Increased scale factor for better visibility
 
 // UI Constants for enhanced usability
 const TRACK_THICKNESS = 16;
@@ -140,10 +142,9 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
     };
     
     /**
-     * Renders the egg preview using the two-half-oval geometry model.
-     * Horizontal Radii (Minor Axis / 2)
-     * Vertical Top Radii (Top Major Axis = H - Waist)
-     * Vertical Bottom Radii (Bottom Major Axis = Waist)
+     * Renders the egg preview using a geometrically calculated SVG path.
+     * Geometry: Two half-ovals joined at the minor axis (Width).
+     * Top half major axis = H - Waist. Bottom half major axis = Waist.
      */
     const renderEggPreview = useMemo(() => {
         const { color, shape } = customization;
@@ -153,67 +154,78 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
         const previewWidth = width * PREVIEW_SCALE;
         const previewHeight = height * PREVIEW_SCALE;
 
-        // --- RADIUS LOGIC based on Half-Oval Geometry ---
+        // --- SVG GEOMETRY CALCULATION ---
         
-        // 1. Horizontal Curvature (Minor Axis / 2). This is the width radius.
-        const sideRadius = previewWidth / 2;
+        // 1. Radii (in scaled pixels)
+        const rx = previewWidth / 2;
+        // Top Y-radius (Top Major Axis)
+        const ryTop = (height - waist) * PREVIEW_SCALE; 
+        // Bottom Y-radius (Bottom Major Axis)
+        const ryBottom = waist * PREVIEW_SCALE; 
         
-        // 2. Vertical Curvature (Top Major Axis = H - Waist). This is the height radius for the top half.
-        const topRadius = (height - waist) * PREVIEW_SCALE; 
+        // 2. Waist Line Position (Y-coordinate in the SVG viewbox)
+        // The center of the SVG is (0, 0), so the top starts at -ryTop and the bottom ends at ryBottom.
+        // The waist line (Minor Axis) is at Y=0.
         
-        // 3. Vertical Curvature (Bottom Major Axis = Waist). This is the height radius for the bottom half.
-        const bottomRadius = waist * PREVIEW_SCALE; 
-
-        // Waist line position: ratio of bottom-half height to total height.
+        // 3. Viewbox and Translation
+        // The total SVG height is ryTop + ryBottom.
+        const svgHeight = ryTop + ryBottom;
+        const viewBox = `0 0 ${previewWidth} ${svgHeight}`;
+        
+        // Path starts at the bottom center of the minor axis (Y=ryBottom)
+        // Moves to the center of the left side (Y=ryBottom)
+        // Arc 1 (Bottom Half): From left side to right side, using rx and ryBottom
+        // Arc 2 (Top Half): From right side to left side, using rx and ryTop
+        
+        // Start point: Left center (0, ryBottom)
+        const startX = 0;
+        const startY = ryBottom;
+        
+        // Center point: Right center (previewWidth, ryBottom)
+        const centerPointX = previewWidth;
+        const centerPointY = ryBottom;
+        
+        // Top point: (previewWidth / 2, 0)
+        
+        // Path definition (M = MoveTo, A = ArcTo)
+        const pathData = `
+            M ${startX} ${startY}
+            A ${rx} ${ryBottom} 0 0 1 ${centerPointX} ${centerPointY}
+            A ${rx} ${ryTop} 0 0 1 ${startX} ${startY}
+            Z
+        `;
+        
+        // Waist line Y position relative to the shape container (0 to 100%)
         const waistRatio = waist / height; 
-        const waistLinePosition = `${(1 - waistRatio) * 100}%`; 
+        const waistLinePosition = `${(height - waist) / height * 100}%`; 
 
         return (
             <View style={styles.previewWindow}>
+                <Svg 
+                    height={previewHeight}
+                    width={previewWidth}
+                    viewBox={viewBox} // Define the coordinate system relative to the total shape size
+                    style={styles.eggSvg}
+                >
+                    <Path
+                        d={pathData}
+                        fill={color}
+                        stroke="#4B5563"
+                        strokeWidth="2"
+                    />
+                </Svg>
+                
+                {/* Waist Indicator Line (Rendered as a standard View on top of the SVG) */}
                 <View 
                     style={[
-                        styles.eggPreview, 
-                        {
+                        styles.waistLine, 
+                        { 
+                            top: waistLinePosition, 
+                            transform: [{ translateY: -1 }], 
                             width: previewWidth,
-                            height: previewHeight,
-                            backgroundColor: color,
-                            
-                            // Apply all radii: We use the single border radius properties, 
-                            // setting them to the calculated major and minor axes.
-                            
-                            // Horizontal (Minor) Radius definition:
-                            // The left/right curvatures are defined by sideRadius
-                            borderTopLeftRadius: sideRadius,
-                            borderTopRightRadius: sideRadius,
-                            borderBottomLeftRadius: sideRadius,
-                            borderBottomRightRadius: sideRadius,
-
-                            // Vertical (Major) Radius definition:
-                            // Top curvature is defined by topRadius
-                            borderTopLeftRadius: topRadius, 
-                            borderTopRightRadius: topRadius,
-
-                            // Bottom curvature is defined by bottomRadius
-                            borderBottomLeftRadius: bottomRadius,
-                            borderBottomRightRadius: bottomRadius,
-
-                            // Adjust vertical positioning slightly to center the whole shape visually
-                            transform: [{ translateY: (waistRatio - 0.5) * -10 }] 
                         }
-                    ]}
-                >
-                    {/* Waist Indicator Line */}
-                    <View 
-                        style={[
-                            styles.waistLine, 
-                            { 
-                                top: waistLinePosition, 
-                                transform: [{ translateY: -1 }], 
-                                width: '100%' 
-                            }
-                        ]} 
-                    />
-                </View>
+                    ]} 
+                />
                 
                 {/* Color Picker Trigger Icon */}
                 <TouchableOpacity style={styles.colorTriggerIcon} onPress={() => setIsColorPickerVisible(true)}>
@@ -264,7 +276,6 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                     </TouchableOpacity>
 
                     {/* Interactive Track for dragging */}
-                    {/* The track is now much wider */}
                     <InteractiveSliderTrack
                         parameterKey="waist"
                         value={value}
@@ -427,16 +438,15 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginBottom: 10,
     },
-    // Increased target area for vertical slider
     verticalSliderWrapper: {
         height: 200, 
-        marginRight: 20, // Increased margin for spacing
-        width: 40, // Ensure space for the wider track
+        marginRight: 20, 
+        width: 40, 
         alignItems: 'center',
         justifyContent: 'flex-end',
     },
     previewWindow: {
-        width: 180, // Increased size for the frame to accommodate larger shape
+        width: 180, 
         height: 200, 
         backgroundColor: '#F3F4F6',
         borderRadius: 10,
@@ -446,9 +456,8 @@ const styles = StyleSheet.create({
         borderColor: '#E5E7EB',
         position: 'relative',
     },
-    eggPreview: {
-        borderWidth: 2,
-        borderColor: '#4B5563',
+    eggSvg: {
+        // SVG element handles its own sizing
     },
     colorTriggerIcon: {
         position: 'absolute',
@@ -463,12 +472,11 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 2,
     },
-    // Increased target area for horizontal slider
     horizontalSliderWrapper: {
-        width: 180, // Match preview window width
+        width: 180, 
         alignSelf: 'center',
-        marginTop: 15, // Increased margin
-        height: 40, // Give height for track and value text
+        marginTop: 15, 
+        height: 40, 
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -495,7 +503,7 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     verticalTrack: {
-        width: TRACK_THICKNESS, // Thicker track
+        width: TRACK_THICKNESS, 
         height: '100%',
         backgroundColor: '#E5E7EB',
         borderRadius: TRACK_THICKNESS / 2,
@@ -516,11 +524,11 @@ const styles = StyleSheet.create({
         borderWidth: 3,
         borderColor: 'white',
         position: 'absolute',
-        left: -(THUMB_SIZE - TRACK_THICKNESS) / 2, // Center thumb
+        left: -(THUMB_SIZE - TRACK_THICKNESS) / 2, 
     },
     horizontalTrack: {
         flex: 1,
-        height: TRACK_THICKNESS, // Taller track
+        height: TRACK_THICKNESS, 
         backgroundColor: '#E5E7EB',
         borderRadius: TRACK_THICKNESS / 2,
         position: 'relative',
@@ -539,10 +547,10 @@ const styles = StyleSheet.create({
         borderWidth: 3,
         borderColor: 'white',
         position: 'absolute',
-        top: -(THUMB_SIZE - TRACK_THICKNESS) / 2, // Center thumb
+        top: -(THUMB_SIZE - TRACK_THICKNESS) / 2, 
     },
     
-    // --- WAIST SLIDER STYLES (Used the new thick tracks) ---
+    // --- WAIST SLIDER STYLES ---
     waistSliderContainer: {
         paddingVertical: 15,
         borderTopWidth: 1,
@@ -561,8 +569,8 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     smallButton: {
-        width: 40, // Increased size
-        height: 40, // Increased size
+        width: 40, 
+        height: 40, 
         backgroundColor: primaryColor,
         borderRadius: 8,
         alignItems: 'center',
