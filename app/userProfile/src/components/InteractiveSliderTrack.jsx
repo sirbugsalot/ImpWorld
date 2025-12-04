@@ -1,42 +1,57 @@
 import React, { useState, useCallback } from 'react';
 import { View } from 'react-native';
-import { styles } from '../styles/avatarStyles';
-import { THUMB_SIZE } from '../constants';
+import { styles } from '../styles/avatarStyles'; // Correct path
+import { THUMB_SIZE } from '../constants'; // Correct path
 
 /**
  * Reusable component for horizontal or vertical slider track interaction.
+ * FIX: Reworked touch calculation for better stability and accuracy.
  */
 const InteractiveSliderTrack = ({ parameterKey, value, min, max, orientation, handleUpdate, shapeHeight }) => {
     const [trackDimension, setTrackDimension] = useState(0);
     const isVertical = orientation === 'vertical';
     const range = max - min;
     
-    // Normalize the value to a percentage position (0 to 100)
-    const normalizedValue = ((value - min) / range) * 100;
+    // Normalize the value to a percentage position (0 to 1)
+    const normalizedPosition = (value - min) / range;
 
     // Handler for direct sliding/tapping on the track
     const handleSlide = useCallback((e) => {
-        if (!trackDimension) return;
+        if (!trackDimension || range === 0) return;
 
+        // Use location relative to the track's bounding box
         const touchPos = isVertical ? e.nativeEvent.locationY : e.nativeEvent.locationX;
         const dimension = trackDimension;
-
-        let normalizedPos = touchPos / dimension;
+        
+        // Calculate position as a ratio (0.0 to 1.0)
+        let ratio;
         
         if (isVertical) {
-            normalizedPos = 1 - normalizedPos; 
+            // Vertical sliders start at the bottom (0) and go up (1).
+            // Touch events are measured from the top (0) down to the bottom (dimension).
+            // We must invert: (dimension - touchPos) / dimension
+            ratio = (dimension - touchPos) / dimension;
+        } else {
+            // Horizontal sliders start at the left (0) and go right (1).
+            // Touch events are measured from the left (0) to the right (dimension).
+            ratio = touchPos / dimension;
         }
 
-        let newValue = Math.round(min + normalizedPos * range);
+        // Clamp ratio between 0 and 1
+        const clampedRatio = Math.max(0, Math.min(1, ratio));
+
+        // Map ratio back to the value range (min to max)
+        let newValue = min + clampedRatio * range;
         
+        // Round to nearest integer for clean parameter updates
+        newValue = Math.round(newValue);
+
         // Waist specific clamping (Waist cannot exceed height)
         if (parameterKey === 'waist') {
             newValue = Math.min(newValue, shapeHeight);
         }
 
-        const clampedValue = Math.max(min, Math.min(max, newValue));
-
-        handleUpdate(parameterKey, clampedValue);
+        handleUpdate(parameterKey, newValue);
     }, [trackDimension, isVertical, min, range, parameterKey, handleUpdate, shapeHeight, max]);
 
     const trackStyle = isVertical ? styles.verticalTrack : styles.horizontalTrack;
@@ -44,13 +59,15 @@ const InteractiveSliderTrack = ({ parameterKey, value, min, max, orientation, ha
     const thumbStyle = isVertical ? styles.verticalThumb : styles.horizontalThumb;
     
     const fillPosition = isVertical 
-        ? { height: `${normalizedValue}%`, alignSelf: 'flex-end' } 
-        : { width: `${normalizedValue}%` };
+        ? { height: `${normalizedPosition * 100}%`, alignSelf: 'flex-end' } 
+        : { width: `${normalizedPosition * 100}%` };
 
     const thumbTranslation = THUMB_SIZE / 2;
+    const thumbOffset = normalizedPosition * 100;
+
     const thumbPosition = isVertical 
-        ? { bottom: `${normalizedValue}%`, transform: [{ translateY: normalizedValue === 100 ? 0 : thumbTranslation }] } 
-        : { left: `${normalizedValue}%`, transform: [{ translateX: normalizedValue === 0 ? 0 : -thumbTranslation }] }; 
+        ? { bottom: `${thumbOffset}%`, transform: [{ translateY: thumbOffset === 100 ? 0 : thumbTranslation }] } 
+        : { left: `${thumbOffset}%`, transform: [{ translateX: thumbOffset === 0 ? 0 : -thumbTranslation }] }; 
 
     return (
         <View 
