@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
+import Svg, { Path } from 'react-native-svg'; // IMPORTANT: This line might cause the error. Removing for now.
 
 // Import modular components from src/
 import InteractiveSliderTrack from './src/components/InteractiveSliderTrack';

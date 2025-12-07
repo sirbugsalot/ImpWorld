@@ -2,21 +2,22 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from '../styles/avatarStyles'; // Correct path
+import { MIN_DIMENSION, MAX_DIMENSION } from '../constants';
 
 /**
- * Dedicated component for controlling the Waist (minor axis position) using buttons only.
- * FIX: Removed the unstable InteractiveSliderTrack and relies only on buttons.
+ * Dedicated component for controlling the Waist (percentage from top) using buttons.
  */
 const WaistSlider = ({ shape, handleShapeUpdate }) => {
     const value = shape.waist;
-    const max = shape.height; // Waist must be between 0 and the current height
-    const min = 0;
+    // Waist is a percentage from 0 (top) to 100 (bottom)
+    const min = 0; 
+    const max = 100;
 
     return (
         <View style={styles.waistSliderContainer}>
-            <Text style={styles.sliderLabel}>Waist Position: {value} (Max: {max})</Text>
+            <Text style={styles.sliderLabel}>Waist Position: {value}% from top</Text>
             <View style={styles.sliderControlRow}>
-                {/* Minus button for fine tuning */}
+                {/* Minus button (Move waist UP/closer to 0%) */}
                 <TouchableOpacity
                     onPress={() => handleShapeUpdate('waist', value - 1)}
                     disabled={value <= min}
@@ -30,7 +31,7 @@ const WaistSlider = ({ shape, handleShapeUpdate }) => {
                     <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1F2937' }}>{value}</Text>
                 </View>
 
-                {/* Plus button for fine tuning */}
+                {/* Plus button (Move waist DOWN/closer to 100%) */}
                 <TouchableOpacity
                     onPress={() => handleShapeUpdate('waist', value + 1)}
                     disabled={value >= max}
@@ -44,4 +45,3 @@ const WaistSlider = ({ shape, handleShapeUpdate }) => {
 };
 
 export default WaistSlider;
-

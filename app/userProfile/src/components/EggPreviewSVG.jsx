@@ -8,7 +8,7 @@ import {
 
 /**
  * Renders the custom avatar shape (Egg or Humanoid) using SVG.
- * FIX: Anchored the base of the shape to Y=90 for stability.
+ * FIX: 'waist' now controls the percentage of height from the top.
  * @param {object} props - Component props.
  * @param {string} props.color - Fill color of the shape.
  * @param {object} props.shape - Shape parameters (width, height, waist).
@@ -16,17 +16,19 @@ import {
 const EggPreviewSVG = ({ color, shape }) => {
     const { width, height, waist } = shape;
 
-    // We normalize the dimensions (50-100) to fit within the SVG viewbox (0-100).
-    const W = width; // 50-100
-    const H = height; // 50-100
-    const normalizedWaist = waist; // 0-100 (position of the waist line, 100 is top)
+    // Dimensions (50-100)
+    const W = width; 
+    const H = height; 
+    
+    // Waist is now interpreted as a percentage (0-100) from the top of the shape.
+    const waistPercentage = waist; 
     
     // Scale factor to map dimensions to a suitable size within a 100x100 SVG viewbox
     const scaleFactor = 0.5;
     const shapeWidth = W * scaleFactor; // Scaled width (25 to 50)
     const shapeHeight = H * scaleFactor; // Scaled height (25 to 50)
 
-    // --- FIX 1: Anchor the base of the shape at Y=90 (relative to 100 viewbox) ---
+    // Anchor the base of the shape at Y=90 (relative to 100 viewbox)
     const BASE_Y = 90; 
     
     // Bottom Y coordinate is fixed
@@ -40,23 +42,24 @@ const EggPreviewSVG = ({ color, shape }) => {
     const leftX = centerX - shapeWidth;
     const rightX = centerX + shapeWidth;
 
-    // Waist Y coordinate (Waist parameter: 0 is bottom, 100 is top)
+    // --- FIX: Waist Calculation as a Percentage of Total Height ---
     const shapeTotalHeight = bottomY - topY;
     
-    // Calculate vertical offset from the top based on the normalized waist value
-    // (100 - normalizedWaist) / 100 gives a ratio where 0 is top, 1 is bottom.
-    const waistVerticalRatio = (100 - normalizedWaist) / 100;
+    // Convert percentage (0-100) to a ratio (0.0 - 1.0)
+    const waistRatio = waistPercentage / 100;
     
     // waistY is calculated from the top point (topY) downwards
-    const waistY = topY + (waistVerticalRatio * shapeTotalHeight);
+    // 0% (waistRatio=0) -> waistY = topY
+    // 100% (waistRatio=1) -> waistY = topY + shapeTotalHeight = bottomY
+    const waistY = topY + (waistRatio * shapeTotalHeight);
 
     // --- Path Generation for two semi-ellipses (Half Ovals) ---
     
-    // 1. Top Semi-Ellipse (from topY to waistY)
-    const topRadiusY = waistY - topY;
+    // 1. Top Semi-Ellipse (height from topY to waistY)
+    const topRadiusY = waistY - topY; // This is (waistRatio * shapeTotalHeight)
 
-    // 2. Bottom Semi-Ellipse (from waistY to bottomY)
-    const bottomRadiusY = bottomY - waistY;
+    // 2. Bottom Semi-Ellipse (height from waistY to bottomY)
+    const bottomRadiusY = bottomY - waistY; // This is ((1 - waistRatio) * shapeTotalHeight)
 
     // Start at the left waist point (leftX, waistY)
     let d = `M ${leftX} ${waistY}`;
