@@ -1,76 +1,72 @@
 import React from 'react';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg'; 
 import { 
-    MIN_SVG_DIMENSION, 
-    MAX_SVG_DIMENSION, 
-    TRACK_THICKNESS 
-} from '../constants'; // Correct path
+    MAX_SHAPE_HEIGHT_VIEWBOX,
+    MAX_SHAPE_WIDTH_VIEWBOX,
+    BASE_Y_ANCHOR,
+    WAIST_MARGIN_PERCENTAGE
+} from '../constants'; // Import new constants
 
 /**
  * Renders the custom avatar shape (Egg or Humanoid) using SVG.
- * FIX: 'waist' now controls the percentage of height from the top.
- * @param {object} props - Component props.
+ * NEW LOGIC: Dimensions (width, height) are percentages (10-100) of a max size 
+ * defined in the viewbox. The egg is anchored at the bottom (BASE_Y_ANCHOR).
+ * * @param {object} props - Component props.
  * @param {string} props.color - Fill color of the shape.
  * @param {object} props.shape - Shape parameters (width, height, waist).
  */
 const EggPreviewSVG = ({ color, shape }) => {
-    const { width, height, waist } = shape;
+    // Inputs are percentages (10-100)
+    const { width, height, waist } = shape; 
 
-    // Dimensions (50-100)
-    const W = width; 
-    const H = height; 
+    // Convert percentage inputs to ratios (0.1 to 1.0)
+    const widthRatio = width / 100;
+    const heightRatio = height / 100;
+    const waistRatioInput = waist / 100; 
     
-    // Waist is now interpreted as a percentage (0-100) from the top of the shape.
-    const waistPercentage = waist; 
-    
-    // Scale factor to map dimensions to a suitable size within a 100x100 SVG viewbox
-    const scaleFactor = 0.5;
-    const shapeWidth = W * scaleFactor; // Scaled width (25 to 50)
-    const shapeHeight = H * scaleFactor; // Scaled height (25 to 50)
+    // Calculate the actual dimensions in ViewBox units
+    const shapeWidth = widthRatio * MAX_SHAPE_WIDTH_VIEWBOX; 
+    const shapeTotalHeight = heightRatio * MAX_SHAPE_HEIGHT_VIEWBOX;
 
-    // Anchor the base of the shape at Y=90 (relative to 100 viewbox)
-    const BASE_Y = 90; 
+    // --- Anchor Points ---
     
-    // Bottom Y coordinate is fixed
-    const bottomY = BASE_Y; 
+    // Bottom Y coordinate is fixed (Y=90 in the 100x100 viewbox)
+    const bottomY = BASE_Y_ANCHOR; 
     
-    // Top Y coordinate changes with height
-    const topY = bottomY - (2 * shapeHeight); 
+    // Top Y coordinate grows upwards from the base
+    const topY = bottomY - shapeTotalHeight; 
     
     // X coordinates remain centered
     const centerX = 50; 
     const leftX = centerX - shapeWidth;
     const rightX = centerX + shapeWidth;
 
-    // --- FIX: Waist Calculation as a Percentage of Total Height ---
-    const shapeTotalHeight = bottomY - topY;
+    // --- Waist Calculation (Percentage of Total Height with Margin) ---
     
-    // Convert percentage (0-100) to a ratio (0.0 - 1.0)
-    const waistRatio = waistPercentage / 100;
+    // Margin in ratio: 10% of total height
+    const marginRatio = WAIST_MARGIN_PERCENTAGE / 100;
     
-    // waistY is calculated from the top point (topY) downwards
-    // 0% (waistRatio=0) -> waistY = topY
-    // 100% (waistRatio=1) -> waistY = topY + shapeTotalHeight = bottomY
-    const waistY = topY + (waistRatio * shapeTotalHeight);
+    // Clamped ratio: Min is 0.1 (10% from top), Max is 0.9 (10% from bottom)
+    const clampedWaistRatio = Math.max(marginRatio, Math.min(1 - marginRatio, waistRatioInput));
+    
+    // waistY is calculated from the top point (topY) downwards using the clamped ratio
+    const waistY = topY + (clampedWaistRatio * shapeTotalHeight);
 
     // --- Path Generation for two semi-ellipses (Half Ovals) ---
     
     // 1. Top Semi-Ellipse (height from topY to waistY)
-    const topRadiusY = waistY - topY; // This is (waistRatio * shapeTotalHeight)
+    const topRadiusY = waistY - topY; 
 
     // 2. Bottom Semi-Ellipse (height from waistY to bottomY)
-    const bottomRadiusY = bottomY - waistY; // This is ((1 - waistRatio) * shapeTotalHeight)
+    const bottomRadiusY = bottomY - waistY; 
 
     // Start at the left waist point (leftX, waistY)
     let d = `M ${leftX} ${waistY}`;
 
     // A. Draw the top semi-oval (Arc curve to the right waist point)
-    // A rx ry x-axis-rotation large-arc-flag sweep-flag x y
-    // Use large-arc-flag=0 and sweep-flag=0 for the top half (anti-clockwise)
     d += ` A ${shapeWidth} ${topRadiusY} 0 0 0 ${rightX} ${waistY}`;
 
     // B. Draw the bottom semi-oval (Arc curve back to the left waist point)
-    // Use large-arc-flag=0 and sweep-flag=0 for the bottom half (anti-clockwise)
     d += ` A ${shapeWidth} ${bottomRadiusY} 0 0 0 ${leftX} ${waistY}`;
 
     // Final path string
