@@ -27,9 +27,9 @@ export const DEFAULT_CUSTOMIZATION = {
         // FIX: These must be abstract percentage values (0-100) for the sliders
         // and should NOT be calculated with screen dimensions here, as that causes
         // circular dependency issues and mismatched type errors.
-        width: 50, // Default slider percentage for width
-        height: 50, // Default slider percentage for height
-        waist: 40, // Default slider percentage for waist
+        width: 100, // Default slider percentage for width
+        height: 100, // Default slider percentage for height
+        waist: 10, // Default slider percentage for waist
     }
 };
 
