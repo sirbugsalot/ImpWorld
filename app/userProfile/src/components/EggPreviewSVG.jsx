@@ -3,7 +3,7 @@ import Svg, { Path } from 'react-native-svg';
 import { EGG_VIEWBOX_BASE_Y } from '../constants'; // Import EGG_VIEWBOX_BASE_Y (which is 70)
 
 // The component will draw entirely within a 100x100 coordinate system
-const VIEWBOX_SIZE = 100; 
+const VIEWBOX_SIZE = 90; 
 
 /**
  * Renders the custom avatar shape (Egg).
@@ -17,7 +17,7 @@ const EggPreviewSVG = ({ color, shape }) => {
     // e.g., shape.height 50 means 50 units high in the 100-unit viewbox.
     const shapeWidthPercentage = shape.width;
     const shapeHeightPercentage = shape.height;
-    const shapeWaistPercentage = shape.waist; // This is the height of the waist point FROM THE EGG'S TOP, as a percentage of the total egg height.
+    const shapeWaistPercentage = shape.height - shape.waist; // This is the height of the waist point FROM THE EGG'S BOTTOM, as a percentage of the total egg height.
     
     // --- Anchor Points ---
     
@@ -46,7 +46,7 @@ const EggPreviewSVG = ({ color, shape }) => {
     
     // waistY = topY + (waistRatio * shapeTotalHeight) 
     // e.g., 20 + (0.4 * 50) = 20 + 20 = 40
-    const waistY = topY + (waistRatio * shapeTotalHeight);
+    const waistY = bottomY - (waistRatio * shapeTotalHeight);
 
     // --- Path Generation for two semi-ellipses (Half Ovals) ---
     
@@ -96,7 +96,7 @@ const EggPreviewSVG = ({ color, shape }) => {
                 stroke="#E94949"
                 strokeWidth="1"
                 strokeDasharray="4 4"
-                strokeOpacity="0.7"
+                strokeOpacity="0.5"
             />
             
             {/* Waist Anchor Line (Visual confirmation of waist position) */}
