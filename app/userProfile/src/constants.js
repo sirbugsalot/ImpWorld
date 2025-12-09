@@ -35,8 +35,8 @@ export const DEFAULT_CUSTOMIZATION = {
 
 // SVG ViewBox container constants (screen pixel values for the <View> container)
 // User requested: 90% of frame width (screen width), 40% of frame height (screen height)
-export const WIDTH_VIEWBOX = windowWidth * 0.9;
-export const HEIGHT_VIEWBOX = windowHeight * 0.4;
+export const WIDTH_VIEWBOX = windowWidth * 0.8;
+export const HEIGHT_VIEWBOX = windowHeight * 0.35;
 // The Y-anchor for the bottom of the shape, as a percentage of the VIEWBOX height (not window height)
 // This value is used by the EggPreviewSVG to map its internal 100x100 drawing space.
 export const EGG_VIEWBOX_BASE_Y = 70; // 70 units from the top of the 100-unit viewbox (i.e., 70% down)
