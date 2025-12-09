@@ -86,9 +86,23 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                         <Text style={styles.sliderValueText}>H:{shape.height}</Text>
                     </View>
 
+                    {/* 3. Horizontal Slider (Width) */}
+                    <View style={styles.horizontalSliderContainer}>
+                        <Text style={styles.sliderLabel}>Width: {shape.width}</Text>
+                        <View style={styles.horizontalSliderWrapper}>
+                            <InteractiveSliderTrack
+                                parameterKey="width"
+                                value={shape.width}
+                                min={MIN_DIMENSION}
+                                max={MAX_DIMENSION}
+                                orientation="horizontal"
+                                handleUpdate={handleShapeUpdate}
+                            />
+                    </View>
+                    
                     {/* 2. Egg Preview Window (Holds Egg and Color Picker Icon) */}
                     <View style={styles.previewWindow}>
-                        <EggPreviewSVG color={customization.color} shape={shape} />
+                        <EggPreviewSVG color={customization.color} shape={DEFAULT_CUSTOMIZATION.shape} />
                         
                         <TouchableOpacity style={styles.colorTriggerIcon} onPress={() => setIsColorPickerVisible(true)}>
                             <Ionicons name="color-palette-outline" size={24} color={primaryColor} />
@@ -101,21 +115,6 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                                 onClose={() => setIsColorPickerVisible(false)} 
                             />
                         )}
-                    </View>
-                </View>
-                
-                {/* 3. Horizontal Slider (Width) */}
-                <View style={styles.horizontalSliderContainer}>
-                    <Text style={styles.sliderLabel}>Width: {shape.width}</Text>
-                    <View style={styles.horizontalSliderWrapper}>
-                        <InteractiveSliderTrack
-                            parameterKey="width"
-                            value={shape.width}
-                            min={MIN_DIMENSION}
-                            max={MAX_DIMENSION}
-                            orientation="horizontal"
-                            handleUpdate={handleShapeUpdate}
-                        />
                     </View>
                 </View>
 
