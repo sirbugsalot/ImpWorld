@@ -87,7 +87,7 @@ const EggPreviewSVG = ({ color, shape }) => {
                 stroke="#E94949"
                 strokeWidth="1"
                 strokeDasharray="4 4"
-                {/* strokeOpacity="0.7" */}
+                strokeOpacity="0.5"
             />
         </Svg>
     );
