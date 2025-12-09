@@ -88,21 +88,6 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                         <Text style={styles.sliderValueText}>H:{shape.height}%</Text>
                     </View>
 
-                    {/* 2. Horizontal Slider (Width) */}
-                    <View style={styles.horizontalSliderContainer}>
-                        <Text style={styles.sliderLabel}>Width: {shape.width}%</Text>
-                        <View style={styles.horizontalSliderWrapper}>
-                            <InteractiveSliderTrack
-                                parameterKey="width"
-                                value={shape.width}
-                                min={MIN_DIMENSION}
-                                max={MAX_DIMENSION}
-                                orientation="horizontal"
-                                handleUpdate={handleShapeUpdate}
-                            />
-                        </View>
-                    </View>
-
                     {/* 3. Egg Preview Window (Holds Egg and Color Picker Icon) */}
                     <View style={styles.previewWindow}>
                         {/* FIX: Pass the state shape, not the default, so it updates */}
@@ -119,6 +104,21 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                                 onClose={() => setIsColorPickerVisible(false)} 
                             />
                         )}
+                    </View>
+                </View>
+                
+                {/* 2. Horizontal Slider (Width) */}
+                <View style={styles.horizontalSliderContainer}>
+                    <Text style={styles.sliderLabel}>Width: {shape.width}%</Text>
+                    <View style={styles.horizontalSliderWrapper}>
+                        <InteractiveSliderTrack
+                            parameterKey="width"
+                            value={shape.width}
+                            min={MIN_DIMENSION}
+                            max={MAX_DIMENSION}
+                            orientation="horizontal"
+                            handleUpdate={handleShapeUpdate}
+                        />
                     </View>
                 </View>
                 
