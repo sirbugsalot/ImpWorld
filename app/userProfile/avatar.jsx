@@ -98,6 +98,7 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                                 orientation="horizontal"
                                 handleUpdate={handleShapeUpdate}
                             />
+                        </View>
                     </View>
                     
                     {/* 2. Egg Preview Window (Holds Egg and Color Picker Icon) */}
