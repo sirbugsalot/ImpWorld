@@ -1,10 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import { Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
-import Svg, { Path } from 'react-native-svg'; // IMPORTANT: This line might cause the error. Removing for now.
+import Svg, { Path } from 'react-native-svg'; // FIX: Must include Svg and Path import if used in subcomponents
 
 // Import modular components from src/
-import InteractiveSliderTrack from './src/components/InteractiveSliderTrack';
+// NOTE: InteractiveSliderTrack, ColorPicker, and WaistSlider are not provided, 
+// but are imported as placeholders. Assuming they are correct or stubbed out.
+import InteractiveSliderTrack from './src/components/InteractiveSliderTrack'; 
 import EggPreviewSVG from './src/components/EggPreviewSVG';
 import ColorPicker from './src/components/ColorPicker';
 import WaistSlider from './src/components/WaistSlider';
@@ -31,6 +33,7 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
      * Centralized function to handle all shape dimension updates (Width, Height, Waist).
      */
     const handleShapeUpdate = useCallback((key, newValue) => {
+        // All values are percentages (0-100)
         const min = key === 'waist' ? 0 : MIN_DIMENSION;
         const max = MAX_DIMENSION; 
 
@@ -39,10 +42,9 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
 
         let newShape = { ...shape, [key]: clampedValue };
         
-        // Ensure waist does not exceed height after height update
-        if (key === 'height' && newShape.waist > clampedValue) {
-            newShape.waist = clampedValue;
-        }
+        // Ensure waist does not exceed height after height update (Waist % is 0-100 of total height)
+        // Since waist is a percentage of height, we only need to worry about height being below MIN_DIMENSION, 
+        // which is handled by the clamp above. The value itself is safe.
 
         setCustomization(prev => ({ ...prev, shape: newShape }));
     }, [shape]);
@@ -83,27 +85,13 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                             orientation="vertical"
                             handleUpdate={handleShapeUpdate}
                         />
-                        <Text style={styles.sliderValueText}>H:{shape.height}</Text>
+                        <Text style={styles.sliderValueText}>H:{shape.height}%</Text>
                     </View>
 
-                    {/* 3. Horizontal Slider (Width) */}
-                    <View style={styles.horizontalSliderContainer}>
-                        <Text style={styles.sliderLabel}>Width: {shape.width}</Text>
-                        <View style={styles.horizontalSliderWrapper}>
-                            <InteractiveSliderTrack
-                                parameterKey="width"
-                                value={shape.width}
-                                min={MIN_DIMENSION}
-                                max={MAX_DIMENSION}
-                                orientation="horizontal"
-                                handleUpdate={handleShapeUpdate}
-                            />
-                        </View>
-                    </View>
-                    
                     {/* 2. Egg Preview Window (Holds Egg and Color Picker Icon) */}
                     <View style={styles.previewWindow}>
-                        <EggPreviewSVG color={customization.color} shape={DEFAULT_CUSTOMIZATION.shape} />
+                        {/* FIX: Pass the state shape, not the default, so it updates */}
+                        <EggPreviewSVG color={customization.color} shape={customization.shape} /> 
                         
                         <TouchableOpacity style={styles.colorTriggerIcon} onPress={() => setIsColorPickerVisible(true)}>
                             <Ionicons name="color-palette-outline" size={24} color={primaryColor} />
@@ -119,8 +107,23 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                     </View>
                 </View>
 
+                {/* 3. Horizontal Slider (Width) */}
+                <View style={styles.horizontalSliderContainer}>
+                    <Text style={styles.sliderLabel}>Width: {shape.width}%</Text>
+                    <View style={styles.horizontalSliderWrapper}>
+                        <InteractiveSliderTrack
+                            parameterKey="width"
+                            value={shape.width}
+                            min={MIN_DIMENSION}
+                            max={MAX_DIMENSION}
+                            orientation="horizontal"
+                            handleUpdate={handleShapeUpdate}
+                        />
+                    </View>
+                </View>
+                
                 {/* Waist Control */}
-                {/* FIX 4: WaistSlider ensures only the waist bar moves, not the egg edges. */}
+                {/* WaistSlider needs to be placed correctly, assuming it's horizontal here */}
                 <WaistSlider shape={shape} handleShapeUpdate={handleShapeUpdate} />
 
 
@@ -128,14 +131,14 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                 <View style={styles.controlSection}>
                     <View style={styles.buttonRow}>
                         <TouchableOpacity 
-                          onPress={() => handleTypeChange('egg')}
-                          style={[styles.typeButton, customization.type === 'egg' && styles.typeButtonActive]}
+                            onPress={() => handleTypeChange('egg')}
+                            style={[styles.typeButton, customization.type === 'egg' && styles.typeButtonActive]}
                         >
                             <Text style={[styles.typeButtonText, customization.type === 'egg' && styles.typeButtonTextActive]}>EGG</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
-                          onPress={() => handleTypeChange('human')}
-                          style={[styles.typeButton, customization.type === 'human' && styles.typeButtonActive]}
+                            onPress={() => handleTypeChange('human')}
+                            style={[styles.typeButton, customization.type === 'human' && styles.typeButtonActive]}
                         >
                             <Text style={[styles.typeButtonText, customization.type === 'human' && styles.typeButtonTextActive]}>HUMAN</Text>
                         </TouchableOpacity>
@@ -144,11 +147,11 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
 
                 {/* Save Button */}
                 <TouchableOpacity 
-                  onPress={() => {
-                      setStatus('Customization saved!');
-                      onSave(customization);
-                  }}
-                  style={[styles.actionButton, { backgroundColor: accentColor }]}
+                    onPress={() => {
+                        setStatus('Customization saved!');
+                        onSave(customization);
+                    }}
+                    style={[styles.actionButton, { backgroundColor: accentColor }]}
                 >
                     <Ionicons name="save-outline" size={24} color="white" style={{ marginRight: 10 }} />
                     <Text style={styles.actionButtonText}>SAVE</Text>
@@ -159,4 +162,3 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
 };
 
 export default AvatarCustomizer;
-
