@@ -1,7 +1,7 @@
 import { StyleSheet, Dimensions } from 'react-native';
 import { 
     primaryColor, accentColor, backgroundColor, 
-    TRACK_THICKNESS, THUMB_SIZE 
+    TRACK_THICKNESS, THUMB_SIZE, HEIGHT_VIEWBOX, WIDTH_VIEWBOX
 } from '../constants'; // Correct path
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -66,8 +66,8 @@ export const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     previewWindow: { // This is the container for the egg and the color icon
-        width: 180, 
-        height: 200, 
+        width: WIDTH_VIEWBOX, 
+        height: HEIGHT_VIEWBOX, 
         backgroundColor: '#F3F4F6',
         borderRadius: 10,
         justifyContent: 'center',
@@ -99,8 +99,9 @@ export const styles = StyleSheet.create({
     },
     horizontalSliderWrapper: { // Inner wrapper for the track
         height: 40, 
+        width: 200,
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-end',
         paddingHorizontal: 15, // Added internal padding for visual space from edges
     },
     sliderValueText: {
@@ -178,6 +179,13 @@ export const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: '#F3F4F6',
         marginTop: 10,
+    },
+    horizontalSliderWrapper: { // Inner wrapper for the track
+        height: 40, 
+        width: 200,
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        paddingHorizontal: 15, // Added internal padding for visual space from edges
     },
     sliderLabel: {
         fontSize: 14,
