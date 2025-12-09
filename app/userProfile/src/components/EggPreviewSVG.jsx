@@ -1,5 +1,6 @@
 import React from 'react';
 import Svg, { Path } from 'react-native-svg';
+import { BASE_Y_ANCHOR, windowWidth } from '../constants'; // Correct path
 
 // --- Fixed Geometric Constants (Based on your request) ---
 // These values define the default egg shape within the 100x100 SVG viewbox.
@@ -7,10 +8,7 @@ import Svg, { Path } from 'react-native-svg';
 // ViewBox units (5% padding means drawing area is effectively 90x90)
 // To keep the math simple, we use a 100x100 viewBox and center the shape.
 
-const EGG_FIXED_HEIGHT = 40;      // Height of the egg (e.g., 20% of screen height -> 40 units)
-const EGG_FIXED_WIDTH = 20;       // Width of the egg (e.g., 20% of screen width -> 20 units)
-const EGG_BASE_Y = 70;            // Y-coordinate for the bottom of the egg (Fixed at ~35% down from top of frame)
-const EGG_DEFAULT_WAIST_PERCENTAGE = 40; // Waist position: 40% down from the egg's top point
+const EGG_BASE_Y = BASE_Y_ANCHOR;            // Y-coordinate for the bottom of the egg (Fixed at ~35% down from top of frame)
 
 /**
  * Renders the custom avatar shape (Egg) using the fixed geometric constraints.
@@ -24,28 +22,25 @@ const EggPreviewSVG = ({ color, shape }) => {
     // const { width, height, waist } = shape; 
     
     // --- Anchor Points ---
-    const shapeWidth = EGG_FIXED_WIDTH;
-    const shapeTotalHeight = EGG_FIXED_HEIGHT;
+    const shapeWidth = shape.width;
+    const shapeHeight = shape.height;
+    const shapeWaist = shape.waist;
     
     // Bottom Y coordinate is fixed
     const bottomY = EGG_BASE_Y; 
     
     // Top Y coordinate is calculated based on height
-    const topY = bottomY - shapeTotalHeight; // EGG_BASE_Y - EGG_FIXED_HEIGHT (e.g., 70 - 40 = 30)
+    const topY = bottomY - shapeHeight; // EGG_BASE_Y - EGG_FIXED_HEIGHT (e.g., 70 - 40 = 30)
     
     // X coordinates remain centered
-    const centerX = 50; 
-    const leftX = centerX - shapeWidth;     // 50 - 20 = 30
-    const rightX = centerX + shapeWidth;    // 50 + 20 = 70
+    const centerX = 0.5*windowWidth; 
+    const leftX = centerX - centerX;     // 50 - 20 = 30
+    const rightX = centerX + centerX;    // 50 + 20 = 70
 
     // --- Waist Calculation ---
-    // Waist position is calculated as a percentage of the total egg height (40%)
-    const waistPercentage = EGG_DEFAULT_WAIST_PERCENTAGE;
-    const waistRatio = waistPercentage / 100;
+    // Waist position is given as a percentage of the total egg height (40%)
+    const waistY = bottomY - shapeHeight*shapeWaist;
     
-    // waistY is calculated from the top point (topY) downwards
-    const waistY = topY + (waistRatio * shapeTotalHeight); // e.g., 30 + (0.4 * 40) = 46
-
     // --- Path Generation for two semi-ellipses (Half Ovals) ---
     
     // 1. Top Semi-Ellipse (height from topY to waistY)
@@ -92,7 +87,7 @@ const EggPreviewSVG = ({ color, shape }) => {
                 stroke="#E94949"
                 strokeWidth="1"
                 strokeDasharray="4 4"
-                strokeOpacity="0.7"
+                {/* strokeOpacity="0.7" */}
             />
         </Svg>
     );
