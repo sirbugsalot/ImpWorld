@@ -1,15 +1,19 @@
 import { StyleSheet, Dimensions } from 'react-native';
 import { 
     primaryColor, accentColor, backgroundColor, 
-    TRACK_THICKNESS, THUMB_SIZE, HEIGHT_VIEWBOX, WIDTH_VIEWBOX
-} from '../constants'; // Correct path
+    TRACK_THICKNESS, THUMB_SIZE, HEIGHT_VIEWBOX, WIDTH_VIEWBOX,
+    backgroundColor as bgColor // Assuming backgroundColor is available, otherwise define it.
+} from '../constants';
 
 const { width: screenWidth } = Dimensions.get('window');
+
+// Fallback for backgroundColor if not defined in constants
+const safeBackgroundColor = bgColor || '#F3F4F6';
 
 export const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: backgroundColor,
+        backgroundColor: safeBackgroundColor,
     },
     contentContainer: {
         paddingTop: 50,
@@ -65,7 +69,8 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'flex-end',
     },
-    previewWindow: { // This is the container for the egg and the color icon
+    previewWindow: { // Container for the egg and the color icon
+        // Use the exported VIEWBOX dimensions (screen pixels) to size the container
         width: WIDTH_VIEWBOX, 
         height: HEIGHT_VIEWBOX, 
         backgroundColor: '#F3F4F6',
@@ -74,7 +79,7 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
         borderWidth: 1,
         borderColor: '#E5E7EB',
-        position: 'relative', // IMPORTANT: This ensures the icon is positioned correctly
+        position: 'relative',
     },
     colorTriggerIcon: {
         position: 'absolute',
@@ -89,27 +94,27 @@ export const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 2,
         elevation: 2,
-        zIndex: 10, // Ensure it sits above the egg SVG
+        zIndex: 10,
     },
-    horizontalSliderContainer: { // New container to make the width slider wider
-        width: '100%', // Use full width of the card padding area
+    horizontalSliderContainer: {
+        width: '100%',
         alignSelf: 'center',
         marginTop: 15, 
-        paddingHorizontal: 0, // Removed padding here
+        paddingHorizontal: 0,
     },
-    horizontalSliderWrapper: { // Inner wrapper for the track
+    horizontalSliderWrapper: {
         height: 40, 
         width: 200,
         alignItems: 'center',
         justifyContent: 'flex-end',
-        paddingHorizontal: 15, // Added internal padding for visual space from edges
+        paddingHorizontal: 15,
     },
     sliderValueText: {
         fontSize: 12,
         fontWeight: '600',
         color: '#4B5563',
         marginTop: 5,
-        textAlign: 'center', // Center value text
+        textAlign: 'center',
     },
     waistLine: {
         position: 'absolute',
@@ -179,13 +184,6 @@ export const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: '#F3F4F6',
         marginTop: 10,
-    },
-    horizontalSliderWrapper: { // Inner wrapper for the track
-        height: 40, 
-        width: 200,
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        paddingHorizontal: 15, // Added internal padding for visual space from edges
     },
     sliderLabel: {
         fontSize: 14,
