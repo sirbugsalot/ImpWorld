@@ -29,8 +29,8 @@ export const DEFAULT_CUSTOMIZATION = {
 
 // SVG ViewBox reference constants (used in EggPreviewSVG.jsx)
 // These define the maximum physical size in the 100x100 viewbox space.
-export const MAX_SHAPE_HEIGHT_VIEWBOX = 0.60*windowHeight; // Max height the shape can occupy
-export const MAX_SHAPE_WIDTH_VIEWBOX = 0.90*windowWidth;  // Max width the shape can occupy
+export const HEIGHT_VIEWBOX = 0.60*windowHeight; // Max height the shape can occupy
+export const WIDTH_VIEWBOX = 0.90*windowWidth;  // Max width the shape can occupy
 export const BASE_Y_ANCHOR = 0.45*windowHeight;            // Fixed Y-coordinate for the bottom of the shape (The 0.35 * screen height equivalent)
 
 // Waist constraints (percentage of total height from top)
