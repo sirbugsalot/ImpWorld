@@ -3,7 +3,7 @@ import Svg, { Path } from 'react-native-svg';
 import { EGG_VIEWBOX_BASE_Y } from '../constants'; // Import EGG_VIEWBOX_BASE_Y (which is 70)
 
 // The component will draw entirely within a 100x100 coordinate system
-const VIEWBOX_SIZE = 50; 
+const VIEWBOX_SIZE = 100; 
 
 /**
  * Renders the custom avatar shape (Egg).
@@ -73,7 +73,7 @@ const EggPreviewSVG = ({ color, shape }) => {
     
     return (
         // Use 0 0 100 100 viewBox for internal relative drawing
-        <Svg height="100%" width="100%" viewBox={`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}>
+        <Svg height="100%" width="80%" viewBox={`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}>
             {/* Background Frame/Reference (Draws inside the 5% padding area of the viewbox) */}
             <Path 
                 d="M 5 5 L 95 5 L 95 95 L 5 95 Z"
