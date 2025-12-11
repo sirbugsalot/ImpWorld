@@ -62,12 +62,12 @@ const EggPreviewSVG = ({ color, shape }) => {
     // Start at the left waist point (leftX, waistY)
     let d = `M ${leftX} ${waistY}`;
 
+    // B. Draw the bottom semi-oval (Arc curve back to the left waist point)
+    d += ` A ${rx} ${bottomRadiusY} 0 0 0 ${rightX} ${waistY}`;
+    
     // A. Draw the top semi-oval (Arc curve to the right waist point)
     // A rx ry x-axis-rotation large-arc-flag sweep-flag x y
-    d += ` A ${rx} ${topRadiusY} 0 0 0 ${rightX} ${waistY}`;
-
-    // B. Draw the bottom semi-oval (Arc curve back to the left waist point)
-    d += ` A ${rx} ${bottomRadiusY} 0 0 0 ${leftX} ${waistY}`;
+    d += ` A ${rx} ${topRadiusY} 0 0 0 ${leftX} ${waistY}`;
 
     const eggPath = d;
     
