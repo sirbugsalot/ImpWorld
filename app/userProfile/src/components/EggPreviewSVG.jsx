@@ -3,7 +3,7 @@ import Svg, { Path } from 'react-native-svg';
 import { EGG_VIEWBOX_BASE_Y } from '../constants'; // Import EGG_VIEWBOX_BASE_Y (which is 70)
 
 // The component will draw entirely within a 100x100 coordinate system
-const VIEWBOX_SIZE = 90; 
+const VIEWBOX_SIZE = 50; 
 
 /**
  * Renders the custom avatar shape (Egg).
