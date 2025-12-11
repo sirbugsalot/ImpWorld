@@ -75,18 +75,7 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                 {/* --- PREVIEW AREA (Vertical Slider + Egg) --- */}
                 <View style={styles.previewArea}>
                     
-                    {/* 1. Vertical Slider (Height) */}
-                    <View style={styles.verticalSliderWrapper}>
-                        <InteractiveSliderTrack
-                            parameterKey="height"
-                            value={shape.height}
-                            min={MIN_DIMENSION}
-                            max={MAX_DIMENSION}
-                            orientation="vertical"
-                            handleUpdate={handleShapeUpdate}
-                        />
-                        <Text style={styles.sliderValueText}>H:{shape.height}%</Text>
-                    </View>
+                    
 
                     {/* 3. Egg Preview Window (Holds Egg and Color Picker Icon) */}
                     <View style={styles.previewWindow}>
@@ -104,21 +93,34 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                                 onClose={() => setIsColorPickerVisible(false)} 
                             />
                         )}
-                    </View>
-                </View>
-                
-                {/* 2. Horizontal Slider (Width) */}
-                <View style={styles.horizontalSliderContainer}>
-                    <Text style={styles.sliderLabel}>Width: {shape.width}%</Text>
-                    <View style={styles.horizontalSliderWrapper}>
-                        <InteractiveSliderTrack
-                            parameterKey="width"
-                            value={shape.width}
-                            min={MIN_DIMENSION}
-                            max={MAX_DIMENSION}
-                            orientation="horizontal"
-                            handleUpdate={handleShapeUpdate}
-                        />
+
+                        {/* 1. Vertical Slider (Height) */}
+                        <View style={styles.verticalSliderWrapper}>
+                            <InteractiveSliderTrack
+                                parameterKey="height"
+                                value={shape.height}
+                                min={MIN_DIMENSION}
+                                max={MAX_DIMENSION}
+                                orientation="vertical"
+                                handleUpdate={handleShapeUpdate}
+                            />
+                            <Text style={styles.sliderValueText}>H:{shape.height}%</Text>
+                        </View>
+
+                        {/* 2. Horizontal Slider (Width) */}
+                        <View style={styles.horizontalSliderContainer}>
+                            <View style={styles.horizontalSliderWrapper}>
+                                <InteractiveSliderTrack
+                                    parameterKey="width"
+                                    value={shape.width}
+                                    min={MIN_DIMENSION}
+                                    max={MAX_DIMENSION}
+                                    orientation="horizontal"
+                                    handleUpdate={handleShapeUpdate}
+                                />
+                                <Text style={styles.sliderLabel}>Width: {shape.width}%</Text>
+                            </View>
+                        </View>
                     </View>
                 </View>
                 
