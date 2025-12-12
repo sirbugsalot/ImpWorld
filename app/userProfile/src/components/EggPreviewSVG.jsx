@@ -17,7 +17,7 @@ const EggPreviewSVG = ({ color, shape }) => {
     // e.g., shape.height 50 means 50 units high in the 100-unit viewbox.
     const shapeWidthPercentage = shape.width;
     const shapeHeightPercentage = shape.height;
-    const shapeWaistPercentage = ((shape.waist+10)/shape.height) * (90/110);// (shape.height - shape.waist +10)/(shape.height + 10); // This is the height of the waist point FROM THE EGG'S BOTTOM, as a percentage of the total egg height.
+    const shapeWaistPercentage = (shape.waist/shape.height +10) * (90/110);// (shape.height - shape.waist +10)/(shape.height + 10); // This is the height of the waist point FROM THE EGG'S BOTTOM, as a percentage of the total egg height.
     
     // --- Anchor Points ---
     
