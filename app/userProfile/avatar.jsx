@@ -78,7 +78,7 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                         parameterKey="height"
                         value={shape.height}
                         min={MIN_DIMENSION}
-                        max={MAX_DIMENSION}
+                        max={MAX_DIMENSION+50}
                         orientation="vertical"
                         handleUpdate={handleShapeUpdate}
                     />
@@ -86,18 +86,16 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                 </View>
 
                 {/* 2. Horizontal Slider (Width) */}
-                <View style={styles.horizontalSliderContainer}>
-                    <View style={styles.horizontalSliderWrapper}>
-                        <InteractiveSliderTrack
-                            parameterKey="width"
-                            value={shape.width}
-                            min={MIN_DIMENSION}
-                            max={MAX_DIMENSION}
-                            orientation="horizontal"
-                            handleUpdate={handleShapeUpdate}
-                        />
-                        <Text style={styles.sliderLabel}>Width: {shape.width}%</Text>
-                    </View>
+                <View style={styles.horizontalSliderWrapper}>
+                    <InteractiveSliderTrack
+                        parameterKey="width"
+                        value={shape.width}
+                        min={MIN_DIMENSION}
+                        max={MAX_DIMENSION+50}
+                        orientation="horizontal"
+                        handleUpdate={handleShapeUpdate}
+                    />
+                    <Text style={styles.sliderLabel}>Width: {shape.width}%</Text>
                 </View>
                 
                 {/* --- PREVIEW AREA (Vertical Slider + Egg) --- */}
