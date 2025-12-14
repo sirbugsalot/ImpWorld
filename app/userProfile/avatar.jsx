@@ -1,151 +1,86 @@
+import React, { useState, useCallback } from 'react';
+import { Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons'; 
+import Svg, { Path } from 'react-native-svg'; // FIX: Must include Svg and Path import if used in subcomponents
+
+// Import modular components from src/
+// NOTE: InteractiveSliderTrack, ColorPicker, and WaistSlider are not provided, 
+// but are imported as placeholders. Assuming they are correct or stubbed out.
+//import InteractiveSliderTrack from './src/components/InteractiveSliderTrack'; 
+import EggPreviewSVG from './src/components/EggPreviewSVG';
+import ColorPicker from './src/components/ColorPicker';
+//import WaistSlider from './src/components/WaistSlider';
+
+// Import constants and styles from src/
+import { 
+    DEFAULT_CUSTOMIZATION, 
+    MAX_HEIGHT, MAX_WIDTH, MIN_WIDTH, MIN_HEIGHT, 
+    primaryColor, 
+    accentColor 
+} from './src/constants';
+import { styles } from './src/styles/avatarStyles';
+
 const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave, onCancel }) => {
     
+    // State for color and type
     const [customization, setCustomization] = useState(initialCustomization);
+
+    // State for the two draggable vertices (coordinates in VIEWBOX units 0-100)
     const [eggVertices, setEggVertices] = useState([
-        { x: VIEWBOX_SIZE / 2, y: initialCustomization.hy }, 
-        { x: initialCustomization.wx, y: initialCustomization.wy }, 
+        { x: VIEWBOX_SIZE / 2,          y: initialCustomization.hy }, // Index 0: Height/Top vertex
+        { x: VIEWBOX_SIZE / 2 + initialCustomization.wx/2,   y: initialCustomization.wy }, // Index 1: Width/Waist vertex
     ]);
 
-    const [status, setStatus] = useState('Drag the red dots to reshape the avatar.');
+
+    // Note: If initialCustomization is null/undefined, use the default from constants
+    z
+    //const [customization, setCustomization] = useState(initialCustomization || DEFAULT_CUSTOMIZATION);
+    const [status, setStatus] = useState('Customize your avatar.');
     const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
-    const [draggedVertexIndex, setDraggedVertexIndex] = useState(null); 
+    const { shape } = eggDim;
+    //const { shape } = customization;
 
-    const previewRef = useRef(null);
-    
-    // Derived shape object
-    const shape = useMemo(() => ({
-        hy: eggVertices[0].y, 
-        wx: eggVertices[1].x, 
-        wy: eggVertices[1].y, 
-    }), [eggVertices]);
-    
-    
-    // --- UTILITY: Coordinate Mapping ---
+    /**
+     * Centralized function to handle all shape dimension updates (Width, Height, Waist).
+     */
 
-    const mapClientToSVG = useCallback((clientX, clientY) => {
-        if (!previewRef.current) return { x: 0, y: 0 };
-
-        const rect = previewRef.current.getBoundingClientRect();
-        
-        // Map pixel coordinates to ViewBox (0-100)
-        const relativeX = clientX - rect.left;
-        const relativeY = clientY - rect.top;
-        const svgX = (relativeX / rect.width) * VIEWBOX_SIZE;
-        const svgY = (relativeY / rect.height) * VIEWBOX_SIZE;
-        
-        return { x: svgX, y: svgY };
-    }, []);
-
-    const getActiveVertext = useCallback((svgX, svgY) => {
-        const touchRadiusSVG = 5; 
-
-        // Check Height Vertex (Index 0)
-        const hyX = VIEWBOX_SIZE / 2;
-        const hyY = eggVertices[0].y;
-        const dist0 = Math.sqrt((svgX - hyX)**2 + (svgY - hyY)**2);
-
-        // Check Width/Waist Vertex (Index 1)
-        const wxY = eggVertices[1].y;
-        const wxX = eggVertices[1].x;
-        const dist1 = Math.sqrt((svgX - wxX)**2 + (svgY - wxY)**2);
-
-        if (dist0 <= touchRadiusSVG) {
-            return 0;
-        } else if (dist1 <= touchRadiusSVG) {
-            return 1;
+    // const shapeWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, shape.wx)); // x coordinate of right edge
+    // const shapeHeight = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, shape.hy)); // x,y coordinate of top edge
+    // const shapeWaist = Math.max(shapeHeight*0.15, Math.min(shapeHeight*0.85, shape.wy));// Clip the width +/- 15% of current height.
+    const getActiveVertext = (x, y) => {
+        const threshold = 20;
+        for (let i = 0; i < eggDim.length; i++){
+            const vertex = eggDim[i];
+            const distance = Math.sqrt( (x-vertex.x)**2 + (y-vertex.y)**2);
+            if (distance <= threshold) {
+                return i;
         }
-        return null;
-    }, [eggVertices]);
+    }
 
-
-    // --- TOUCH/MOUSE HANDLERS ---
-    
-    const handleStart = useCallback((event) => {
-        if (isColorPickerVisible) return; // Prevent drag if modal is open
-
-        const clientX = event.clientX || event.touches?.[0].clientX;
-        const clientY = event.clientY || event.touches?.[0].clientY;
-
-        if (clientX === undefined || clientY === undefined) return;
-
-        const { x: svgX, y: svgY } = mapClientToSVG(clientX, clientY);
-        const activeIndex = getActiveVertext(svgX, svgY);
+    const handleShapeUpdate = (event) => {
+        const locationX = event.nativeEvent.locationX;
+        const locationY = event.nativeEvent.locationY;
         
-        setDraggedVertexIndex(activeIndex);
-        if (activeIndex !== null) {
-            setStatus(`Dragging Vertex ${activeIndex === 0 ? 'Top (Height)' : 'Right (Width/Waist)'}...`);
+        let activeVertex;
+        if (setDraggedVertexIndex == null) {
+            activeVertex = getActiveVertext(locationX, locationY);
+            setDraggedVertexIndex(activeVertex)
         }
-    }, [mapClientToSVG, getActiveVertext, isColorPickerVisible]);
-
-    const handleMove = useCallback((event) => {
-        if (draggedVertexIndex === null || isColorPickerVisible) return;
-        
-        event.preventDefault(); // Stop native scrolling
-
-        const clientX = event.clientX || event.touches?.[0].clientX;
-        const clientY = event.clientY || event.touches?.[0].clientY;
-
-        if (clientX === undefined || clientY === undefined) return;
-        
-        const { x: newSvgX, y: newSvgY } = mapClientToSVG(clientX, clientY);
-
-        setEggVertices(prevVertices => {
-            let newVertices = [...prevVertices];
-            const vertex = newVertices[draggedVertexIndex];
-            
-            if (draggedVertexIndex === 0) {
-                // Height Vertex: Update Y, X stays centered
-                const newY = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, newSvgY));
-                vertex.y = newY;
-            } else if (draggedVertexIndex === 1) {
-                // Width/Waist Vertex: Update X and Y
-                
-                // X constraint
-                const newX = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, newSvgX));
-                vertex.x = newX;
-
-                // Y constraint: Ensure waist is far enough from top and bottom
-                const minWaistY = newVertices[0].y + MIN_WAIST_Y_OFFSET; 
-                const maxWaistY = EGG_VIEWBOX_BASE_Y - MIN_WAIST_Y_OFFSET; 
-                
-                const newY = Math.max(minWaistY, Math.min(maxWaistY, newSvgY));
-                vertex.y = newY;
-            }
-            
-            // Update customization state
-            const newShape = { hy: newVertices[0].y, wx: newVertices[1].x, wy: newVertices[1].y };
-            setCustomization(prev => ({ ...prev, ...newShape }));
-
-            return newVertices;
-        });
-    }, [draggedVertexIndex, mapClientToSVG, isColorPickerVisible]);
-
-    const handleEnd = useCallback(() => {
-        if (draggedVertexIndex !== null) {
-            setStatus('Drag the red dots to reshape the avatar.');
+        const updatedVertices = [...eggDim];
+        updatedVertices[setDraggedVertexIndex] = activeVertex == 0 ? {
+                x: WIDTH_VIEWBOX/2,
+                y: Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, event.nativeEvent.locationY)),
+        } : {
+                x: Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, event.nativeEvent.locationX)),
+                y: Math.max(eggDim[0].y*0.15, Math.min(eggDim[0].y*0.85, event.nativeEvent.locationY)),
         }
+        setEggDim(updatedVertices);
+    };
+
+    const releaseUpdate = () => {
         setDraggedVertexIndex(null);
-    }, [draggedVertexIndex]);
-    
-    // Global listeners for dragging
-    useEffect(() => {
-        if (draggedVertexIndex !== null) {
-            document.addEventListener('mousemove', handleMove);
-            document.addEventListener('mouseup', handleEnd);
-            document.addEventListener('touchmove', handleMove, { passive: false });
-            document.addEventListener('touchend', handleEnd);
-        }
-        return () => {
-            document.removeEventListener('mousemove', handleMove);
-            document.removeEventListener('mouseup', handleEnd);
-            document.removeEventListener('touchmove', handleMove);
-            document.removeEventListener('touchend', handleEnd);
-        };
-    }, [draggedVertexIndex, handleMove, handleEnd]);
+    };
 
-
-    // --- OTHER HANDLERS ---
-    
     const handleColorChange = (newColor) => {
         setCustomization(prev => ({ ...prev, color: newColor }));
         setIsColorPickerVisible(false);
@@ -156,120 +91,104 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
     };
 
 
-    // --- RENDER (Mobile-First Layout) ---
     return (
-        // Use min-h-screen and p-0 for edge-to-edge mobile look
-        <div className="min-h-screen bg-gray-50 font-[Inter] flex justify-center">
-            <div className="w-full max-w-md bg-white shadow-2xl flex flex-col">
-                {/* Header Section */}
-                <header className="flex justify-between items-center p-4 bg-white border-b border-gray-100 sticky top-0 z-10">
-                    <button onClick={onCancel} className="p-2 rounded-full active:bg-gray-100 transition">
-                        <ChevronLeft className="w-6 h-6 text-indigo-600" />
-                    </button>
-                    <h1 className="text-xl font-bold text-gray-800">Customizer</h1>
-                    <div className="w-10 h-6" /> {/* Spacer */}
-                </header>
-                
-                {/* Scrollable Content Area */}
-                <div className="flex-grow p-4 overflow-y-auto">
-                    
-                    <div className="bg-white rounded-xl">
-                        <p className="text-center text-sm text-gray-500 h-5 mb-4">{status}</p>
-                        
-                        {/* --- PREVIEW AREA --- */}
-                        <div className="flex justify-center mb-6">
-                            <div 
-                                ref={previewRef}
-                                className="w-full max-w-xs aspect-square bg-gray-50 border-4 border-gray-200 rounded-2xl relative overflow-hidden shadow-inner touch-none" 
-                                onMouseDown={handleStart}
-                                onTouchStart={handleStart}
-                            >
-                                {/* SVG Avatar */}
-                                <EggPreviewSVG color={customization.color} shape={shape} >
-                                    {/* Draggable Vertices */}
-                                    {eggVertices.map((vertex, index) => (
-                                        <circle
-                                            key={index}
-                                            cx={vertex.x}
-                                            cy={vertex.y}
-                                            r={4}
-                                            fill={draggedVertexIndex === index ? '#DC2626' : '#EF4444'} 
-                                            stroke="#FFFFFF"
-                                            strokeWidth="1.5"
-                                            className="cursor-grab"
-                                        />
-                                    ))}
-                                </EggPreviewSVG> 
-                                
-                                {/* Color Picker Trigger Button */}
-                                <button 
-                                    className="absolute top-4 right-4 p-3 bg-white rounded-full shadow-lg hover:bg-gray-50 transition active:scale-95 z-10"
-                                    onClick={() => setIsColorPickerVisible(true)}
-                                >
-                                    <Palette className="w-6 h-6 text-indigo-600" />
-                                </button>
+        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={onCancel}>
+                    <Ionicons name="chevron-back" size={32} color={primaryColor} />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Customize Avatar</Text>
+                <View style={{ width: 32 }} />
+            </View>
+            
+            <View style={styles.card}>
+                <Text style={styles.statusText}>{status}</Text>
 
-                                {isColorPickerVisible && (
-                                    <ColorPicker 
-                                        selectedColor={customization.color} 
-                                        onColorChange={handleColorChange} 
-                                        onClose={() => setIsColorPickerVisible(false)} 
-                                    />
-                                )}
-                            </div>
-                        </div>
-                        
-                        {/* --- TYPE SELECTOR --- */}
-                        <div className="p-2 bg-gray-100 rounded-xl mb-6">
-                            <h3 className="text-sm font-semibold text-gray-600 mb-3 ml-2">Avatar Style</h3>
-                            <div className="flex justify-between space-x-2">
-                                {/* EGG Button */}
-                                <button 
-                                    onClick={() => handleTypeChange('egg')}
-                                    className={`py-3 rounded-xl flex-1 font-semibold text-base transition duration-200 ${
-                                        customization.type === 'egg' 
-                                            ? 'bg-indigo-600 text-white shadow-md' 
-                                            : 'bg-white text-gray-700 hover:bg-gray-50'
-                                    }`}
-                                >
-                                    EGG
-                                </button>
-                                {/* HUMAN Button */}
-                                <button 
-                                    onClick={() => handleTypeChange('human')}
-                                    className={`py-3 rounded-xl flex-1 font-semibold text-base transition duration-200 ${
-                                        customization.type === 'human' 
-                                            ? 'bg-indigo-600 text-white shadow-md' 
-                                            : 'bg-white text-gray-700 hover:bg-gray-50'
-                                    }`}
-                                >
-                                    HUMAN
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {/* 1. Vertical Slider (Height) */}
+                {/* <View style={styles.verticalSliderWrapper}>
+                    <InteractiveSliderTrack
+                        parameterKey="height"
+                        value={shape.height}
+                        min={MIN_DIMENSION}
+                        max={MAX_DIMENSION+50}
+                        orientation="vertical"
+                        handleUpdate={handleShapeUpdate}
+                    />
+                    <Text style={styles.sliderValueText}>H:{shape.height}%</Text>
+                </View> */}
+
+                {/* 2. Horizontal Slider (Width) */}
+                {/* <View style={styles.horizontalSliderWrapper}>
+                    <InteractiveSliderTrack
+                        parameterKey="width"
+                        value={shape.width}
+                        min={MIN_DIMENSION}
+                        max={MAX_DIMENSION+50}
+                        orientation="horizontal"
+                        handleUpdate={handleShapeUpdate}
+                    />
+                    <Text style={styles.sliderLabel}>Width: {shape.width}%</Text>
+                </View> */}
                 
-                {/* Fixed Footer with Save Button */}
-                <div className="p-4 bg-white border-t border-gray-100 sticky bottom-0 z-10 shadow-t-lg">
-                    <button 
-                        onClick={() => {
-                            setStatus('Customization saved!');
-                            // onSave(customization);
-                            console.log('Final Customization Data:', customization);
-                        }}
-                        className="flex items-center justify-center w-full py-4 text-white font-bold text-xl rounded-xl shadow-2xl transition transform active:scale-[0.99]"
-                        style={{ 
-                            backgroundColor: accentColor, 
-                            boxShadow: `0 8px 15px -3px ${accentColor}60` 
-                        }}
-                    >
-                        <Save className="w-6 h-6 mr-3" />
-                        SAVE AVATAR
-                    </button>
-                </div>
-            </div>
-        </div>
+                {/* --- PREVIEW AREA (Vertical Slider + Egg) --- */}
+                <View style={styles.previewArea}>
+
+                    {/* 3. Egg Preview Window (Holds Egg and Color Picker Icon) */}
+                    <View style={styles.previewWindow} onTouchMove={handleShapeUpdate} onTouchEnd={releaseUpdate}>
+
+                        {/* FIX: Pass the state shape, not the default, so it updates */}
+                        <EggPreviewSVG color={customization.color} shape={customization.shape} /> 
+                        
+                        <TouchableOpacity style={styles.colorTriggerIcon} onPress={() => setIsColorPickerVisible(true)}>
+                            <Ionicons name="color-palette-outline" size={24} color={primaryColor} />
+                        </TouchableOpacity>
+
+                        {isColorPickerVisible && (
+                            <ColorPicker 
+                                selectedColor={customization.color} 
+                                onColorChange={handleColorChange} 
+                                onClose={() => setIsColorPickerVisible(false)} 
+                            />
+                        )}
+                    </View>
+                </View>
+                
+                {/* Waist Control */}
+                {/* WaistSlider needs to be placed correctly, assuming it's horizontal here */}
+                {/* <WaistSlider shape={shape} handleShapeUpdate={handleShapeUpdate} /> */}
+
+
+                {/* --- TYPE SELECTOR AND SAVE --- */}
+                <View style={styles.controlSection}>
+                    <View style={styles.buttonRow}>
+                        <TouchableOpacity 
+                            onPress={() => handleTypeChange('egg')}
+                            style={[styles.typeButton, customization.type === 'egg' && styles.typeButtonActive]}
+                        >
+                            <Text style={[styles.typeButtonText, customization.type === 'egg' && styles.typeButtonTextActive]}>EGG</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            onPress={() => handleTypeChange('human')}
+                            style={[styles.typeButton, customization.type === 'human' && styles.typeButtonActive]}
+                        >
+                            <Text style={[styles.typeButtonText, customization.type === 'human' && styles.typeButtonTextActive]}>HUMAN</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Save Button */}
+                <TouchableOpacity 
+                    onPress={() => {
+                        setStatus('Customization saved!');
+                        onSave(customization);
+                    }}
+                    style={[styles.actionButton, { backgroundColor: accentColor }]}
+                >
+                    <Ionicons name="save-outline" size={24} color="white" style={{ marginRight: 10 }} />
+                    <Text style={styles.actionButtonText}>SAVE</Text>
+                </TouchableOpacity>
+            </View>
+        </ScrollView>
     );
 };
 
