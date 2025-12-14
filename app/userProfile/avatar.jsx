@@ -14,7 +14,7 @@ import ColorPicker from './src/components/ColorPicker';
 // Import constants and styles from src/
 import { 
     DEFAULT_CUSTOMIZATION, 
-    MAX_HEIGHT, MAX_WIDTH, MIN_WIDTH, MIN_HEIGHT, 
+    MAX_HEIGHT, MAX_WIDTH, MIN_WIDTH, MIN_HEIGHT, VIEWBOX_SIZE,
     primaryColor, 
     accentColor 
 } from './src/constants';
@@ -25,56 +25,95 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
     // State for color and type
     const [customization, setCustomization] = useState(initialCustomization);
 
-    // State for the two draggable vertices (coordinates in VIEWBOX units 0-100)
+    // --- Renamed from eggDim to eggVertices for consistency ---
     const [eggVertices, setEggVertices] = useState([
-        { x: VIEWBOX_SIZE / 2,          y: initialCustomization.hy }, // Index 0: Height/Top vertex
-        { x: VIEWBOX_SIZE / 2 + initialCustomization.wx/2,   y: initialCustomization.wy }, // Index 1: Width/Waist vertex
+        { x: VIEWBOX_SIZE / 2,          y: initialCustomization.shape.hy }, // Index 0: Height/Top vertex
+        { x: VIEWBOX_SIZE / 2 + initialCustomization.shape.wx / 2, y: initialCustomization.shape.wy }, // Index 1: Width/Waist vertex
     ]);
 
+    // --- State to track which vertex is being dragged ---
+    const [draggedVertexIndex, setDraggedVertexIndex] = useState(null);
 
-    // Note: If initialCustomization is null/undefined, use the default from constants
-    z
-    //const [customization, setCustomization] = useState(initialCustomization || DEFAULT_CUSTOMIZATION);
+    // --- Initialized customization correctly, removing stray 'z' ---
+    // const [customization, setCustomization] = useState(initialCustomization || DEFAULT_CUSTOMIZATION);
     const [status, setStatus] = useState('Customize your avatar.');
     const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
-    const { shape } = eggDim;
-    //const { shape } = customization;
+
+    // --- Removed incorrect destructuring: const { shape } = eggDim; ---
+    // Use customization.shape where needed, but the dragging logic operates directly on eggVertices.
+
+    // Get the shape object from customization
+    const { shape } = customization;
 
     /**
-     * Centralized function to handle all shape dimension updates (Width, Height, Waist).
+     * Finds the index of the vertex near the given coordinates (in VIEWBOX units).
      */
-
-    // const shapeWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, shape.wx)); // x coordinate of right edge
-    // const shapeHeight = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, shape.hy)); // x,y coordinate of top edge
-    // const shapeWaist = Math.max(shapeHeight*0.15, Math.min(shapeHeight*0.85, shape.wy));// Clip the width +/- 15% of current height.
     const getActiveVertext = (x, y) => {
-        const threshold = 20;
-        for (let i = 0; i < eggDim.length; i++){
-            const vertex = eggDim[i];
+        const threshold = 15; // Adjusted threshold for better touch detection
+        for (let i = 0; i < eggVertices.length; i++){
+            const vertex = eggVertices[i];
+            // Since x for vertex 0 is fixed at WIDTH_VIEWBOX/2, we only check y distance for index 0
+            // and distance for index 1
             const distance = Math.sqrt( (x-vertex.x)**2 + (y-vertex.y)**2);
             if (distance <= threshold) {
                 return i;
+            }
         }
-    }
+        return null; // Return null if no vertex is active
+    };
 
+    /**
+     * Centralized function to handle dragging of vertices on the SVG.
+     */
     const handleShapeUpdate = (event) => {
         const locationX = event.nativeEvent.locationX;
         const locationY = event.nativeEvent.locationY;
         
-        let activeVertex;
-        if (setDraggedVertexIndex == null) {
-            activeVertex = getActiveVertext(locationX, locationY);
-            setDraggedVertexIndex(activeVertex)
+        let activeVertexIndex = draggedVertexIndex;
+
+        // If dragging hasn't started, try to find a vertex to start dragging
+        if (activeVertexIndex === null) {
+            activeVertexIndex = getActiveVertext(locationX, locationY);
+            if (activeVertexIndex !== null) {
+                setDraggedVertexIndex(activeVertexIndex);
+            } else {
+                return; // Not dragging a vertex, so exit
+            }
         }
-        const updatedVertices = [...eggDim];
-        updatedVertices[setDraggedVertexIndex] = activeVertex == 0 ? {
-                x: WIDTH_VIEWBOX/2,
-                y: Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, event.nativeEvent.locationY)),
-        } : {
-                x: Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, event.nativeEvent.locationX)),
-                y: Math.max(eggDim[0].y*0.15, Math.min(eggDim[0].y*0.85, event.nativeEvent.locationY)),
+
+        const updatedVertices = [...eggVertices];
+        let newVertex = {};
+        
+        if (activeVertexIndex === 0) {
+            // Index 0: Height/Top vertex (x is fixed at center)
+            newVertex = {
+                x: WIDTH_VIEWBOX / 2,
+                y: Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, locationY)), // Clamping Y
+            };
+        } else if (activeVertexIndex === 1) {
+            // Index 1: Width/Waist vertex (y is clamped, x determines width)
+            const topY = eggVertices[0].y;
+            newVertex = {
+                // X: Clamping X (width)
+                x: Math.max(WIDTH_VIEWBOX / 2 + MIN_WIDTH / 2, Math.min(WIDTH_VIEWBOX / 2 + MAX_WIDTH / 2, locationX)),
+                // Y: Clamping Y (waist position) to be within 15% to 85% of the height (relative to the bottom 100)
+                y: Math.max(topY + (VIEWBOX_SIZE - topY) * 0.15, Math.min(topY + (VIEWBOX_SIZE - topY) * 0.85, locationY)),
+            };
         }
-        setEggDim(updatedVertices);
+
+        updatedVertices[activeVertexIndex] = newVertex;
+        setEggVertices(updatedVertices);
+
+        // Also update the customization state which controls the component logic
+        setCustomization(prev => ({
+            ...prev,
+            shape: {
+                ...prev.shape,
+                hy: updatedVertices[0].y, // Height (Y-coord of top vertex)
+                wx: (updatedVertices[1].x - WIDTH_VIEWBOX / 2) * 2, // Width (distance from center * 2)
+                wy: updatedVertices[1].y, // Waist position (Y-coord of waist vertex)
+            }
+        }));
     };
 
     const releaseUpdate = () => {
@@ -104,40 +143,20 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
             <View style={styles.card}>
                 <Text style={styles.statusText}>{status}</Text>
 
-                {/* 1. Vertical Slider (Height) */}
-                {/* <View style={styles.verticalSliderWrapper}>
-                    <InteractiveSliderTrack
-                        parameterKey="height"
-                        value={shape.height}
-                        min={MIN_DIMENSION}
-                        max={MAX_DIMENSION+50}
-                        orientation="vertical"
-                        handleUpdate={handleShapeUpdate}
-                    />
-                    <Text style={styles.sliderValueText}>H:{shape.height}%</Text>
-                </View> */}
-
-                {/* 2. Horizontal Slider (Width) */}
-                {/* <View style={styles.horizontalSliderWrapper}>
-                    <InteractiveSliderTrack
-                        parameterKey="width"
-                        value={shape.width}
-                        min={MIN_DIMENSION}
-                        max={MAX_DIMENSION+50}
-                        orientation="horizontal"
-                        handleUpdate={handleShapeUpdate}
-                    />
-                    <Text style={styles.sliderLabel}>Width: {shape.width}%</Text>
-                </View> */}
-                
-                {/* --- PREVIEW AREA (Vertical Slider + Egg) --- */}
+                {/* --- PREVIEW AREA (The main touch-based control) --- */}
                 <View style={styles.previewArea}>
 
-                    {/* 3. Egg Preview Window (Holds Egg and Color Picker Icon) */}
-                    <View style={styles.previewWindow} onTouchMove={handleShapeUpdate} onTouchEnd={releaseUpdate}>
-
+                    {/* 3. Egg Preview Window (Handles touch events for dragging) */}
+                    {/* The handleShapeUpdate will now check if a vertex is being dragged or if a touch starts near one. */}
+                    <View 
+                        style={styles.previewWindow} 
+                        // Using onTouchMove and onTouchEnd for interactive dragging
+                        onTouchMove={handleShapeUpdate} 
+                        onTouchEnd={releaseUpdate}
+                    >
                         {/* FIX: Pass the state shape, not the default, so it updates */}
-                        <EggPreviewSVG color={customization.color} shape={customization.shape} /> 
+                        {/* The shape object now reflects changes from eggVertices state */}
+                        <EggPreviewSVG color={customization.color} shape={customization.shape} eggVertices={eggVertices} /> 
                         
                         <TouchableOpacity style={styles.colorTriggerIcon} onPress={() => setIsColorPickerVisible(true)}>
                             <Ionicons name="color-palette-outline" size={24} color={primaryColor} />
@@ -153,11 +172,6 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                     </View>
                 </View>
                 
-                {/* Waist Control */}
-                {/* WaistSlider needs to be placed correctly, assuming it's horizontal here */}
-                {/* <WaistSlider shape={shape} handleShapeUpdate={handleShapeUpdate} /> */}
-
-
                 {/* --- TYPE SELECTOR AND SAVE --- */}
                 <View style={styles.controlSection}>
                     <View style={styles.buttonRow}>
