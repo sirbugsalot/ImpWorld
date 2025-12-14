@@ -1,53 +1,110 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
-import Svg, { Path } from 'react-native-svg'; // FIX: Must include Svg and Path import if used in subcomponents
+import {Svg, Path, Circle } from 'react-native-svg'; // FIX: Must include Svg and Path import if used in subcomponents
 
 // Import modular components from src/
 // NOTE: InteractiveSliderTrack, ColorPicker, and WaistSlider are not provided, 
 // but are imported as placeholders. Assuming they are correct or stubbed out.
-import InteractiveSliderTrack from './src/components/InteractiveSliderTrack'; 
+//import InteractiveSliderTrack from './src/components/InteractiveSliderTrack'; 
 import EggPreviewSVG from './src/components/EggPreviewSVG';
 import ColorPicker from './src/components/ColorPicker';
-import WaistSlider from './src/components/WaistSlider';
+//import WaistSlider from './src/components/WaistSlider';
 
 // Import constants and styles from src/
 import { 
     DEFAULT_CUSTOMIZATION, 
-    MIN_DIMENSION, 
-    MAX_DIMENSION, 
+    MAX_HEIGHT, MAX_WIDTH, MIN_WIDTH, MIN_HEIGHT, VIEWBOX_SIZE,
     primaryColor, 
     accentColor 
 } from './src/constants';
 import { styles } from './src/styles/avatarStyles';
 
-const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
-    // Note: If initialCustomization is null/undefined, use the default from constants
-    const [customization, setCustomization] = useState(initialCustomization || DEFAULT_CUSTOMIZATION);
-    const [status, setStatus] = useState('Customize your avatar.');
-    const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
+const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave, onCancel }) => {
     
-    const { shape } = customization;
+    // State for color and type
+    const [customization, setCustomization] = useState(initialCustomization);
+
+    // State for the two draggable vertices (coordinates in VIEWBOX units 0-100)
+    const [eggVertices, setEggVertices] = useState([
+        { x: VIEWBOX_SIZE / 2,          y: initialCustomization.hy }, // Index 0: Height/Top vertex
+        { x: VIEWBOX_SIZE / 2 + initialCustomization.wx/2,   y: initialCustomization.wy }, // Index 1: Width/Waist vertex
+    ]);
+
+
+    // Note: If initialCustomization is null/undefined, use the default from constants
+    // const [eggDim, setEggDim] = useState([
+    //     {x: WIDTH_VIEWBOX/2,                                   y:DEFAULT_CUSTOMIZATION.height},
+    //     {x: WIDTH_VIEWBOX/2 + DEFAULT_CUSTOMIZATION.width/2,   y:DEFAULT_CUSTOMIZATION.waist},
+    // ]);
+
+    const [status, setStatus] = useState('Drag the red dots to reshape the avatar.');
+    const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
+    const [draggedVertexIndex, setDraggedVertexIndex] = useState(null); 
+    
+
+    // Derived shape object used by EggPreviewSVG
+    const shape = useMemo(() => ({
+        hy: eggVertices[0].y, 
+        wx: eggVertices[1].x, 
+        wy: eggVertices[1].y,
+    }), [eggVertices]);
+    
+    // const { shape } = eggDim;
+    //const { shape } = customization;
 
     /**
      * Centralized function to handle all shape dimension updates (Width, Height, Waist).
      */
-    const handleShapeUpdate = useCallback((key, newValue) => {
-        // All values are percentages (0-100)
-        const min = key === 'waist' ? 0 : MIN_DIMENSION;
-        const max = MAX_DIMENSION; 
 
-        // Apply general clamping
-        const clampedValue = Math.max(min, Math.min(max, newValue));
+    // const shapeWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, shape.wx)); // x coordinate of right edge
+    // const shapeHeight = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, shape.hy)); // x,y coordinate of top edge
+    // const shapeWaist = Math.max(shapeHeight*0.15, Math.min(shapeHeight*0.85, shape.wy));// Clip the width +/- 15% of current height.
+    const getActiveVertext = (x, y) => {
+        const threshold = 20;
+        for (let i = 0; i < eggVertices.length; i++){
+            const vertex = eggVertices[i];
+            const distance = Math.sqrt( (x-vertex.x)**2 + (y-vertex.y)**2);
+            if (distance <= threshold) {
+                return i;
+        }
+    }
 
-        let newShape = { ...shape, [key]: clampedValue };
+    const releaseUpdate = () => {
+        setDraggedVertexIndex(null);
+    };
+
+    const handleShapeMove = (event) => {
+        if (draggedVertexIndex === null) return;
+
+        const locationX = event.nativeEvent.locationX;
+        const locationY = event.nativeEvent.locationY;
         
-        // Ensure waist does not exceed height after height update (Waist % is 0-100 of total height)
-        // Since waist is a percentage of height, we only need to worry about height being below MIN_DIMENSION, 
-        // which is handled by the clamp above. The value itself is safe.
+        setEggVertices(prevVertices => {
+            let activeVertex = [...prevVertices];
+            const vertex = activeVertex[draggedVertexIndex];
 
-        setCustomization(prev => ({ ...prev, shape: newShape }));
-    }, [shape]);
+        // let activeVertex;
+        // if (setDraggedVertexIndex == null) {
+        //     activeVertex = getActiveVertext(locationX, locationY);
+        //     setDraggedVertexIndex(activeVertex)
+        // }
+        // const updatedVertices = [...eggVertices];
+        // updatedVertices[setDraggedVertexIndex] = activeVertex == 0 ? {
+        if (draggedVertexIndex === 0) {
+                // x: WIDTH_VIEWBOX/2,
+                y = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, event.nativeEvent.locationY));
+                vertex.y = y;
+        } else if (draggedVertexIndex === 1)  {
+                x = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, event.nativeEvent.locationX));
+                y = Math.max(eggVertices[0].y*0.15, Math.min(eggVertices[0].y*0.85, event.nativeEvent.locationY));
+                vertex.x = x;
+                vertex.y = y;
+        }
+        // setEggVertices(updatedVertices);
+        return activeVertex;
+        });
+    };
 
     const handleColorChange = (newColor) => {
         setCustomization(prev => ({ ...prev, color: newColor }));
@@ -71,40 +128,25 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
             
             <View style={styles.card}>
                 <Text style={styles.statusText}>{status}</Text>
-
-                {/* 1. Vertical Slider (Height) */}
-                <View style={styles.verticalSliderWrapper}>
-                    <InteractiveSliderTrack
-                        parameterKey="height"
-                        value={shape.height}
-                        min={MIN_DIMENSION}
-                        max={MAX_DIMENSION+50}
-                        orientation="vertical"
-                        handleUpdate={handleShapeUpdate}
-                    />
-                    <Text style={styles.sliderValueText}>H:{shape.height}%</Text>
-                </View>
-
-                {/* 2. Horizontal Slider (Width) */}
-                <View style={styles.horizontalSliderWrapper}>
-                    <InteractiveSliderTrack
-                        parameterKey="width"
-                        value={shape.width}
-                        min={MIN_DIMENSION}
-                        max={MAX_DIMENSION+50}
-                        orientation="horizontal"
-                        handleUpdate={handleShapeUpdate}
-                    />
-                    <Text style={styles.sliderLabel}>Width: {shape.width}%</Text>
-                </View>
                 
                 {/* --- PREVIEW AREA (Vertical Slider + Egg) --- */}
                 <View style={styles.previewArea}>
 
                     {/* 3. Egg Preview Window (Holds Egg and Color Picker Icon) */}
-                    <View style={styles.previewWindow}>
+                    <View style={styles.previewWindow} onTouchMove={handleShapeMove} onTouchEnd={releaseUpdate}>
+
                         {/* FIX: Pass the state shape, not the default, so it updates */}
-                        <EggPreviewSVG color={customization.color} shape={customization.shape} /> 
+                        <EggPreviewSVG color={customization.color} shape={customization.shape} >
+                            {eggVertices.map((vertex, index) => (
+                                <Circle
+                                key={index}
+                                cx={vertex.x}
+                                cy={vertex.y}
+                                r={4}
+                                fill="none"
+                                />
+                            ))}
+                        </EggPreviewSVG> 
                         
                         <TouchableOpacity style={styles.colorTriggerIcon} onPress={() => setIsColorPickerVisible(true)}>
                             <Ionicons name="color-palette-outline" size={24} color={primaryColor} />
@@ -122,7 +164,7 @@ const AvatarCustomizer = ({ initialCustomization, onSave, onCancel }) => {
                 
                 {/* Waist Control */}
                 {/* WaistSlider needs to be placed correctly, assuming it's horizontal here */}
-                <WaistSlider shape={shape} handleShapeUpdate={handleShapeUpdate} />
+                {/* <WaistSlider shape={shape} handleShapeUpdate={handleShapeUpdate} /> */}
 
 
                 {/* --- TYPE SELECTOR AND SAVE --- */}
