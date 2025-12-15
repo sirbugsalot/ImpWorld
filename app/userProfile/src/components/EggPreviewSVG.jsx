@@ -3,7 +3,7 @@ import Svg, { Path, Circle } from 'react-native-svg';
 
 // The component will draw entirely within a 100x100 coordinate system
 const VIEWBOX_SIZE = 100; 
-// Assuming EGG_VIEWBOX_BASE_Y is 70 based on your comment
+// Must be consistent with the coordinate used in the parent component for the base
 const EGG_VIEWBOX_BASE_Y = 70; 
 
 /**
@@ -11,32 +11,28 @@ const EGG_VIEWBOX_BASE_Y = 70;
  * All coordinates and geometry are calculated using the 100x100 viewBox units.
  * @param {object} props - Component props.
  * @param {string} props.color - Fill color of the shape.
- * @param {object} props.shape - Shape parameters (hy, wx, wy).
+ * @param {object} props.shape - Shape parameters (hy=Height Dimension, wx=Width Dimension, wy=Waist Y-Coordinate).
  * @param {Array<object>} props.eggVertices - Raw coordinates of the two draggable handles.
  */
 const EggPreviewSVG = ({ color, shape, eggVertices }) => {
  
     // Destructured shape: Height (hy), Width (wx), Waist Y (wy)
-    // IMPORTANT: hy is now treated as a dimension (length) from the base.
-    // wy is still treated as an absolute Y-coordinate for the waist position.
     const { hy, wx, wy } = shape; 
 
     const bottomY = EGG_VIEWBOX_BASE_Y; // The fixed Y-coordinate of the egg's base
     
-    // --- ADJUSTMENT BASED ON USER FEEDBACK ---
-    // Calculate top Y-coordinate by subtracting the height dimension (hy) from the fixed base.
-    const topY = hy; 
+    // Calculate top Y-coordinate by subtracting the height dimension (hy) from the fixed base coordinate (bottomY).
+    const topY = bottomY - hy; 
     
     const centerX = VIEWBOX_SIZE / 2; // 50
     const waistY = wy; 
     
-    // --- CORRECTED GEOMETRY CALCULATIONS ---
-    // wx is the total width. The shape must be centered around centerX.
+    // --- GEOMETRY CALCULATIONS ---
     const halfWidth = wx / 2;
     const rightX = centerX + halfWidth; 
     const leftX = centerX - halfWidth;  
     
-    // Horizontal radius (rx) is simply half the total width
+    // Horizontal radius (rx) is half the total width
     const rx = halfWidth; 
     
     // --- Path Generation for two semi-ellipses (Half Ovals) ---
