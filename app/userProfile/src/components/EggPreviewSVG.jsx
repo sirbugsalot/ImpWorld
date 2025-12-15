@@ -1,6 +1,6 @@
 import React from 'react';
 import Svg, { Path } from 'react-native-svg';
-import { EGG_VIEWBOX_BASE_Y } from '../constants'; // Import EGG_VIEWBOX_BASE_Y (which is 70)
+import { EGG_VIEWBOX_BASE_Y, MAX_HEIGHT, MAX_WIDTH, MIN_WIDTH, MIN_HEIGHT } from '../constants'; // Import EGG_VIEWBOX_BASE_Y (which is 70)
 
 // The component will draw entirely within a 100x100 coordinate system
 const VIEWBOX_SIZE = 100; 
@@ -15,38 +15,49 @@ const VIEWBOX_SIZE = 100;
 const EggPreviewSVG = ({ color, shape }) => {
     // The shape parameters are interpreted as percentages (0-100) of the maximum VIEWBOX size.
     // e.g., shape.height 50 means 50 units high in the 100-unit viewbox.
-    const shapeWidthPercentage = shape.width;
-    const shapeHeightPercentage = shape.height;
-    const shapeWaistPercentage = (shape.waist/shape.height +10) * (90/110);// (shape.height - shape.waist +10)/(shape.height + 10); // This is the height of the waist point FROM THE EGG'S BOTTOM, as a percentage of the total egg height.
-    
+    // const shapeWidthPercentage = shape.width; // x coordinate of left edge
+    // const shapeHeightPercentage = shape.height; // x,y coordinate of top edge
+    // const shapeWaistPercentage = ((shape.waist+5)/shape.height) * (95/105);// (shape.height - shape.waist +10)/(shape.height + 10); // This is the height of the waist point FROM THE EGG'S BOTTOM, as a percentage of the total egg height.
+    //                                                                 // waist: y coord of waist bar
+
+    // const [eggDim, setEggDim] = useState([
+    //     {hx: WIDTH_VIEWBOX/2,                                   hy:DEFAULT_CUSTOMIZATION.height},
+    //     {wx: WIDTH_VIEWBOX/2 + DEFAULT_CUSTOMIZATION.width/2,   wy:DEFAULT_CUSTOMIZATION.waist},
+    // ]);
+
+    //         const clampedRatio = Math.max(0, Math.min(1, ratio));
+
+
+    // const shapeWidth = shape.wx; //Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, shape.wx)); // x coordinate of right edge
+    // const shapeHeight = shape.hy; // Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, shape.hy)); // x,y coordinate of top edge
+    // const shapeWaist = shape.wy; //Math.max(shapeHeight*0.15, Math.min(shapeHeight*0.85, shape.wy));// Clip the width +/- 15% of current height.
+
+    const { hy, wx, wy } = shape; // Top Y, Right X, Waist Y coordinates (0-100)
+
+    const bottomY = EGG_VIEWBOX_BASE_Y; 
+    const topY = hy; 
+    const centerX = VIEWBOX_SIZE / 2; 
+    const rightX = wx; 
+    const leftX = VIEWBOX_SIZE - rightX; 
+    const waistY = wy; 
+
     // --- Anchor Points ---
     
-    // Bottom Y coordinate is fixed in the 100-unit viewbox (70)
-    const bottomY = EGG_VIEWBOX_BASE_Y; 
-    
-    // Total height of the egg shape in viewbox units (e.g., 50 units)
-    const shapeTotalHeight = shapeHeightPercentage; 
-    
-    // Half width of the egg shape in viewbox units (e.g., 25 units)
-    const halfShapeWidth = shapeWidthPercentage / 2;
+    // // Bottom Y coordinate is fixed in the 100-unit viewbox (70)
+    // const bottomY = EGG_VIEWBOX_BASE_Y; 
 
-    // Top Y coordinate is calculated based on height
-    // TopY = BaseY - TotalHeight (e.g., 70 - 50 = 20)
-    const topY = bottomY - shapeTotalHeight; 
+    // // Top Y coordinate is calculated based on height
+    // const topY = bottomY - shapeHeight; 
     
-    // X coordinates remain centered in the viewbox (50)
-    const centerX = VIEWBOX_SIZE / 2; 
-    const leftX = centerX - halfShapeWidth;  // e.g., 50 - 25 = 25
-    const rightX = centerX + halfShapeWidth; // e.g., 50 + 25 = 75
+    // // X coordinates remain centered in the viewbox (50)
+    // const centerX = VIEWBOX_SIZE / 2; 
+    // const rightX = shapeWidth; // e.g., 50 + 25 = 75
+    // const leftX = VIEWBOX_SIZE - shapeWidth;  // e.g., 50 - 25 = 25
 
-    // --- Waist Calculation ---
-    // Waist position (Y-coordinate) is calculated FROM THE TOP of the egg shape (topY)
-    // The waist value (40) is the percentage of the egg's total height (shapeTotalHeight) down from the top.
-    const waistRatio = shapeWaistPercentage;
+    // // --- Waist Calculation ---
+    // // Waist position (Y-coordinate) is calculated FROM THE TOP of the egg shape (topY)
     
-    // waistY = topY + (waistRatio * shapeTotalHeight) 
-    // e.g., 20 + (0.4 * 50) = 20 + 20 = 40
-    const waistY = bottomY - (waistRatio * shapeTotalHeight);
+    // const waistY = bottomY - (shapeWaist * shapeHeight);
 
     // --- Path Generation for two semi-ellipses (Half Ovals) ---
     
@@ -57,7 +68,7 @@ const EggPreviewSVG = ({ color, shape }) => {
     const bottomRadiusY = bottomY - waistY; // e.g., 70 - 40 = 30
     
     // Horizontal radius (rx) is halfShapeWidth (e.g., 25)
-    const rx = halfShapeWidth;
+    const rx = shapeWidth - centerX;
 
     // Start at the left waist point (leftX, waistY)
     let d = `M ${leftX} ${waistY}`;
