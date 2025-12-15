@@ -87,7 +87,7 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
         if (activeVertexIndex === 0) {
             // Index 0: Height/Top vertex (x is fixed at center)
             newVertex = {
-                x: WIDTH_VIEWBOX / 2,
+                x: VIEWBOX_SIZE / 2,
                 y: Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, locationY)), // Clamping Y
             };
         } else if (activeVertexIndex === 1) {
@@ -95,7 +95,7 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
             const topY = eggVertices[0].y;
             newVertex = {
                 // X: Clamping X (width)
-                x: Math.max(WIDTH_VIEWBOX / 2 + MIN_WIDTH / 2, Math.min(WIDTH_VIEWBOX / 2 + MAX_WIDTH / 2, locationX)),
+                x: Math.max(VIEWBOX_SIZE / 2 + MIN_WIDTH / 2, Math.min(VIEWBOX_SIZE / 2 + MAX_WIDTH / 2, locationX)),
                 // Y: Clamping Y (waist position) to be within 15% to 85% of the height (relative to the bottom 100)
                 y: Math.max(topY + (VIEWBOX_SIZE - topY) * 0.15, Math.min(topY + (VIEWBOX_SIZE - topY) * 0.85, locationY)),
             };
@@ -110,7 +110,7 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
             shape: {
                 ...prev.shape,
                 hy: updatedVertices[0].y, // Height (Y-coord of top vertex)
-                wx: (updatedVertices[1].x - WIDTH_VIEWBOX / 2) * 2, // Width (distance from center * 2)
+                wx: (updatedVertices[1].x - VIEWBOX_SIZE / 2) * 2, // Width (distance from center * 2)
                 wy: updatedVertices[1].y, // Waist position (Y-coord of waist vertex)
             }
         }));
