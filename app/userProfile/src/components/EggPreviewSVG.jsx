@@ -37,7 +37,7 @@ const EggPreviewSVG = ({ color, shape }) => {
     const bottomY = EGG_VIEWBOX_BASE_Y; 
     const topY = hy; 
     const centerX = VIEWBOX_SIZE / 2; 
-    const rightX = wx; 
+    const rightX = centerX + wx/2; 
     const leftX = VIEWBOX_SIZE - rightX; 
     const waistY = wy; 
 
@@ -68,7 +68,7 @@ const EggPreviewSVG = ({ color, shape }) => {
     const bottomRadiusY = bottomY - waistY; // e.g., 70 - 40 = 30
     
     // Horizontal radius (rx) is halfShapeWidth (e.g., 25)
-    const rx = shapeWidth - centerX;
+    const rx = wx/2;
 
     // Start at the left waist point (leftX, waistY)
     let d = `M ${leftX} ${waistY}`;
