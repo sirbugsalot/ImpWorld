@@ -14,14 +14,14 @@ import ColorPicker from './src/components/ColorPicker';
 // Import constants and styles from src/
 import { 
     DEFAULT_CUSTOMIZATION, 
-    MAX_HEIGHT, MAX_WIDTH, MIN_WIDTH, MIN_HEIGHT, VIEWBOX_SIZE,
+    MAX_HEIGHT, MAX_WIDTH, MIN_WIDTH, MIN_HEIGHT, WIDTH_VIEWBOX,
     primaryColor, 
     accentColor 
 } from './src/constants';
 import { styles } from './src/styles/avatarStyles';
 
 // --- FIXED: Define missing constants ---
-const WIDTH_VIEWBOX = VIEWBOX_SIZE;
+const VIEWBOX_SIZE = WIDTH_VIEWBOX;
 const EGG_VIEWBOX_BASE_Y = 70; // Must be consistent with EggPreviewSVG.jsx logic
 
 const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave, onCancel }) => {
