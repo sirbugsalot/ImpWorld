@@ -25,7 +25,7 @@ const EggPreviewSVG = ({ color, shape, eggVertices }) => {
     
     // --- ADJUSTMENT BASED ON USER FEEDBACK ---
     // Calculate top Y-coordinate by subtracting the height dimension (hy) from the fixed base.
-    const topY = bottomY - hy; 
+    const topY = hy; 
     
     const centerX = VIEWBOX_SIZE / 2; // 50
     const waistY = wy; 
