@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
-import Svg, { Path } from 'react-native-svg'; // FIX: Must include Svg and Path import if used in subcomponents
+import Svg, { Path } from 'react-native-svg';
 
 // Import modular components from src/
 // NOTE: InteractiveSliderTrack, ColorPicker, and WaistSlider are not provided, 
@@ -20,27 +20,33 @@ import {
 } from './src/constants';
 import { styles } from './src/styles/avatarStyles';
 
+// --- FIXED: Define missing constants ---
+const WIDTH_VIEWBOX = VIEWBOX_SIZE;
+const EGG_VIEWBOX_BASE_Y = 70; // Must be consistent with EggPreviewSVG.jsx logic
+
 const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave, onCancel }) => {
     
     // State for color and type
     const [customization, setCustomization] = useState(initialCustomization);
 
-    // --- Renamed from eggDim to eggVertices for consistency ---
+    // --- FIX: Initialize eggVertices[0].y with the ABSOLUTE Y-COORDINATE ---
+    // The vertex position must be the coordinate, which is BaseY - Height_Dimension (hy)
     const [eggVertices, setEggVertices] = useState([
-        { x: VIEWBOX_SIZE / 2,          y: initialCustomization.shape.hy }, // Index 0: Height/Top vertex
-        { x: VIEWBOX_SIZE / 2 + initialCustomization.shape.wx / 2, y: initialCustomization.shape.wy }, // Index 1: Width/Waist vertex
+        { 
+            x: VIEWBOX_SIZE / 2,          
+            y: EGG_VIEWBOX_BASE_Y - initialCustomization.shape.hy // Use dimension to calculate coordinate
+        }, 
+        { 
+            x: VIEWBOX_SIZE / 2 + initialCustomization.shape.wx / 2, 
+            y: initialCustomization.shape.wy // This is already the waist Y coordinate
+        }, 
     ]);
 
     // --- State to track which vertex is being dragged ---
     const [draggedVertexIndex, setDraggedVertexIndex] = useState(null);
 
-    // --- Initialized customization correctly, removing stray 'z' ---
-    // const [customization, setCustomization] = useState(initialCustomization || DEFAULT_CUSTOMIZATION);
     const [status, setStatus] = useState('Customize your avatar.');
     const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
-
-    // --- Removed incorrect destructuring: const { shape } = eggDim; ---
-    // Use customization.shape where needed, but the dragging logic operates directly on eggVertices.
 
     // Get the shape object from customization
     const { shape } = customization;
@@ -87,31 +93,38 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
         if (activeVertexIndex === 0) {
             // Index 0: Height/Top vertex (x is fixed at center)
             newVertex = {
-                x: VIEWBOX_SIZE / 2,
-                y: Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, locationY)), // Clamping Y
+                x: WIDTH_VIEWBOX / 2,
+                // Clamping Y must ensure the egg is not too short or too tall based on MIN/MAX HEIGHT dimensions
+                // Absolute Y coordinate = BaseY - Height Dimension
+                // Clamping here is on the absolute Y-coordinate
+                y: Math.max(EGG_VIEWBOX_BASE_Y - MAX_HEIGHT, Math.min(EGG_VIEWBOX_BASE_Y - MIN_HEIGHT, locationY)), 
             };
         } else if (activeVertexIndex === 1) {
             // Index 1: Width/Waist vertex (y is clamped, x determines width)
             const topY = eggVertices[0].y;
             newVertex = {
                 // X: Clamping X (width)
-                x: Math.max(VIEWBOX_SIZE / 2 + MIN_WIDTH / 2, Math.min(VIEWBOX_SIZE / 2 + MAX_WIDTH / 2, locationX)),
-                // Y: Clamping Y (waist position) to be within 15% to 85% of the height (relative to the bottom 100)
-                y: Math.max(topY + (VIEWBOX_SIZE - topY) * 0.15, Math.min(topY + (VIEWBOX_SIZE - topY) * 0.85, locationY)),
+                x: Math.max(WIDTH_VIEWBOX / 2 + MIN_WIDTH / 2, Math.min(WIDTH_VIEWBOX / 2 + MAX_WIDTH / 2, locationX)),
+                // Y: Clamping Y (waist position) relative to the top (topY) and bottom (VIEWBOX_SIZE)
+                // Using 15% and 85% of the TOTAL available height (BaseY - TopY)
+                y: Math.max(topY + (EGG_VIEWBOX_BASE_Y - topY) * 0.15, Math.min(topY + (EGG_VIEWBOX_BASE_Y - topY) * 0.85, locationY)),
             };
         }
 
         updatedVertices[activeVertexIndex] = newVertex;
         setEggVertices(updatedVertices);
 
-        // Also update the customization state which controls the component logic
+        // --- FIX: Update the customization state (shape.hy must be the height DIMENSION) ---
         setCustomization(prev => ({
             ...prev,
             shape: {
                 ...prev.shape,
-                hy: updatedVertices[0].y, // Height (Y-coord of top vertex)
-                wx: (updatedVertices[1].x - VIEWBOX_SIZE / 2) * 2, // Width (distance from center * 2)
-                wy: updatedVertices[1].y, // Waist position (Y-coord of waist vertex)
+                // Convert Absolute Y-coordinate back to Height DIMENSION: BaseY - Absolute Y
+                hy: EGG_VIEWBOX_BASE_Y - updatedVertices[0].y, 
+                // wx is still the width dimension
+                wx: (updatedVertices[1].x - WIDTH_VIEWBOX / 2) * 2, 
+                // wy is the absolute Y coordinate
+                wy: updatedVertices[1].y, 
             }
         }));
     };
@@ -147,16 +160,16 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                 <View style={styles.previewArea}>
 
                     {/* 3. Egg Preview Window (Handles touch events for dragging) */}
-                    {/* The handleShapeUpdate will now check if a vertex is being dragged or if a touch starts near one. */}
                     <View 
                         style={styles.previewWindow} 
-                        // Using onTouchMove and onTouchEnd for interactive dragging
                         onTouchMove={handleShapeUpdate} 
                         onTouchEnd={releaseUpdate}
                     >
-                        {/* FIX: Pass the state shape, not the default, so it updates */}
-                        {/* The shape object now reflects changes from eggVertices state */}
-                        <EggPreviewSVG color={customization.color} shape={customization.shape} eggVertices={eggVertices} /> 
+                        <EggPreviewSVG 
+                            color={customization.color} 
+                            shape={customization.shape} 
+                            eggVertices={eggVertices} 
+                        /> 
                         
                         <TouchableOpacity style={styles.colorTriggerIcon} onPress={() => setIsColorPickerVisible(true)}>
                             <Ionicons name="color-palette-outline" size={24} color={primaryColor} />
