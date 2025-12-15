@@ -1,50 +1,32 @@
-import {Dimensions} from 'react-native';
+// --- Viewbox Configuration ---
+export const VIEWBOX_SIZE = 100;
+export const EGG_VIEWBOX_BASE_Y = 70; // Fixed Y-coordinate for the base of the egg
 
-const windowWidth = Dimensions.get('window').width;
-const windowHeight = Dimensions.get('window').height;
+// --- Dimension Constraints (used for clamping in avatar.jsx) ---
+// Dimensions are lengths/widths in VIEWBOX units (0-100)
+export const MAX_HEIGHT = 60; 
+export const MIN_HEIGHT = 30; 
+export const MAX_WIDTH = 70; 
+export const MIN_WIDTH = 40; 
 
-// Export window dimensions for use in other files (like EggPreviewSVG for scaling)
-export { windowWidth, windowHeight };
+// --- Color Configuration ---
+export const primaryColor = '#1F2937'; // Slate-800
+export const accentColor = '#10B981'; // Emerald-500
 
-export const MIN_PERCENTAGE = 10;
-export const MAX_PERCENTAGE = 100;
-
-// Sliders now represent percentages of the max possible size.
-export const MIN_DIMENSION = MIN_PERCENTAGE; // Min slider value (10)
-export const MAX_DIMENSION = MAX_PERCENTAGE; // Max slider value (100)
-
-// Style constants
-export const primaryColor = '#1F2937'; // Dark gray
-export const accentColor = '#3B82F6'; // Blue
-export const TRACK_THICKNESS = 4;
-export const THUMB_SIZE = 24;
-export const backgroundColor = '#F3F4F6'; // Define a background color
-
+// --- Default Initialization Values ---
 export const DEFAULT_CUSTOMIZATION = {
+    color: '#059669', // Emerald-600
     type: 'egg',
-    color: '#059669', // Emerald Green
     shape: {
-        // FIX: These must be abstract percentage values (0-100) for the sliders
-        // and should NOT be calculated with screen dimensions here, as that causes
-        // circular dependency issues and mismatched type errors.
-        width: 100, // Default slider percentage for width
-        height: 10, // Default slider percentage for height
-        waist: 10, // Default slider percentage for waist
+        // hy: Height Dimension (Length from base Y=70). 
+        // 40 means topY will be 70 - 40 = 30.
+        hy: 40, 
+        
+        // wx: Width Dimension (Total length).
+        wx: 50, 
+        
+        // wy: Waist Y-Coordinate (Absolute position). 
+        // Must be between topY (30) and bottomY (70). 55 is a safe middle ground.
+        wy: 55, 
     }
 };
-
-// SVG ViewBox container constants (screen pixel values for the <View> container)
-// User requested: 90% of frame width (screen width), 40% of frame height (screen height)
-export const WIDTH_VIEWBOX = windowWidth * 0.8;
-export const HEIGHT_VIEWBOX = windowHeight * 0.4;
-// The Y-anchor for the bottom of the shape, as a percentage of the VIEWBOX height (not window height)
-// This value is used by the EggPreviewSVG to map its internal 100x100 drawing space.
-export const EGG_VIEWBOX_BASE_Y = HEIGHT_VIEWBOX*0.8; // 70 units from the top of the 100-unit viewbox (i.e., 70% down)
-
-// Waist constraints (percentage of total height from top)
-export const WAIST_MARGIN_PERCENTAGE = 10; // 10% margin from top/bottom
-
-export const MAX_HEIGHT = HEIGHT_VIEWBOX*0.4;
-export const MAX_WIDTH = WIDTH_VIEWBOX*0.7;
-export const MIN_WIDTH = WIDTH_VIEWBOX*0.1;
-export const MIN_HEIGHT = HEIGHT_VIEWBOX*0.05;
