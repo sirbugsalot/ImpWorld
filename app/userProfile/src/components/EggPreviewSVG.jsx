@@ -40,6 +40,25 @@ const EggPreviewSVG = ({ color, shape, eggVertices }) => {
     // topRadiusY and bottomRadiusY are the vertical radii for the top and bottom arcs
     const topRadiusY = waistY - topY; 
     const bottomRadiusY = bottomY - waistY; 
+
+    // --- CRITICAL GUARD CLAUSE: Check for valid radii ---
+    if (rx <= 0 || topRadiusY <= 0 || bottomRadiusY <= 0) {
+        // If radii are invalid (non-positive), the SVG Path will fail silently.
+        // We return a placeholder to signal the geometry data is bad.
+        console.error(`EggPreviewSVG: Invalid geometry detected. Radii: rx=${rx}, topRY=${topRadiusY}, bottomRY=${bottomRadiusY}. Check DEFAULT_CUSTOMIZATION.`);
+        return (
+            <Svg height="100%" width="90%" viewBox={`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}>
+                <Path 
+                    d="M 30 30 L 70 30 L 70 70 L 30 70 Z" 
+                    fill="#EF4444" 
+                    fillOpacity="0.5" 
+                    stroke="#B91C1C" 
+                    strokeWidth="2"
+                />
+                <Text x="50" y="50" textAnchor="middle" fontSize="10" fill="#B91C1C">INVALID SHAPE DATA</Text>
+            </Svg>
+        );
+    }
     
     // Start at the left waist point (leftX, waistY)
     let d = `M ${leftX} ${waistY}`;
