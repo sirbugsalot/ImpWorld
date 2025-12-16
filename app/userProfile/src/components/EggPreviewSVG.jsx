@@ -97,19 +97,6 @@ const EggPreviewSVG = ({ color, shape }) => {
                 strokeOpacity="0.5"
             />
             
-            {/* Draggable Handles */}
-            {/* Use an explicit check to ensure eggVertices is a valid array with elements */}
-            {eggVertices && eggVertices.map((vertex, index) => (
-                <Circle
-                    key={index}
-                    cx={vertex.x}
-                    cy={vertex.y}
-                    r={3} // Handle size in viewBox units
-                    fill={index === 0 ? 'red' : 'blue'} // Top (red), Waist (blue)
-                    stroke="white"
-                    strokeWidth="1"
-                />
-            ))}
         </Svg>
     );
 };
