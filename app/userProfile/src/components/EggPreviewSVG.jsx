@@ -104,9 +104,7 @@ const EggPreviewSVG = ({ color, shape }) => {
                     cx={vertex.x}
                     cy={vertex.y}
                     r={3} // Handle size in viewBox units
-                    fill={index === 0 ? 'red' : 'blue'} // Top (red), Waist (blue)
-                    stroke="white"
-                    strokeWidth="1"
+                    fill={'blue'} // Top (red), Waist (blue)
                 />
             ))}
         </Svg>
