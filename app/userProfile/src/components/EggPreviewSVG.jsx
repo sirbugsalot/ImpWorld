@@ -98,7 +98,8 @@ const EggPreviewSVG = ({ color, shape }) => {
             />
             
             {/* Draggable Handles */}
-            {eggVertices.map((vertex, index) => (
+            {/* Use an explicit check to ensure eggVertices is a valid array with elements */}
+            {Array.isArray(eggVertices) && eggVertices.length > 0 && eggVertices.map((vertex, index) => (
                 <Circle
                     key={index}
                     cx={vertex.x}
