@@ -11,7 +11,7 @@ import ColorPicker from './src/components/ColorPicker';
 import { 
     DEFAULT_CUSTOMIZATION, 
     MAX_HEIGHT, MIN_HEIGHT, MAX_WIDTH, MIN_WIDTH, 
-    VIEWBOX_SIZE, WIDTH_VIEWBOX, EGG_VIEWBOX_BASE_Y,
+    WIDTH_VIEWBOX, EGG_VIEWBOX_BASE_Y,
     primaryColor, 
     accentColor,
     windowWidth // We need windowWidth to calculate the coordinate ratio
