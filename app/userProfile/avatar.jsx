@@ -220,23 +220,6 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                         onTouchMove={handleShapeUpdate} 
                         onTouchEnd={releaseUpdate}
                     >
-                        {/* Note: The EggPreviewSVG component definition provided in the prompt is correct and unchanged */}
-                        <EggPreviewSVG 
-                            color={customization.color} 
-                            shape={customization.shape} 
-                            eggVertices={eggVertices} 
-                        /> 
-                        
-                        <TouchableOpacity style={styles.colorTriggerIcon} onPress={() => setIsColorPickerVisible(true)}>
-                            <Ionicons name="color-palette-outline" size={24} color={primaryColor} />
-                        </TouchableOpacity>
-
-                        {isColorPickerVisible && (
-                            <ColorPicker 
-                                selectedColor={customization.color} 
-                                onColorChange={handleColorChange} 
-                                onClose={() => setIsColorPickerVisible(false)} 
-                            />
                         )}
                     </View>
                 </View>
