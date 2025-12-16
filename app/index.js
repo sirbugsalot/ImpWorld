@@ -4,6 +4,18 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons'; 
 import { useRouter } from 'expo-router'; 
 
+// Import constants for initial state and colors
+import { 
+    INITIAL_DARK_MODE, 
+    PRIMARY_COLOR, 
+    LIGHT_TEXT_COLOR, 
+    DARK_TEXT_COLOR, 
+    LIGHT_BG_COLOR, 
+    DARK_BG_COLOR, 
+    LIGHT_HEADER_BG, 
+    DARK_HEADER_BG 
+} from './src/utils/constants';
+
 // Import new components with correct path
 import HamburgerMenu from './userProfile/src/components/HamburgerMenu';
 import SettingsModal from './userProfile/src/components/SettingsModal';
@@ -16,19 +28,19 @@ const initialBgColor = '#F9FAFB';
 const initialHeaderBg = '#FFFFFF'; 
 
 const App = () => {
+  // Initialize dark mode state using the constant (now defaults to true)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false); 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false); 
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(INITIAL_DARK_MODE);
 
   const router = useRouter();
 
   // Determine current colors based on dark mode state
-  const primaryColor = initialPrimaryColor;
-  const textColor = isDarkMode ? '#F9FAFB' : initialTextColor;
-  const bgColor = isDarkMode ? '#1F2937' : initialBgColor;
-  const headerBg = isDarkMode ? '#374151' : initialHeaderBg;
+  const primaryColor = PRIMARY_COLOR; // Primary color is usually constant
+  const textColor = isDarkMode ? DARK_TEXT_COLOR : LIGHT_TEXT_COLOR;
+  const bgColor = isDarkMode ? DARK_BG_COLOR : LIGHT_BG_COLOR;
+  const headerBg = isDarkMode ? DARK_HEADER_BG : LIGHT_HEADER_BG;
   const containerStyle = { ...styles.container, backgroundColor: bgColor };
-
 
   // Function to navigate to the new world.js file (path is now '/world')
   const navigateToWorld = () => {
