@@ -144,7 +144,7 @@ const EggPreviewSVG = ({ color, shape, onShapeChange, convertPixelsToUnits }) =>
     const topRadiusY = Number(wy) - topY; 
     const bottomRadiusY = bottomY - Number(wy); 
     
-    let d = `M ${leftX} ${wy}`;
+    let d = `M ${rightX} ${wy}`;
     d += ` A ${rx} ${bottomRadiusY} 0 0 1 ${rightX} ${wy}`; 
     d += ` A ${rx} ${topRadiusY} 0 0 1 ${leftX} ${wy}`; 
     const eggPath = d;
@@ -163,7 +163,7 @@ const EggPreviewSVG = ({ color, shape, onShapeChange, convertPixelsToUnits }) =>
             onTouchMove={handleTouchMove}
             onTouchEnd={releaseUpdate}
             // Add a pointerEvents style for the circles to ensure they are visible but don't block the parent SVG's touch area.
-            style={{ pointerEvents: 'box-none' }} 
+            //style={{ pointerEvents: 'box-none' }} 
         >
             {/* Background Frame/Reference */}
             <Path 
