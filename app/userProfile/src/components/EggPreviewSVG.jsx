@@ -1,6 +1,5 @@
 import React from 'react';
 import Svg, { Path, Circle, Text } from 'react-native-svg'; // Added Text for the error message
-import { VIEWBOX_SIZE, EGG_VIEWBOX_BASE_Y } from './src/constants';
 
 /**
  * Renders the custom avatar shape (Egg) and its draggable handles.
@@ -11,11 +10,12 @@ import { VIEWBOX_SIZE, EGG_VIEWBOX_BASE_Y } from './src/constants';
  * @param {Array<object>} props.eggVertices - Raw coordinates of the two draggable handles.
  */
 const EggPreviewSVG = ({ color, shape, eggVertices }) => {
- 
+    const VIEWBOX_SIZE = 100
+    
     // Destructured shape: Height (hy), Width (wx), Waist Y (wy)
     const { hy, wx, wy } = shape; 
 
-    const bottomY = EGG_VIEWBOX_BASE_Y; // The fixed Y-coordinate of the egg's base
+    const bottomY = 70; // The fixed Y-coordinate of the egg's base
     
     // Calculate top Y-coordinate by subtracting the height dimension (hy) from the fixed base coordinate (bottomY).
     const topY = bottomY - hy; 
