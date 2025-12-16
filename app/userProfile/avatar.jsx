@@ -7,16 +7,43 @@ import Svg, { Path } from 'react-native-svg';
 import EggPreviewSVG from './src/components/EggPreviewSVG';
 import ColorPicker from './src/components/ColorPicker';
 
-// Import constants and styles from src/
-import { 
-    DEFAULT_CUSTOMIZATION, 
-    MAX_HEIGHT, MIN_HEIGHT, MAX_WIDTH, MIN_WIDTH, 
-    WIDTH_VIEWBOX, EGG_VIEWBOX_BASE_Y,
-    primaryColor, 
-    accentColor,
-    windowWidth // We need windowWidth to calculate the coordinate ratio
-} from './src/constants';
-import { styles } from './src/styles/avatarStyles';
+// --- MOCK CONSTANTS & STYLES FOR RUNNABILITY ---
+// NOTE: In a real app, these should be imported from ./src/constants and ./src/styles/avatarStyles
+const VIEWBOX_SIZE = 100;
+const WIDTH_VIEWBOX = VIEWBOX_SIZE;
+const EGG_VIEWBOX_BASE_Y = 70;
+const MAX_HEIGHT = 50; 
+const MIN_HEIGHT = 20;
+const MAX_WIDTH = 60;
+const MIN_WIDTH = 30;
+const primaryColor = '#4F46E5'; // Indigo
+const accentColor = '#10B981'; // Emerald
+const DEFAULT_CUSTOMIZATION = {
+    type: 'egg',
+    color: '#059669',
+    shape: { hy: 40, wx: 50, wy: 55 }
+};
+const styles = {
+    container: { flex: 1, padding: 10, backgroundColor: '#FFFFFF' },
+    contentContainer: { paddingBottom: 50 },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10 },
+    headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#1F2937' },
+    card: { margin: 10, padding: 20, borderRadius: 12, borderWidth: 1, borderColor: '#D1D5DB', backgroundColor: '#F9FAFB', shadowColor: '#000', shadowOpacity: 0.1, elevation: 5 },
+    statusText: { textAlign: 'center', marginBottom: 15, fontStyle: 'italic', color: '#4B5563' },
+    previewArea: { alignItems: 'center', justifyContent: 'center', marginVertical: 20 },
+    // Important: Setting a fixed aspect ratio and size helps align touch events
+    previewWindow: { width: '80%', aspectRatio: 1, borderWidth: 1, borderRadius: 10, overflow: 'hidden' }, 
+    colorTriggerIcon: { position: 'absolute', top: 10, right: 10 },
+    controlSection: { marginVertical: 10 },
+    buttonRow: { flexDirection: 'row', justifyContent: 'space-around', marginVertical: 10 },
+    typeButton: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8, borderWidth: 1, borderColor: '#D1D5DB' },
+    typeButtonActive: { backgroundColor: accentColor, borderColor: accentColor },
+    typeButtonText: { fontWeight: '600', color: '#4B5563' },
+    typeButtonTextActive: { color: 'white' },
+    actionButton: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', padding: 15, borderRadius: 10, marginVertical: 20 },
+    actionButtonText: { color: 'white', fontWeight: 'bold', fontSize: 18 }
+};
+// --- END MOCK DEFINITIONS ---
 
 
 const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave, onCancel }) => {
@@ -24,49 +51,31 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
     // State for color and type
     const [customization, setCustomization] = useState(initialCustomization);
 
-    // --- Viewport/Pixel to Unit Conversion ---
-    // This assumes the preview window is 90% wide (from styles.previewWindow) and centered.
-    // We need the actual width of the drawing area (in pixels) for coordinate mapping.
-    // Since the SVG is width="90%" of the View, let's assume the parent View is 80% of windowWidth.
-    // The actual conversion factor needs to be calculated dynamically, but we will use a common factor
-    // based on the assumption that the 100-unit viewbox maps to the pixel width of the preview window.
+    // --- Simplifying Coordinate Conversion ---
+    // We assume the touch coordinates (locationX, locationY) are already relative to the
+    // previewWindow, which contains the 100x100 SVG. We use a simple ratio based on the 
+    // container's current width (in pixels) to map to the 100-unit SVG space.
     
-    // IMPORTANT: Assuming the previewWindow area has a fixed pixel width or its ratio is known.
-    // If the style sheet defines the previewWindow width, you should use that. 
-    // Since we don't have styles, we assume the preview window's pixel width is W_PIXEL.
-    // For simplicity, let's calculate the conversion factor based on the style definition of `styles.previewWindow`. 
-    // If it's a square container (W=H), the conversion factor is: W_PIXEL / 100. 
-    // Since we don't have the style definition, we'll try to estimate the ratio based on screen width.
+    // State to hold the current pixel size of the preview window for accurate coordinate mapping
+    const [previewWindowPixelSize, setPreviewWindowPixelSize] = useState(VIEWBOX_SIZE);
 
-    // Calculate the ratio: Pixel width of the SVG drawing area / VIEWBOX_SIZE (100)
-    // Assuming styles.previewWindow is 80% of windowWidth, and the SVG is 90% of that.
-    const SVG_DRAWING_AREA_PIXEL_WIDTH = windowWidth * 0.8 * 0.9;
-    const PIXEL_TO_UNIT_RATIO = SVG_DRAWING_AREA_PIXEL_WIDTH / VIEWBOX_SIZE;
-    
-    // We need the X offset (margin on the left side) of the SVG within the window
-    // Assuming the preview window is centered:
-    const PREVIEW_WINDOW_OFFSET_X = (windowWidth - (windowWidth * 0.8)) / 2; // Pixel offset of the preview card
-    const SVG_OFFSET_X = PREVIEW_WINDOW_OFFSET_X + (windowWidth * 0.8 * 0.05); // Offset for the 90% wide SVG
-
-    // Function to convert pixel location (from event) to 100-unit coordinate
-    const pixelToUnitX = (px) => {
-        // locationX is relative to the previewWindow parent View.
-        // We need to map it to the 100-unit scale.
-        // If the viewbox perfectly covers the View, it's a simple ratio:
-        return (px / SVG_DRAWING_AREA_PIXEL_WIDTH) * VIEWBOX_SIZE;
-    };
-
-    const pixelToUnitY = (py) => {
-        // Assuming the preview window height is also proportional to its width
-        // If the preview window is a 1:1 aspect ratio view that contains the 100x100 SVG:
-        return (py / SVG_DRAWING_AREA_PIXEL_WIDTH) * VIEWBOX_SIZE;
+    const pixelToUnit = (px) => {
+        // Map pixel coordinate to the 100-unit SVG viewbox space
+        if (previewWindowPixelSize === VIEWBOX_SIZE) return px; // Fallback if size isn't yet measured
+        return (px / previewWindowPixelSize) * VIEWBOX_SIZE;
     };
     
+    // Handler to get the actual pixel dimensions of the preview window
+    const handleLayout = (event) => {
+        const { width } = event.nativeEvent.layout;
+        setPreviewWindowPixelSize(width);
+    };
+
     // --- FIX: Initialize eggVertices[0].y with the ABSOLUTE Y-COORDINATE (in 100-units) ---
     const [eggVertices, setEggVertices] = useState([
         { 
             x: VIEWBOX_SIZE / 2,          
-            y: EGG_VIEWBOX_BASE_Y - initialCustomization.shape.hy // Use dimension to calculate coordinate
+            y: EGG_VIEWBOX_BASE_Y - initialCustomization.shape.hy // Convert height dimension to absolute Y coordinate
         }, 
         { 
             x: VIEWBOX_SIZE / 2 + initialCustomization.shape.wx / 2, 
@@ -103,20 +112,23 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
      */
     const handleShapeUpdate = (event) => {
         // 1. Convert pixel event coordinates to 100-unit coordinates
-        const unitX = pixelToUnitX(event.nativeEvent.locationX);
-        const unitY = pixelToUnitY(event.nativeEvent.locationY);
+        const unitX = pixelToUnit(event.nativeEvent.locationX);
+        const unitY = pixelToUnit(event.nativeEvent.locationY);
         
         let activeVertexIndex = draggedVertexIndex;
 
-        // If dragging hasn't started, try to find a vertex to start dragging
-        if (activeVertexIndex === null) {
+        // Start drag detection only on touch start event if we aren't already dragging
+        if (event.type === 'touchstart' && activeVertexIndex === null) {
             activeVertexIndex = getActiveVertext(unitX, unitY);
             if (activeVertexIndex !== null) {
                 setDraggedVertexIndex(activeVertexIndex);
             } else {
-                return; // Not dragging a vertex, so exit
+                return; // Not near a vertex, do not start drag
             }
+        } else if (event.type === 'touchmove' && activeVertexIndex === null) {
+             return; // Ignore move events if drag hasn't started
         }
+
 
         const updatedVertices = [...eggVertices];
         let newVertex = {};
@@ -133,7 +145,8 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
             };
         } else if (activeVertexIndex === 1) {
             // Index 1: Width/Waist vertex (y is clamped, x determines width)
-            const topY = updatedVertices[0].y; // Use the potentially updated Y coordinate of the top
+            // Use the current top vertex Y-coordinate (from state, not unitY, because unitY might be invalid)
+            const topY = updatedVertices[0].y; 
             
             const minWaistX = WIDTH_VIEWBOX / 2 + MIN_WIDTH / 2;
             const maxWaistX = WIDTH_VIEWBOX / 2 + MAX_WIDTH / 2;
@@ -202,10 +215,12 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                     {/* 3. Egg Preview Window (Handles touch events for dragging) */}
                     <View 
                         style={styles.previewWindow} 
-                        onTouchStart={handleShapeUpdate} // Use touch start to begin drag tracking
+                        onLayout={handleLayout} // Get the actual pixel size for coordinate mapping
+                        onTouchStart={handleShapeUpdate} 
                         onTouchMove={handleShapeUpdate} 
                         onTouchEnd={releaseUpdate}
                     >
+                        {/* Note: The EggPreviewSVG component definition provided in the prompt is correct and unchanged */}
                         <EggPreviewSVG 
                             color={customization.color} 
                             shape={customization.shape} 
