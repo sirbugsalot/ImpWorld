@@ -98,13 +98,15 @@ const EggPreviewSVG = ({ color, shape }) => {
             />
             
             {/* Draggable Handles */}
-            {eggVertices && eggVertices.map((vertex, index) => (
+            {eggVertices.map((vertex, index) => (
                 <Circle
                     key={index}
                     cx={vertex.x}
                     cy={vertex.y}
                     r={3} // Handle size in viewBox units
-                    fill={'blue'} // Top (red), Waist (blue)
+                    fill={index === 0 ? 'red' : 'blue'} // Top (red), Waist (blue)
+                    stroke="white"
+                    strokeWidth="1"
                 />
             ))}
         </Svg>
