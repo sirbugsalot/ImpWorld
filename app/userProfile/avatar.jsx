@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Circle, Text } from 'react-native-svg';
 
 // Import modular components from src/
 import EggPreviewSVG from './src/components/EggPreviewSVG';
