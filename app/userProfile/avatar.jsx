@@ -47,40 +47,36 @@ const styles = {
 
 const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave, onCancel }) => {
     
-    // State for color and type
     const [customization, setCustomization] = useState(initialCustomization);
-
-    // --- Simplifying Coordinate Conversion ---
     const [previewWindowPixelSize, setPreviewWindowPixelSize] = useState(VIEWBOX_SIZE);
+    const [draggedVertexIndex, setDraggedVertexIndex] = useState(null);
+    const [status, setStatus] = useState('Customize your avatar by dragging the red and blue circles.');
+    const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
+
 
     const pixelToUnit = (px) => {
+        // Map pixel coordinate to the 100-unit SVG viewbox space
         if (previewWindowPixelSize === VIEWBOX_SIZE) return px; 
         return (px / previewWindowPixelSize) * VIEWBOX_SIZE;
     };
     
-    // Handler to get the actual pixel dimensions of the preview window
     const handleLayout = (event) => {
         const { width } = event.nativeEvent.layout;
         setPreviewWindowPixelSize(width);
     };
 
-    // Get the shape object from customization
     const { shape } = customization;
     
-    /**
-     * Helper function to convert shape dimensions (hy, wx, wy) into 
-     * absolute SVG coordinates for the two draggable vertices (handles).
-     */
     const getEggVertices = (currentShape) => {
         const topY = EGG_VIEWBOX_BASE_Y - currentShape.hy;
         return [
             { 
                 x: VIEWBOX_SIZE / 2,         
-                y: topY // Absolute Y coordinate of the top
+                y: topY 
             }, 
             { 
                 x: VIEWBOX_SIZE / 2 + currentShape.wx / 2, 
-                y: currentShape.wy // Absolute Y coordinate of the waist
+                y: currentShape.wy 
             }, 
         ];
     };
@@ -88,17 +84,12 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
     const currentEggVertices = getEggVertices(shape);
 
 
-    // --- State to track which vertex is being dragged ---
-    const [draggedVertexIndex, setDraggedVertexIndex] = useState(null);
-
-    const [status, setStatus] = useState('Customize your avatar.');
-    const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
-
     /**
      * Finds the index of the vertex near the given coordinates (in VIEWBOX units).
      */
     const getActiveVertext = (unitX, unitY) => {
-        const threshold = 5; // Use a small threshold in 100-unit space
+        // Increased threshold to make touch targets easier to hit on mobile
+        const threshold = 10; 
         for (let i = 0; i < currentEggVertices.length; i++){
             const vertex = currentEggVertices[i];
             const distance = Math.sqrt( (unitX - vertex.x)**2 + (unitY - vertex.y)**2);
@@ -106,30 +97,40 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                 return i;
             }
         }
-        return null; // Return null if no vertex is active
+        return null; 
     };
-
+    
     /**
-     * Centralized function to handle dragging of vertices on the SVG.
+     * Handles the start of a touch/drag gesture.
      */
-    const handleShapeUpdate = (event) => {
+    const handleTouchStart = (event) => {
         // 1. Convert pixel event coordinates to 100-unit coordinates
         const unitX = pixelToUnit(event.nativeEvent.locationX);
         const unitY = pixelToUnit(event.nativeEvent.locationY);
         
-        let activeVertexIndex = draggedVertexIndex;
+        const activeVertexIndex = getActiveVertext(unitX, unitY);
 
-        // Start drag detection only on touch start event if we aren't already dragging
-        if (event.type === 'touchstart' && activeVertexIndex === null) {
-            activeVertexIndex = getActiveVertext(unitX, unitY);
-            if (activeVertexIndex !== null) {
-                setDraggedVertexIndex(activeVertexIndex);
-            } else {
-                return; // Not near a vertex, do not start drag
-            }
-        } else if (event.type === 'touchmove' && activeVertexIndex === null) {
-             return; // Ignore move events if drag hasn't started
+        if (activeVertexIndex !== null) {
+            setDraggedVertexIndex(activeVertexIndex);
+            // Optional: Call move handler immediately for snappy start
+            handleTouchMove(event, activeVertexIndex); 
         }
+    };
+
+
+    /**
+     * Handles the movement during a drag gesture.
+     */
+    const handleTouchMove = (event, initialIndex = null) => {
+        const activeVertexIndex = initialIndex !== null ? initialIndex : draggedVertexIndex;
+
+        if (activeVertexIndex === null) {
+            return; // Not currently dragging a vertex
+        }
+        
+        // 1. Convert pixel event coordinates to 100-unit coordinates
+        const unitX = pixelToUnit(event.nativeEvent.locationX);
+        const unitY = pixelToUnit(event.nativeEvent.locationY);
 
         // Get current shape dimensions
         const { hy, wx, wy } = customization.shape;
@@ -141,8 +142,8 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
         
         if (activeVertexIndex === 0) {
             // Index 0: Height/Top vertex (x is fixed at center)
-            const minTopY = EGG_VIEWBOX_BASE_Y - MAX_HEIGHT; // Lowest Y (Tallest Egg)
-            const maxTopY = EGG_VIEWBOX_BASE_Y - MIN_HEIGHT; // Highest Y (Shortest Egg)
+            const minTopY = EGG_VIEWBOX_BASE_Y - MAX_HEIGHT; 
+            const maxTopY = EGG_VIEWBOX_BASE_Y - MIN_HEIGHT; 
 
             // Calculate the absolute Y of the new vertex, clamped
             const newTopY = Math.max(minTopY, Math.min(maxTopY, unitY));
@@ -218,8 +219,9 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                     <View 
                         style={styles.previewWindow} 
                         onLayout={handleLayout} // Get the actual pixel size for coordinate mapping
-                        onTouchStart={handleShapeUpdate} 
-                        onTouchMove={handleShapeUpdate} 
+                        // Bind separated handlers
+                        onTouchStart={handleTouchStart} 
+                        onTouchMove={handleTouchMove} 
                         onTouchEnd={releaseUpdate}
                     >
                         <EggPreviewSVG 
@@ -251,10 +253,10 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                             <Text style={[styles.typeButtonText, customization.type === 'egg' && styles.typeButtonTextActive]}>EGG</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
-                            onPress={() => handleTypeChange('imp')} // Changed from 'human'
+                            onPress={() => handleTypeChange('imp')}
                             style={[styles.typeButton, customization.type === 'imp' && styles.typeButtonActive]}
                         >
-                            <Text style={[styles.typeButtonText, customization.type === 'imp' && styles.typeButtonTextActive]}>IMP</Text> {/* Changed from 'HUMAN' */}
+                            <Text style={[styles.typeButtonText, customization.type === 'imp' && styles.typeButtonTextActive]}>IMP</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
