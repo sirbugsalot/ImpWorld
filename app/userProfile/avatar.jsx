@@ -246,13 +246,13 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                     <View 
                         style={styles.previewWindow} 
                         onLayout={handleLayout} // Get the actual pixel size for coordinate mapping
-                        onTouchStart={handleTouchStart} 
-                        onTouchMove={handleTouchMove} 
-                        onTouchEnd={releaseUpdate}
                     >
                         <EggPreviewSVG 
                             color={customization.color} 
-                            shape={customization.shape} 
+                            shape={customization.shape}
+                            onTouchStart={handleTouchStart} 
+                            onTouchMove={handleTouchMove} 
+                            onTouchEnd={releaseUpdate}
                         /> 
                         
                         <TouchableOpacity style={styles.colorTriggerIcon} onPress={() => setIsColorPickerVisible(true)}>
