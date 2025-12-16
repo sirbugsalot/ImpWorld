@@ -1,60 +1,79 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons'; 
-import { useRouter } from 'expo-router'; 
 
-// Define colors
-const primaryColor = '#1D4ED8'; 
-const textColor = '#1F2937';
+// Import new components with correct path
+import HamburgerMenu from './src/components/HamburgerMenu';
+import SettingsModal from './src/components/SettingsModal';
 
-// --- Placeholder Handlers (Empty functions for menu items) ---
-const handleVersionInfo = () => {
-    alert("Displaying Version Information..."); 
-};
 
-const handleAuth = () => {
-    alert("Navigating to Authentication Screen..."); 
-};
+// Define colors and styles based on state
+const initialPrimaryColor = '#1D4ED8'; 
+const initialTextColor = '#1F2937';
+const initialBgColor = '#F9FAFB'; 
+const initialHeaderBg = '#FFFFFF'; 
 
-// --- Settings Menu Dropdown Component ---
-const SettingsMenu = ({ onClose }) => (
-    <View style={styles.dropdownContainer}>
-        
-        {/* Placeholder Menu Item 1: Version */}
-        <TouchableOpacity 
-            style={styles.menuItem} 
-            onPress={() => { handleVersionInfo(); onClose(); }}
-        >
-            <Text style={styles.menuItemText}>Version</Text>
-        </TouchableOpacity>
-
-        {/* Placeholder Menu Item 2: Auth */}
-        <TouchableOpacity 
-            style={styles.menuItem} 
-            onPress={() => { handleAuth(); onClose(); }}
-        >
-            <Text style={styles.menuItemText}>Log In / Sign Up</Text>
-        </TouchableOpacity>
-    </View>
-);
+// Mock useRouter for environment compatibility (assuming this is a single file app)
+const useRouter = () => ({
+    push: (path) => console.log(`Navigating to: ${path}`),
+});
 
 const App = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false); 
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false); 
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   const router = useRouter();
+
+  // Determine current colors based on dark mode state
+  const primaryColor = initialPrimaryColor;
+  const textColor = isDarkMode ? '#F9FAFB' : initialTextColor;
+  const bgColor = isDarkMode ? '#1F2937' : initialBgColor;
+  const headerBg = isDarkMode ? '#374151' : initialHeaderBg;
+  const containerStyle = { ...styles.container, backgroundColor: bgColor };
+
 
   // Function to navigate to the new world.js file (path is now '/world')
   const navigateToWorld = () => {
       router.push('/env/world');
   };
 
+  const handleToggleDarkMode = useCallback(() => {
+    setIsDarkMode(prev => !prev);
+    console.log(`Dark Mode Toggled: ${!isDarkMode}`);
+  }, [isDarkMode]);
+
+  // --- Menu Item Handlers (No more alerts!) ---
+  const handleVersionInfo = (onClose) => {
+      console.log("Displaying Version Information..."); 
+      onClose();
+  };
+
+  const handleAuth = (onClose) => {
+      console.log("Navigating to Authentication Screen..."); 
+      onClose();
+  };
+
+  const handleOpenSettings = (onClose) => {
+      onClose(); // Close the menu first
+      setIsSettingsModalOpen(true); // Open the modal
+  };
+  
+  // Define menu items array
+  const menuItems = [
+      { id: 'version', title: 'Version', action: handleVersionInfo },
+      { id: 'auth', title: 'Log In / Sign Up', action: handleAuth },
+      { id: 'settings', title: 'Settings', action: handleOpenSettings },
+  ];
+
   return (
-    <View style={styles.container}>
-      <StatusBar style="auto" />
+    <View style={containerStyle}>
+      <StatusBar style={isDarkMode ? 'light' : 'dark'} />
 
       {/* Header Bar with Hamburger Icon */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>ImpWorld</Text>
+      <View style={[styles.header, { backgroundColor: headerBg, borderBottomColor: isDarkMode ? '#4B5563' : '#E5E7EB' }]}>
+        <Text style={[styles.headerTitle, { color: textColor }]}>ImpWorld</Text>
         <TouchableOpacity onPress={() => setIsSettingsOpen(!isSettingsOpen)}>
           <Ionicons name="menu" size={32} color={primaryColor} />
         </TouchableOpacity>
@@ -62,34 +81,46 @@ const App = () => {
 
       {/* Main Empty Content Area */}
       <View style={styles.mainContent}>
-        <Text style={styles.placeholderText}>
+        <Text style={[styles.placeholderText, { color: isDarkMode ? '#4B5563' : '#ccc' }]}>
             Welcome to the Clean Slate.
         </Text>
-        <Text style={styles.subPlaceholderText}>
+        <Text style={[styles.subPlaceholderText, { color: isDarkMode ? '#374151' : '#ddd' }]}>
             Use the menu icon to navigate.
         </Text>
 
         {/* NAVIGATION BUTTON now links to /world */}
         <TouchableOpacity
-            style={styles.navButton}
+            style={[styles.navButton, { backgroundColor: primaryColor }]}
             onPress={navigateToWorld}
         >
             <Text style={styles.navButtonText}>Enter Game World</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Settings Dropdown Overlay */}
-      {isSettingsOpen && <SettingsMenu onClose={() => setIsSettingsOpen(false)} />}
+      {/* 1. Hamburger Menu Dropdown Overlay */}
+      {isSettingsOpen && (
+        <HamburgerMenu 
+            onClose={() => setIsSettingsOpen(false)} 
+            menuItems={menuItems}
+        />
+      )}
+
+      {/* 2. Settings Modal Popup */}
+      {isSettingsModalOpen && (
+          <SettingsModal 
+              onClose={() => setIsSettingsModalOpen(false)} 
+              onToggleDarkMode={handleToggleDarkMode}
+          />
+      )}
       
     </View>
   );
 };
 
-// Styles remain the same
+// Styles remain mostly the same, removed menu styles that were moved
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB', 
     paddingTop: Platform.OS === 'android' ? 30 : 50,
   },
   header: {
@@ -99,11 +130,12 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: 20,
     marginBottom: 20,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: textColor,
   },
   mainContent: {
     flex: 1,
@@ -113,16 +145,13 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#ccc',
     marginBottom: 5,
   },
   subPlaceholderText: {
     fontSize: 16,
-    color: '#ddd',
     marginBottom: 50,
   },
   navButton: {
-      backgroundColor: primaryColor,
       paddingVertical: 15,
       paddingHorizontal: 30,
       borderRadius: 10,
@@ -136,33 +165,8 @@ const styles = StyleSheet.create({
       color: 'white',
       fontSize: 18,
       fontWeight: '600',
-  },
-  dropdownContainer: {
-    position: 'absolute',
-    top: Platform.OS === 'android' ? 70 : 100, 
-    right: 20,
-    width: 200,
-    backgroundColor: 'white',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 5,
-    zIndex: 10,
-  },
-  menuItem: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  menuItemText: {
-    fontSize: 16,
-    color: textColor,
-    fontWeight: '500',
   }
 });
 
 export default App;
+
