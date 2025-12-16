@@ -16,7 +16,7 @@ import {
     LIGHT_BG_COLOR, 
     DARK_BG_COLOR, 
     DARK_HEADER_BG 
-} from './src/utils/constants'; 
+} from '../src/utils/constants'; 
 
 // Use correct keys (hy, wx, wy) from the customizer
 const DEFAULT_AVATAR_DATA = { 
