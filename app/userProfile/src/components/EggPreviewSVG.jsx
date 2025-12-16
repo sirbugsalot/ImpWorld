@@ -4,12 +4,12 @@ import Svg, { Path, Circle } from 'react-native-svg';
 // --- GEOMETRY & CLAMPING CONSTANTS ---
 const VIEWBOX_SIZE = 100; 
 const WIDTH_VIEWBOX = VIEWBOX_SIZE;
-const EGG_VIEWBOX_BASE_Y = 80; // Base Y-coordinate for the bottom of the egg
-const MAX_HEIGHT = 50; 
-const MIN_HEIGHT = 20;
+const EGG_VIEWBOX_BASE_Y = 90; // Base Y-coordinate for the bottom of the egg
+const MAX_HEIGHT = 70; 
+const MIN_HEIGHT = 10;
 const MAX_WIDTH = 60;
 const MIN_WIDTH = 30;
-const DRAG_THRESHOLD = 50; // Increased touch radius for mobile usability
+const DRAG_THRESHOLD = 15; // Increased touch radius for mobile usability
 
 
 /**
@@ -140,13 +140,13 @@ const EggPreviewSVG = ({ color, shape, onShapeChange, convertPixelsToUnits }) =>
     const rightX = centerX + halfWidth; 
     const leftX = centerX - halfWidth;  
     const rx = halfWidth; 
+
+    const bottomRadiusY = bottomY - wy;
+    const topRadiusY = topY - bottomRadiusY; 
     
-    const topRadiusY = wy - topY; 
-    const bottomRadiusY = bottomY - wy; 
-    
-    let d = `M ${bottomY} ${halfWidth}`;
-    d += ` A ${bottomRadiusY} ${rx} 0 0 1 ${halfWidth} ${topY}`; 
-    d += ` A ${topRadiusY} ${rx} 0 0 1 ${halfWidth} ${bottomY}`; 
+    let d = `M ${leftX} ${wy}`;
+    d += ` A ${rx} ${bottomRadiusY} 0 0 0 ${rightX} ${wy}`; 
+    d += ` A ${rx} ${topRadiusY} 0 0 0 ${leftX} ${wy}`; 
     const eggPath = d;
 
     // --- Fixed Light Theme Colors ---
