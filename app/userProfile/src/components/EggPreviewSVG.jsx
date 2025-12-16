@@ -4,12 +4,12 @@ import Svg, { Path, Circle } from 'react-native-svg';
 // --- GEOMETRY & CLAMPING CONSTANTS ---
 const VIEWBOX_SIZE = 100; 
 const WIDTH_VIEWBOX = VIEWBOX_SIZE;
-const EGG_VIEWBOX_BASE_Y = 70; // Base Y-coordinate for the bottom of the egg
+const EGG_VIEWBOX_BASE_Y = 80; // Base Y-coordinate for the bottom of the egg
 const MAX_HEIGHT = 50; 
 const MIN_HEIGHT = 20;
 const MAX_WIDTH = 60;
 const MIN_WIDTH = 30;
-const DRAG_THRESHOLD = 15; // Increased touch radius for mobile usability
+const DRAG_THRESHOLD = 50; // Increased touch radius for mobile usability
 
 
 /**
@@ -27,7 +27,7 @@ const EggPreviewSVG = ({ color, shape, onShapeChange, convertPixelsToUnits }) =>
     const [draggedVertexIndex, setDraggedVertexIndex] = useState(null);
 
     // Use optional chaining and default values
-    const { hy = 40, wx = 50, wy = 55 } = shape || {}; 
+    const { hy = 60, wx = 40, wy = 35 } = shape || {}; 
 
     const bottomY = EGG_VIEWBOX_BASE_Y; 
     const topY = bottomY - hy; 
@@ -37,11 +37,11 @@ const EggPreviewSVG = ({ color, shape, onShapeChange, convertPixelsToUnits }) =>
     const eggVertices = [
         { 
             x: centerX, 
-            y: Number(topY) 
+            y: topY
         },
         { 
-            x: centerX + Number(wx) / 2, 
-            y: Number(wy) 
+            x: centerX + wx / 2, 
+            y: wy
         }
     ];
     
@@ -157,7 +157,7 @@ const EggPreviewSVG = ({ color, shape, onShapeChange, convertPixelsToUnits }) =>
         // Touch handlers are now on the <Svg> element itself!
         <Svg 
             height="100%" 
-            width="90%" 
+            width="100%" 
             viewBox={`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
