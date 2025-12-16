@@ -82,10 +82,10 @@ const App = () => {
       {/* Main Empty Content Area */}
       <View style={styles.mainContent}>
         <Text style={[styles.placeholderText, { color: isDarkMode ? '#4B5563' : '#ccc' }]}>
-            Welcome to the Clean Slate.
+            Welcome to the Imp World.
         </Text>
         <Text style={[styles.subPlaceholderText, { color: isDarkMode ? '#374151' : '#ddd' }]}>
-            Use the menu icon to navigate.
+            Use the menu icon to access settings.
         </Text>
 
         {/* NAVIGATION BUTTON now links to /world */}
@@ -93,7 +93,7 @@ const App = () => {
             style={[styles.navButton, { backgroundColor: primaryColor }]}
             onPress={navigateToWorld}
         >
-            <Text style={styles.navButtonText}>Enter Game World</Text>
+            <Text style={styles.navButtonText}>Enter Imp World</Text>
         </TouchableOpacity>
       </View>
 
