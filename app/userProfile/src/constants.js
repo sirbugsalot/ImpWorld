@@ -1,4 +1,4 @@
-import {Dimensions} from 'react-native';
+import { Dimensions } from 'react-native';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -6,45 +6,41 @@ const windowHeight = Dimensions.get('window').height;
 // Export window dimensions for use in other files (like EggPreviewSVG for scaling)
 export { windowWidth, windowHeight };
 
-export const MIN_PERCENTAGE = 10;
-export const MAX_PERCENTAGE = 100;
+// --- SVG Viewbox Unit Definitions (100x100 system) ---
+export const VIEWBOX_SIZE = 100; // The virtual size of the SVG canvas
+export const WIDTH_VIEWBOX = VIEWBOX_SIZE; // Alias for the width in the 100-unit system
 
-// Sliders now represent percentages of the max possible size.
-export const MIN_DIMENSION = MIN_PERCENTAGE; // Min slider value (10)
-export const MAX_DIMENSION = MAX_PERCENTAGE; // Max slider value (100)
+// The Y-anchor for the bottom of the shape, in VIEWBOX units (70 units from the top)
+export const EGG_VIEWBOX_BASE_Y = 70;
 
-// Style constants
+// --- Dimension Constraints (All in 100-unit VIEWBOX space) ---
+// These are absolute length/width dimensions, not percentages of screen size.
+export const MAX_HEIGHT = 55; // Max height dimension in 100-unit space (e.g., 55 units tall)
+export const MIN_HEIGHT = 20; // Min height dimension in 100-unit space
+export const MAX_WIDTH = 70; // Max width dimension in 100-unit space
+export const MIN_WIDTH = 30; // Min width dimension in 100-unit space
+
+// --- Style and UI Constants ---
 export const primaryColor = '#1F2937'; // Dark gray
-export const accentColor = '#3B82F6'; // Blue
+export const accentColor = '#10B981'; // Emerald-500
 export const TRACK_THICKNESS = 4;
 export const THUMB_SIZE = 24;
-export const backgroundColor = '#F3F4F6'; // Define a background color
+export const backgroundColor = '#F3F4F6';
 
+// --- Default Initialization Values (All in 100-unit space) ---
 export const DEFAULT_CUSTOMIZATION = {
     type: 'egg',
     color: '#059669', // Emerald Green
     shape: {
-        // FIX: These must be abstract percentage values (0-100) for the sliders
-        // and should NOT be calculated with screen dimensions here, as that causes
-        // circular dependency issues and mismatched type errors.
-        wx: 60, // Default slider percentage for width
-        hy: 70, // Default slider percentage for height
-        wy: 30, // Default slider percentage for waist
+        // hy: Height Dimension (Length). Set to a safe value.
+        // Top Y will be 70 - 45 = 25.
+        hy: 45, 
+        
+        // wx: Width Dimension (Total length).
+        wx: 50, 
+        
+        // wy: Waist Y-Coordinate (Absolute position, 0=top, 100=bottom).
+        // Must be between Top Y (25) and Bottom Y (70). 50 is a safe middle.
+        wy: 50, 
     }
 };
-
-// SVG ViewBox container constants (screen pixel values for the <View> container)
-// User requested: 90% of frame width (screen width), 40% of frame height (screen height)
-export const WIDTH_VIEWBOX = windowWidth * 0.8;
-export const HEIGHT_VIEWBOX = windowHeight * 0.4;
-// The Y-anchor for the bottom of the shape, as a percentage of the VIEWBOX height (not window height)
-// This value is used by the EggPreviewSVG to map its internal 100x100 drawing space.
-export const EGG_VIEWBOX_BASE_Y = HEIGHT_VIEWBOX*0.8; // 70 units from the top of the 100-unit viewbox (i.e., 70% down)
-
-// Waist constraints (percentage of total height from top)
-export const WAIST_MARGIN_PERCENTAGE = 10; // 10% margin from top/bottom
-
-export const MAX_HEIGHT = HEIGHT_VIEWBOX*0.4;
-export const MAX_WIDTH = WIDTH_VIEWBOX*0.7;
-export const MIN_WIDTH = WIDTH_VIEWBOX*0.1;
-export const MIN_HEIGHT = HEIGHT_VIEWBOX*0.05;
