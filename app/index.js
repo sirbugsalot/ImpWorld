@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons'; 
+import { useRouter } from 'expo-router'; 
 
 // Import new components with correct path
 import HamburgerMenu from './userProfile/src/components/HamburgerMenu';
@@ -13,11 +14,6 @@ const initialPrimaryColor = '#1D4ED8';
 const initialTextColor = '#1F2937';
 const initialBgColor = '#F9FAFB'; 
 const initialHeaderBg = '#FFFFFF'; 
-
-// Mock useRouter for environment compatibility (assuming this is a single file app)
-const useRouter = () => ({
-    push: (path) => console.log(`Navigating to: ${path}`),
-});
 
 const App = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false); 
