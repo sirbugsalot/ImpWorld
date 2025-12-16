@@ -113,7 +113,7 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
     // --- State to track which vertex is being dragged ---
     const getActiveVertext = (unitX, unitY) => {
         // High threshold for easy mobile tapping
-        const threshold = 15; 
+        const threshold = 100; 
         for (let i = 0; i < currentEggVertices.length; i++){
             const vertex = currentEggVertices[i];
             // Only check distance to the top vertex (index 0) and the right waist vertex (index 1)
