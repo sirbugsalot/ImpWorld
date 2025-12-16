@@ -88,15 +88,6 @@ const EggPreviewSVG = ({ color, shape }) => {
                 strokeOpacity="0.5"
             />
             
-            {/* Waist Anchor Line */}
-            <Path
-                d={`M 20 ${waistY} L 80 ${waistY}`}
-                stroke="#3B82F6"
-                strokeWidth="1"
-                strokeDasharray="4 4"
-                strokeOpacity="0.5"
-            />
-            
         </Svg>
     );
 };
