@@ -1,36 +1,39 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import Svg, { Path, Circle } from 'react-native-svg';
 
-// The component will draw entirely within a 100x100 coordinate system
+// --- GEOMETRY & CLAMPING CONSTANTS ---
 const VIEWBOX_SIZE = 100; 
-// Must be consistent with the coordinate used in the parent component for the base
-const EGG_VIEWBOX_BASE_Y = 70; 
+const WIDTH_VIEWBOX = VIEWBOX_SIZE;
+const EGG_VIEWBOX_BASE_Y = 70; // Base Y-coordinate for the bottom of the egg
+const MAX_HEIGHT = 50; 
+const MIN_HEIGHT = 20;
+const MAX_WIDTH = 60;
+const MIN_WIDTH = 30;
+const DRAG_THRESHOLD = 15; // Increased touch radius for mobile usability
+
 
 /**
- * Renders the custom avatar shape (Egg) and its draggable handles.
- * All coordinates and geometry are calculated using the 100x100 viewBox units.
+ * Renders the custom avatar shape (Egg) and its draggable handles, 
+ * and handles the touch interaction to modify the shape.
  * @param {object} props - Component props.
  * @param {string} props.color - Fill color of the shape.
- * @param {object} props.shape - Shape parameters (hy=Height Dimension, wx=Width Dimension, wy=Waist Y-Coordinate).
+ * @param {object} props.shape - Shape parameters (hy, wx, wy).
+ * @param {function} props.onShapeChange - Callback to update the shape in the parent state.
+ * @param {function} props.convertPixelsToUnits - Utility function to map screen pixels to SVG units.
  */
-const EggPreviewSVG = ({ color, shape }) => {
+const EggPreviewSVG = ({ color, shape, onShapeChange, convertPixelsToUnits }) => {
  
-    // Use optional chaining and default values to prevent crashes if shape is missing during initialization
-    const { 
-        hy = 40, // Default height
-        wx = 50, // Default width
-        wy = 55  // Default waist Y
-    } = shape || {}; 
+    // State to track which vertex is currently being dragged
+    const [draggedVertexIndex, setDraggedVertexIndex] = useState(null);
 
-    const bottomY = EGG_VIEWBOX_BASE_Y; // The fixed Y-coordinate of the egg's base
-    
-    // Calculate top Y-coordinate by subtracting the height dimension (hy) from the fixed base coordinate (bottomY).
+    // Use optional chaining and default values
+    const { hy = 40, wx = 50, wy = 55 } = shape || {}; 
+
+    const bottomY = EGG_VIEWBOX_BASE_Y; 
     const topY = bottomY - hy; 
-    
-    const centerX = VIEWBOX_SIZE / 2; // 50
+    const centerX = VIEWBOX_SIZE / 2; 
 
-    // --- Calculate the vertices (draggable handles) based on shape dimensions ---
-    // Ensure numeric values are used for coordinates
+    // Calculate current vertices based on shape dimensions
     const eggVertices = [
         { 
             x: centerX, 
@@ -41,44 +44,126 @@ const EggPreviewSVG = ({ color, shape }) => {
             y: Number(wy) 
         }
     ];
-    // --- END CALCULATION ---
     
-    // --- Fixed Light Theme Colors ---
-    const frameFill = '#F9FAFB';
-    const frameStroke = '#D1D5DB';
+    // --- TOUCH LOGIC ---
 
-    // --- GEOMETRY CALCULATIONS ---
+    /**
+     * Determines if a touch point (in SVG units) is close enough to a vertex.
+     */
+    const getActiveVertext = (unitX, unitY) => {
+        for (let i = 0; i < eggVertices.length; i++){
+            const vertex = eggVertices[i];
+            const distance = Math.sqrt( (unitX - vertex.x)**2 + (unitY - vertex.y)**2);
+            if (distance <= DRAG_THRESHOLD) {
+                return i;
+            }
+        }
+        return null; 
+    };
+    
+    /**
+     * Handles the start of a touch/drag gesture.
+     */
+    const handleTouchStart = (event) => {
+        const { unitX, unitY } = convertPixelsToUnits(
+            event.nativeEvent.locationX, 
+            event.nativeEvent.locationY
+        );
+        
+        const activeVertexIndex = getActiveVertext(unitX, unitY);
+
+        if (activeVertexIndex !== null) {
+            setDraggedVertexIndex(activeVertexIndex);
+            // Call move handler immediately for snappier feedback
+            handleTouchMove(event, activeVertexIndex); 
+        }
+    };
+
+
+    /**
+     * Handles the movement during a drag gesture and updates the shape.
+     */
+    const handleTouchMove = (event, initialIndex = null) => {
+        const activeVertexIndex = initialIndex !== null ? initialIndex : draggedVertexIndex;
+
+        if (activeVertexIndex === null) {
+            return; // Not currently dragging a vertex
+        }
+        
+        // 1. Convert pixel event coordinates to 100-unit coordinates
+        const { unitX, unitY } = convertPixelsToUnits(
+            event.nativeEvent.locationX, 
+            event.nativeEvent.locationY
+        );
+
+        let newHy = hy;
+        let newWx = wx;
+        let newWy = wy;
+        
+        if (activeVertexIndex === 0) {
+            // Index 0: Height/Top vertex (Y modification)
+            const minTopY = EGG_VIEWBOX_BASE_Y - MAX_HEIGHT; // Tallest allowed
+            const maxTopY = EGG_VIEWBOX_BASE_Y - MIN_HEIGHT; // Shortest allowed
+
+            // Clamp Y and calculate new Height dimension (hy)
+            const newTopY = Math.max(minTopY, Math.min(maxTopY, unitY));
+            newHy = EGG_VIEWBOX_BASE_Y - newTopY;
+            
+        } else if (activeVertexIndex === 1) {
+            // Index 1: Width/Waist vertex (X and Y modification)
+            
+            const currentTopY = EGG_VIEWBOX_BASE_Y - hy;
+
+            // X Clamping (Width)
+            const minWaistX = WIDTH_VIEWBOX / 2 + MIN_WIDTH / 2;
+            const maxWaistX = WIDTH_VIEWBOX / 2 + MAX_WIDTH / 2;
+            const newWaistX = Math.max(minWaistX, Math.min(maxWaistX, unitX));
+            newWx = (newWaistX - WIDTH_VIEWBOX / 2) * 2; // Dimension is width, not half-width
+
+            // Y Clamping (Waist Position)
+            const availableHeight = EGG_VIEWBOX_BASE_Y - currentTopY;
+            const minWaistY = currentTopY + availableHeight * 0.15; // 15% down from the top
+            const maxWaistY = EGG_VIEWBOX_BASE_Y - availableHeight * 0.15; // 15% up from the bottom
+            newWy = Math.max(minWaistY, Math.min(maxWaistY, unitY));
+        }
+
+        // 2. Call the parent update function
+        onShapeChange({ hy: newHy, wx: newWx, wy: newWy });
+    };
+
+    const releaseUpdate = () => {
+        setDraggedVertexIndex(null);
+    };
+
+    // --- GEOMETRY PATH GENERATION ---
     const halfWidth = Number(wx) / 2;
     const rightX = centerX + halfWidth; 
     const leftX = centerX - halfWidth;  
-    
-    // Horizontal radius (rx) is half the total width
     const rx = halfWidth; 
     
-    // --- Path Generation for two semi-ellipses (Half Ovals) ---
-    
-    // topRadiusY and bottomRadiusY are the vertical radii for the top and bottom arcs
     const topRadiusY = Number(wy) - topY; 
     const bottomRadiusY = bottomY - Number(wy); 
     
-    // Start at the left waist point (leftX, wy)
     let d = `M ${leftX} ${wy}`;
-
-    // 1. Bottom arc: From (leftX, wy) to (rightX, wy)
     d += ` A ${rx} ${bottomRadiusY} 0 0 1 ${rightX} ${wy}`; 
-
-    // 2. Top arc: From (rightX, wy) back to (leftX, wy)
     d += ` A ${rx} ${topRadiusY} 0 0 1 ${leftX} ${wy}`; 
-
     const eggPath = d;
+
+    // --- Fixed Light Theme Colors ---
+    const frameFill = '#F9FAFB';
+    const frameStroke = '#D1D5DB';
     
     return (
-        // *** CRITICAL FIX: Add pointerEvents="none" to ensure touch events pass through to the parent <View> where the drag logic lives. ***
+        // Touch handlers are now on the <Svg> element itself!
         <Svg 
             height="100%" 
             width="90%" 
             viewBox={`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}
-            pointerEvents="none" 
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={releaseUpdate}
+            // Add a pointerEvents style for the circles to ensure they are visible but don't block the parent SVG's touch area.
+            style={{ pointerEvents: 'box-none' }} 
         >
             {/* Background Frame/Reference */}
             <Path 
