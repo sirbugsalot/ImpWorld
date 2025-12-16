@@ -142,11 +142,11 @@ const EggPreviewSVG = ({ color, shape, onShapeChange, convertPixelsToUnits }) =>
     const rx = halfWidth; 
 
     const bottomRadiusY = bottomY - wy;
-    const topRadiusY = topY - bottomRadiusY; 
+    const topRadiusY = wy - topY;// - bottomRadiusY; 
     
     let d = `M ${leftX} ${wy}`;
-    d += ` A ${rx} ${bottomRadiusY} 0 0 0 ${rightX} ${wy}`; 
-    d += ` A ${rx} ${topRadiusY} 0 0 0 ${leftX} ${wy}`; 
+    d += ` A ${rx} ${bottomRadiusY} 0 0 1 ${rightX} ${wy}`; 
+    d += ` A ${rx} ${topRadiusY} 0 0 1 ${leftX} ${wy}`; 
     const eggPath = d;
 
     // --- Fixed Light Theme Colors ---
