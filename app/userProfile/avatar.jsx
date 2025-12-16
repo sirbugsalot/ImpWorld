@@ -53,11 +53,37 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
     const [status, setStatus] = useState('Customize your avatar by dragging the red and blue circles.');
     const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
 
+    // Constants for coordinate conversion
+    const SVG_WIDTH_RATIO = 0.9;
+    const SVG_OFFSET_X_RATIO = (1 - SVG_WIDTH_RATIO) / 2; // 0.05 (5% margin)
 
-    const pixelToUnit = (px) => {
-        // Map pixel coordinate to the 100-unit SVG viewbox space
-        if (previewWindowPixelSize === VIEWBOX_SIZE) return px; 
-        return (px / previewWindowPixelSize) * VIEWBOX_SIZE;
+    /**
+     * Converts touch coordinates (pixels) relative to the container 
+     * into 100-unit SVG coordinates, adjusting for the 90% SVG width offset.
+     * @param {number} pxX - Touch X pixel coordinate.
+     * @param {number} pxY - Touch Y pixel coordinate.
+     * @returns {{unitX: number, unitY: number}}
+     */
+    const convertPixelsToUnits = (pxX, pxY) => {
+        if (previewWindowPixelSize === VIEWBOX_SIZE) {
+            // Fallback for initial render
+            return { unitX: pxX, unitY: pxY }; 
+        }
+
+        // 1. Calculate X relative to the SVG's top-left corner (accounting for the 5% left margin)
+        const svgPxX = pxX - (previewWindowPixelSize * SVG_OFFSET_X_RATIO);
+        
+        // 2. Scale X based on the SVG's actual pixel width (90% of container)
+        const svgPxWidth = previewWindowPixelSize * SVG_WIDTH_RATIO;
+        let unitX = (svgPxX / svgPxWidth) * VIEWBOX_SIZE;
+        
+        // 3. Scale Y based on the container's full height (100%)
+        let unitY = (pxY / previewWindowPixelSize) * VIEWBOX_SIZE; 
+        
+        // 4. Clamp X to ensure coordinates stay within the 0-100 viewBox range
+        unitX = Math.max(0, Math.min(VIEWBOX_SIZE, unitX));
+
+        return { unitX, unitY };
     };
     
     const handleLayout = (event) => {
@@ -84,14 +110,13 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
     const currentEggVertices = getEggVertices(shape);
 
 
-    /**
-     * Finds the index of the vertex near the given coordinates (in VIEWBOX units).
-     */
+    // --- State to track which vertex is being dragged ---
     const getActiveVertext = (unitX, unitY) => {
-        // Increased threshold to make touch targets easier to hit on mobile
-        const threshold = 10; 
+        // High threshold for easy mobile tapping
+        const threshold = 15; 
         for (let i = 0; i < currentEggVertices.length; i++){
             const vertex = currentEggVertices[i];
+            // Only check distance to the top vertex (index 0) and the right waist vertex (index 1)
             const distance = Math.sqrt( (unitX - vertex.x)**2 + (unitY - vertex.y)**2);
             if (distance <= threshold) {
                 return i;
@@ -104,15 +129,16 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
      * Handles the start of a touch/drag gesture.
      */
     const handleTouchStart = (event) => {
-        // 1. Convert pixel event coordinates to 100-unit coordinates
-        const unitX = pixelToUnit(event.nativeEvent.locationX);
-        const unitY = pixelToUnit(event.nativeEvent.locationY);
+        const { unitX, unitY } = convertPixelsToUnits(
+            event.nativeEvent.locationX, 
+            event.nativeEvent.locationY
+        );
         
         const activeVertexIndex = getActiveVertext(unitX, unitY);
 
         if (activeVertexIndex !== null) {
             setDraggedVertexIndex(activeVertexIndex);
-            // Optional: Call move handler immediately for snappy start
+            // Call move handler immediately for snappier feedback
             handleTouchMove(event, activeVertexIndex); 
         }
     };
@@ -129,8 +155,10 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
         }
         
         // 1. Convert pixel event coordinates to 100-unit coordinates
-        const unitX = pixelToUnit(event.nativeEvent.locationX);
-        const unitY = pixelToUnit(event.nativeEvent.locationY);
+        const { unitX, unitY } = convertPixelsToUnits(
+            event.nativeEvent.locationX, 
+            event.nativeEvent.locationY
+        );
 
         // Get current shape dimensions
         const { hy, wx, wy } = customization.shape;
@@ -154,7 +182,6 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
         } else if (activeVertexIndex === 1) {
             // Index 1: Width/Waist vertex (y is clamped, x determines width)
             
-            // Need the current Top Y coordinate to clamp the waist Y relative to the egg's height
             const currentTopY = EGG_VIEWBOX_BASE_Y - hy;
 
             const minWaistX = WIDTH_VIEWBOX / 2 + MIN_WIDTH / 2;
@@ -162,8 +189,8 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
 
             // Clamping the Waist Y position relative to the current egg height
             const availableHeight = EGG_VIEWBOX_BASE_Y - currentTopY;
-            const minWaistY = currentTopY + availableHeight * 0.15; // 15% down from the top
-            const maxWaistY = EGG_VIEWBOX_BASE_Y - availableHeight * 0.15; // 15% up from the bottom
+            const minWaistY = currentTopY + availableHeight * 0.15; 
+            const maxWaistY = EGG_VIEWBOX_BASE_Y - availableHeight * 0.15; 
 
             // Calculate new X and Y, clamped
             const newWaistX = Math.max(minWaistX, Math.min(maxWaistX, unitX));
@@ -219,7 +246,6 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                     <View 
                         style={styles.previewWindow} 
                         onLayout={handleLayout} // Get the actual pixel size for coordinate mapping
-                        // Bind separated handlers
                         onTouchStart={handleTouchStart} 
                         onTouchMove={handleTouchMove} 
                         onTouchEnd={releaseUpdate}
@@ -253,10 +279,10 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                             <Text style={[styles.typeButtonText, customization.type === 'egg' && styles.typeButtonTextActive]}>EGG</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
-                            onPress={() => handleTypeChange('imp')}
+                            onPress={() => handleTypeChange('imp')} 
                             style={[styles.typeButton, customization.type === 'imp' && styles.typeButtonActive]}
                         >
-                            <Text style={[styles.typeButtonText, customization.type === 'imp' && styles.typeButtonTextActive]}>IMP</Text>
+                            <Text style={[styles.typeButtonText, customization.type === 'imp' && styles.typeButtonTextActive]}>IMP</Text> 
                         </TouchableOpacity>
                     </View>
                 </View>
