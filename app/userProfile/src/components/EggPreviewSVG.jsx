@@ -9,12 +9,12 @@ import Svg, { Path, Circle, Text } from 'react-native-svg'; // Added Text for th
  * @param {object} props.shape - Shape parameters (hy=Height Dimension, wx=Width Dimension, wy=Waist Y-Coordinate).
  * @param {Array<object>} props.eggVertices - Raw coordinates of the two draggable handles.
  */
-const EggPreviewSVG = ({ color, shape, eggVertices }) => {
+const EggPreviewSVG = ({ color, shape }) => {
     const VIEWBOX_SIZE = 100
     
     // Destructured shape: Height (hy), Width (wx), Waist Y (wy)
     const { hy, wx, wy } = shape; 
-
+    
     const bottomY = 70; // The fixed Y-coordinate of the egg's base
     
     // Calculate top Y-coordinate by subtracting the height dimension (hy) from the fixed base coordinate (bottomY).
@@ -27,6 +27,18 @@ const EggPreviewSVG = ({ color, shape, eggVertices }) => {
     const halfWidth = wx / 2;
     const rightX = centerX + halfWidth; 
     const leftX = centerX - halfWidth;  
+
+    // --- Calculate the vertices (draggable handles) based on shape dimensions ---
+    const eggVertices = [
+        { 
+            x: centerX, 
+            y: topY // Correct absolute Y coordinate: BaseY - hy
+        },
+        { 
+            x: centerX + wx / 2, 
+            y: wy // Correct absolute Y coordinate: wy
+        }
+    ];
     
     // Horizontal radius (rx) is half the total width
     const rx = halfWidth; 
