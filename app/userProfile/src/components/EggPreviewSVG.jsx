@@ -53,10 +53,10 @@ const EggPreviewSVG = ({ color, shape }) => {
     let d = `M ${leftX} ${waistY}`;
 
     // 1. Bottom arc: From (leftX, waistY) to (rightX, waistY)
-    d += ` A ${rx} ${bottomRadiusY} 0 0 1 ${rightX} ${waistY}`; 
+    d += ` A ${rx} ${bottomRadiusY} 0 0 0 ${rightX} ${waistY}`; 
 
     // 2. Top arc: From (rightX, waistY) back to (leftX, waistY)
-    d += ` A ${rx} ${topRadiusY} 0 0 1 ${leftX} ${waistY}`; 
+    d += ` A ${rx} ${topRadiusY} 0 0 0 ${leftX} ${waistY}`; 
 
     const eggPath = d;
     
@@ -83,6 +83,15 @@ const EggPreviewSVG = ({ color, shape }) => {
             <Path
                 d={`M 20 ${bottomY} L 80 ${bottomY}`}
                 stroke="#E94949"
+                strokeWidth="1"
+                strokeDasharray="4 4"
+                strokeOpacity="0.5"
+            />
+
+            {/* Waist Anchor Line */}
+            <Path
+                d={`M 20 ${waistY} L 80 ${waistY}`}
+                stroke="#3B82F6"
                 strokeWidth="1"
                 strokeDasharray="4 4"
                 strokeOpacity="0.5"
