@@ -44,3 +44,8 @@ export const DEFAULT_CUSTOMIZATION = {
         wy: 50, 
     }
 };
+// --- Global UI Constants ---
+export const COLOR_PALETTE = [
+    '#8A2BE2', '#10B981', '#F59E0B', '#EF4444', 
+    '#0EA5E9', '#EC4899', '#6B7280', '#FFD700',
+];
