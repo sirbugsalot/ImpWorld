@@ -253,7 +253,7 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                             onTouchStart={handleTouchStart} 
                             onTouchMove={handleTouchMove} 
                             onTouchEnd={releaseUpdate}
-                        /> 
+                         
                         
                         <TouchableOpacity style={styles.colorTriggerIcon} onPress={() => setIsColorPickerVisible(true)}>
                             <Ionicons name="color-palette-outline" size={24} color={primaryColor} />
@@ -265,6 +265,7 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                                 onColorChange={handleColorChange} 
                                 onClose={() => setIsColorPickerVisible(false)} 
                             />
+                        />
                         )}
                     </View>
                 </View>
