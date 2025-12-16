@@ -5,6 +5,7 @@ import Svg, { Path } from 'react-native-svg';
 
 // Import modular components from src/
 import EggPreviewSVG from './src/components/EggPreviewSVG';
+// Import the newly created ColorPicker component
 import ColorPicker from './src/components/ColorPicker';
 
 // --- MOCK CONSTANTS & STYLES FOR RUNNABILITY ---
@@ -88,18 +89,15 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
 
     const handleColorChange = (newColor) => {
         setCustomization(prev => ({ ...prev, color: newColor }));
-        setIsColorPickerVisible(false);
-    };
-
-    const handleTypeChange = (type) => {
-        setCustomization(prev => ({ ...prev, type }));
+        // Note: The color picker itself manages closing or we close it here.
+        // We will keep it open until the user hits the 'Done' button or 'close' icon inside the picker.
     };
 
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={onCancel}>
+                <TouchableOpacity onPress={() => console.log('Cancel pressed - implement navigation')}>
                     <Ionicons name="chevron-back" size={32} color={primaryColor} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Customize Avatar</Text>
@@ -126,14 +124,6 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                         <TouchableOpacity style={styles.colorTriggerIcon} onPress={() => setIsColorPickerVisible(true)}>
                             <Ionicons name="color-palette-outline" size={24} color={primaryColor} />
                         </TouchableOpacity>
-
-                        {isColorPickerVisible && (
-                            <ColorPicker 
-                                selectedColor={customization.color} 
-                                onColorChange={handleColorChange} 
-                                onClose={() => setIsColorPickerVisible(false)} 
-                            />
-                        )}
                     </View>
                 </View>
                 
@@ -141,13 +131,13 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                 <View style={styles.controlSection}>
                     <View style={styles.buttonRow}>
                         <TouchableOpacity 
-                            onPress={() => handleTypeChange('egg')}
+                            onPress={() => setCustomization(prev => ({ ...prev, type: 'egg' }))}
                             style={[styles.typeButton, customization.type === 'egg' && styles.typeButtonActive]}
                         >
                             <Text style={[styles.typeButtonText, customization.type === 'egg' && styles.typeButtonTextActive]}>EGG</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
-                            onPress={() => handleTypeChange('imp')} 
+                            onPress={() => setCustomization(prev => ({ ...prev, type: 'imp' }))} 
                             style={[styles.typeButton, customization.type === 'imp' && styles.typeButtonActive]}
                         >
                             <Text style={[styles.typeButtonText, customization.type === 'imp' && styles.typeButtonTextActive]}>IMP</Text> 
@@ -159,7 +149,7 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                 <TouchableOpacity 
                     onPress={() => {
                         setStatus('Customization saved!');
-                        onSave(customization);
+                        if (onSave) onSave(customization);
                     }}
                     style={[styles.actionButton, { backgroundColor: accentColor }]}
                 >
@@ -167,6 +157,16 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                     <Text style={styles.actionButtonText}>SAVE</Text>
                 </TouchableOpacity>
             </View>
+            
+            {/* Color Picker Modal */}
+            {isColorPickerVisible && (
+                <ColorPicker 
+                    selectedColor={customization.color} 
+                    onColorChange={handleColorChange} 
+                    onClose={() => setIsColorPickerVisible(false)} 
+                />
+            )}
+
         </ScrollView>
     );
 };
