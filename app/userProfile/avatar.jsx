@@ -1,14 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import { Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
-import Svg, { Path, Circle } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 
 // Import modular components from src/
 import EggPreviewSVG from './src/components/EggPreviewSVG';
 import ColorPicker from './src/components/ColorPicker';
 
 // --- MOCK CONSTANTS & STYLES FOR RUNNABILITY ---
-// NOTE: In a real app, these should be imported from ./src/constants and ./src/styles/avatarStyles
 const VIEWBOX_SIZE = 100;
 const WIDTH_VIEWBOX = VIEWBOX_SIZE;
 const EGG_VIEWBOX_BASE_Y = 70;
@@ -52,16 +51,10 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
     const [customization, setCustomization] = useState(initialCustomization);
 
     // --- Simplifying Coordinate Conversion ---
-    // We assume the touch coordinates (locationX, locationY) are already relative to the
-    // previewWindow, which contains the 100x100 SVG. We use a simple ratio based on the 
-    // container's current width (in pixels) to map to the 100-unit SVG space.
-    
-    // State to hold the current pixel size of the preview window for accurate coordinate mapping
     const [previewWindowPixelSize, setPreviewWindowPixelSize] = useState(VIEWBOX_SIZE);
 
     const pixelToUnit = (px) => {
-        // Map pixel coordinate to the 100-unit SVG viewbox space
-        if (previewWindowPixelSize === VIEWBOX_SIZE) return px; // Fallback if size isn't yet measured
+        if (previewWindowPixelSize === VIEWBOX_SIZE) return px; 
         return (px / previewWindowPixelSize) * VIEWBOX_SIZE;
     };
     
@@ -71,17 +64,29 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
         setPreviewWindowPixelSize(width);
     };
 
-    // --- FIX: Initialize eggVertices[0].y with the ABSOLUTE Y-COORDINATE (in 100-units) ---
-    const [eggVertices, setEggVertices] = useState([
-        { 
-            x: VIEWBOX_SIZE / 2,          
-            y: EGG_VIEWBOX_BASE_Y - initialCustomization.shape.hy // Convert height dimension to absolute Y coordinate
-        }, 
-        { 
-            x: VIEWBOX_SIZE / 2 + initialCustomization.shape.wx / 2, 
-            y: initialCustomization.shape.wy // This is already the waist Y coordinate
-        }, 
-    ]);
+    // Get the shape object from customization
+    const { shape } = customization;
+    
+    /**
+     * Helper function to convert shape dimensions (hy, wx, wy) into 
+     * absolute SVG coordinates for the two draggable vertices (handles).
+     */
+    const getEggVertices = (currentShape) => {
+        const topY = EGG_VIEWBOX_BASE_Y - currentShape.hy;
+        return [
+            { 
+                x: VIEWBOX_SIZE / 2,         
+                y: topY // Absolute Y coordinate of the top
+            }, 
+            { 
+                x: VIEWBOX_SIZE / 2 + currentShape.wx / 2, 
+                y: currentShape.wy // Absolute Y coordinate of the waist
+            }, 
+        ];
+    };
+    
+    const currentEggVertices = getEggVertices(shape);
+
 
     // --- State to track which vertex is being dragged ---
     const [draggedVertexIndex, setDraggedVertexIndex] = useState(null);
@@ -89,16 +94,13 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
     const [status, setStatus] = useState('Customize your avatar.');
     const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
 
-    // Get the shape object from customization
-    const { shape } = customization;
-
     /**
      * Finds the index of the vertex near the given coordinates (in VIEWBOX units).
      */
     const getActiveVertext = (unitX, unitY) => {
         const threshold = 5; // Use a small threshold in 100-unit space
-        for (let i = 0; i < eggVertices.length; i++){
-            const vertex = eggVertices[i];
+        for (let i = 0; i < currentEggVertices.length; i++){
+            const vertex = currentEggVertices[i];
             const distance = Math.sqrt( (unitX - vertex.x)**2 + (unitY - vertex.y)**2);
             if (distance <= threshold) {
                 return i;
@@ -129,55 +131,55 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
              return; // Ignore move events if drag hasn't started
         }
 
-
-        const updatedVertices = [...eggVertices];
-        let newVertex = {};
+        // Get current shape dimensions
+        const { hy, wx, wy } = customization.shape;
+        
+        // Temporarily store new dimensions
+        let newHy = hy;
+        let newWx = wx;
+        let newWy = wy;
         
         if (activeVertexIndex === 0) {
             // Index 0: Height/Top vertex (x is fixed at center)
             const minTopY = EGG_VIEWBOX_BASE_Y - MAX_HEIGHT; // Lowest Y (Tallest Egg)
             const maxTopY = EGG_VIEWBOX_BASE_Y - MIN_HEIGHT; // Highest Y (Shortest Egg)
 
-            newVertex = {
-                x: VIEWBOX_SIZE / 2,
-                // Clamping Y on the 100-unit coordinate system
-                y: Math.max(minTopY, Math.min(maxTopY, unitY)), 
-            };
+            // Calculate the absolute Y of the new vertex, clamped
+            const newTopY = Math.max(minTopY, Math.min(maxTopY, unitY));
+            
+            // Convert Absolute Y-coordinate back to Height DIMENSION: BaseY - Absolute Y
+            newHy = EGG_VIEWBOX_BASE_Y - newTopY;
+            
         } else if (activeVertexIndex === 1) {
             // Index 1: Width/Waist vertex (y is clamped, x determines width)
-            // Use the current top vertex Y-coordinate (from state, not unitY, because unitY might be invalid)
-            const topY = updatedVertices[0].y; 
             
+            // Need the current Top Y coordinate to clamp the waist Y relative to the egg's height
+            const currentTopY = EGG_VIEWBOX_BASE_Y - hy;
+
             const minWaistX = WIDTH_VIEWBOX / 2 + MIN_WIDTH / 2;
             const maxWaistX = WIDTH_VIEWBOX / 2 + MAX_WIDTH / 2;
 
             // Clamping the Waist Y position relative to the current egg height
-            const availableHeight = EGG_VIEWBOX_BASE_Y - topY;
-            const minWaistY = topY + availableHeight * 0.15; // 15% down from the top
+            const availableHeight = EGG_VIEWBOX_BASE_Y - currentTopY;
+            const minWaistY = currentTopY + availableHeight * 0.15; // 15% down from the top
             const maxWaistY = EGG_VIEWBOX_BASE_Y - availableHeight * 0.15; // 15% up from the bottom
 
-            newVertex = {
-                // X: Clamping X (width)
-                x: Math.max(minWaistX, Math.min(maxWaistX, unitX)),
-                // Y: Clamping Y (waist position) 
-                y: Math.max(minWaistY, Math.min(maxWaistY, unitY)),
-            };
+            // Calculate new X and Y, clamped
+            const newWaistX = Math.max(minWaistX, Math.min(maxWaistX, unitX));
+            newWy = Math.max(minWaistY, Math.min(maxWaistY, unitY));
+            
+            // wx is the width dimension (distance from center * 2)
+            newWx = (newWaistX - WIDTH_VIEWBOX / 2) * 2;
         }
 
-        updatedVertices[activeVertexIndex] = newVertex;
-        setEggVertices(updatedVertices);
-
-        // 2. Update the customization state (shape.hy must be the height DIMENSION)
+        // 2. Update the customization state
         setCustomization(prev => ({
             ...prev,
             shape: {
                 ...prev.shape,
-                // Convert Absolute Y-coordinate back to Height DIMENSION: BaseY - Absolute Y
-                hy: EGG_VIEWBOX_BASE_Y - updatedVertices[0].y, 
-                // wx is the width dimension (distance from center * 2)
-                wx: (updatedVertices[1].x - WIDTH_VIEWBOX / 2) * 2, 
-                // wy is the absolute Y coordinate
-                wy: updatedVertices[1].y, 
+                hy: newHy, 
+                wx: newWx, 
+                wy: newWy, 
             }
         }));
     };
@@ -220,11 +222,21 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                         onTouchMove={handleShapeUpdate} 
                         onTouchEnd={releaseUpdate}
                     >
-                        {/* Note: The EggPreviewSVG component definition provided in the prompt is correct and unchanged */}
                         <EggPreviewSVG 
                             color={customization.color} 
                             shape={customization.shape} 
                         /> 
+                        
+                        <TouchableOpacity style={styles.colorTriggerIcon} onPress={() => setIsColorPickerVisible(true)}>
+                            <Ionicons name="color-palette-outline" size={24} color={primaryColor} />
+                        </TouchableOpacity>
+
+                        {isColorPickerVisible && (
+                            <ColorPicker 
+                                selectedColor={customization.color} 
+                                onColorChange={handleColorChange} 
+                                onClose={() => setIsColorPickerVisible(false)} 
+                            />
                         )}
                     </View>
                 </View>
@@ -239,10 +251,10 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                             <Text style={[styles.typeButtonText, customization.type === 'egg' && styles.typeButtonTextActive]}>EGG</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
-                            onPress={() => handleTypeChange('human')}
-                            style={[styles.typeButton, customization.type === 'human' && styles.typeButtonActive]}
+                            onPress={() => handleTypeChange('imp')} // Changed from 'human'
+                            style={[styles.typeButton, customization.type === 'imp' && styles.typeButtonActive]}
                         >
-                            <Text style={[styles.typeButtonText, customization.type === 'human' && styles.typeButtonTextActive]}>HUMAN</Text>
+                            <Text style={[styles.typeButtonText, customization.type === 'imp' && styles.typeButtonTextActive]}>IMP</Text> {/* Changed from 'HUMAN' */}
                         </TouchableOpacity>
                     </View>
                 </View>
