@@ -1,10 +1,6 @@
 import React from 'react';
-import Svg, { Path, Circle } from 'react-native-svg';
-
-// The component will draw entirely within a 100x100 coordinate system
-const VIEWBOX_SIZE = 100; 
-// Must be consistent with the coordinate used in the parent component for the base
-const EGG_VIEWBOX_BASE_Y = 70; 
+import Svg, { Path, Circle, Text } from 'react-native-svg'; // Added Text for the error message
+import { VIEWBOX_SIZE, EGG_VIEWBOX_BASE_Y } from './src/constants';
 
 /**
  * Renders the custom avatar shape (Egg) and its draggable handles.
