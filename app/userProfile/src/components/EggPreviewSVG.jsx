@@ -73,8 +73,13 @@ const EggPreviewSVG = ({ color, shape }) => {
     const eggPath = d;
     
     return (
-        // Use 0 0 100 100 viewBox for internal relative drawing
-        <Svg height="100%" width="90%" viewBox={`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}>
+        // *** CRITICAL FIX: Add pointerEvents="none" to ensure touch events pass through to the parent <View> where the drag logic lives. ***
+        <Svg 
+            height="100%" 
+            width="90%" 
+            viewBox={`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}
+            pointerEvents="none" 
+        >
             {/* Background Frame/Reference */}
             <Path 
                 d="M 5 5 L 95 5 L 95 95 L 5 95 Z"
