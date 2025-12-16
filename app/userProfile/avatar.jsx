@@ -220,6 +220,12 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                         onTouchMove={handleShapeUpdate} 
                         onTouchEnd={releaseUpdate}
                     >
+                        {/* Note: The EggPreviewSVG component definition provided in the prompt is correct and unchanged */}
+                        <EggPreviewSVG 
+                            color={customization.color} 
+                            shape={customization.shape} 
+                            eggVertices={eggVertices} 
+                        /> 
                         )}
                     </View>
                 </View>
