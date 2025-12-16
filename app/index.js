@@ -4,8 +4,8 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons'; 
 
 // Import new components with correct path
-import HamburgerMenu from './src/components/HamburgerMenu';
-import SettingsModal from './src/components/SettingsModal';
+import HamburgerMenu from './userProfile/src/components/HamburgerMenu';
+import SettingsModal from './userProfile/src/components/SettingsModal';
 
 
 // Define colors and styles based on state
