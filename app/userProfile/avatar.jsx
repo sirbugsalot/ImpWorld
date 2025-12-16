@@ -9,12 +9,6 @@ import ColorPicker from './src/components/ColorPicker';
 
 // --- MOCK CONSTANTS & STYLES FOR RUNNABILITY ---
 const VIEWBOX_SIZE = 100;
-const WIDTH_VIEWBOX = VIEWBOX_SIZE;
-const EGG_VIEWBOX_BASE_Y = 70;
-const MAX_HEIGHT = 50; 
-const MIN_HEIGHT = 20;
-const MAX_WIDTH = 60;
-const MIN_WIDTH = 30;
 const primaryColor = '#4F46E5'; // Indigo
 const accentColor = '#10B981'; // Emerald
 const DEFAULT_CUSTOMIZATION = {
@@ -49,24 +43,20 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
     
     const [customization, setCustomization] = useState(initialCustomization);
     const [previewWindowPixelSize, setPreviewWindowPixelSize] = useState(VIEWBOX_SIZE);
-    const [draggedVertexIndex, setDraggedVertexIndex] = useState(null);
     const [status, setStatus] = useState('Customize your avatar by dragging the red and blue circles.');
     const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
 
-    // Constants for coordinate conversion
+    // Constants for coordinate conversion (must match EggPreviewSVG's SVG element dimensions)
     const SVG_WIDTH_RATIO = 0.9;
     const SVG_OFFSET_X_RATIO = (1 - SVG_WIDTH_RATIO) / 2; // 0.05 (5% margin)
 
     /**
      * Converts touch coordinates (pixels) relative to the container 
      * into 100-unit SVG coordinates, adjusting for the 90% SVG width offset.
-     * @param {number} pxX - Touch X pixel coordinate.
-     * @param {number} pxY - Touch Y pixel coordinate.
-     * @returns {{unitX: number, unitY: number}}
+     * This function is passed to the SVG component.
      */
-    const convertPixelsToUnits = (pxX, pxY) => {
+    const convertPixelsToUnits = useCallback((pxX, pxY) => {
         if (previewWindowPixelSize === VIEWBOX_SIZE) {
-            // Fallback for initial render
             return { unitX: pxX, unitY: pxY }; 
         }
 
@@ -84,137 +74,22 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
         unitX = Math.max(0, Math.min(VIEWBOX_SIZE, unitX));
 
         return { unitX, unitY };
-    };
-    
+    }, [previewWindowPixelSize]);
+
     const handleLayout = (event) => {
         const { width } = event.nativeEvent.layout;
         setPreviewWindowPixelSize(width);
     };
 
-    const { shape } = customization;
-    
-    const getEggVertices = (currentShape) => {
-        const topY = EGG_VIEWBOX_BASE_Y - currentShape.hy;
-        return [
-            { 
-                x: VIEWBOX_SIZE / 2,         
-                y: topY 
-            }, 
-            { 
-                x: VIEWBOX_SIZE / 2 + currentShape.wx / 2, 
-                y: currentShape.wy 
-            }, 
-        ];
-    };
-    
-    const currentEggVertices = getEggVertices(shape);
-
-
-    // --- State to track which vertex is being dragged ---
-    const getActiveVertext = (unitX, unitY) => {
-        // High threshold for easy mobile tapping
-        const threshold = 100; 
-        for (let i = 0; i < currentEggVertices.length; i++){
-            const vertex = currentEggVertices[i];
-            // Only check distance to the top vertex (index 0) and the right waist vertex (index 1)
-            const distance = Math.sqrt( (unitX - vertex.x)**2 + (unitY - vertex.y)**2);
-            if (distance <= threshold) {
-                return i;
-            }
-        }
-        return null; 
-    };
-    
     /**
-     * Handles the start of a touch/drag gesture.
+     * Callback used by EggPreviewSVG to update the parent state.
      */
-    const handleTouchStart = (event) => {
-        const { unitX, unitY } = convertPixelsToUnits(
-            event.nativeEvent.locationX, 
-            event.nativeEvent.locationY
-        );
-        
-        const activeVertexIndex = getActiveVertext(unitX, unitY);
-
-        if (activeVertexIndex !== null) {
-            setDraggedVertexIndex(activeVertexIndex);
-            // Call move handler immediately for snappier feedback
-            handleTouchMove(event, activeVertexIndex); 
-        }
-    };
-
-
-    /**
-     * Handles the movement during a drag gesture.
-     */
-    const handleTouchMove = (event, initialIndex = null) => {
-        const activeVertexIndex = initialIndex !== null ? initialIndex : draggedVertexIndex;
-
-        if (activeVertexIndex === null) {
-            return; // Not currently dragging a vertex
-        }
-        
-        // 1. Convert pixel event coordinates to 100-unit coordinates
-        const { unitX, unitY } = convertPixelsToUnits(
-            event.nativeEvent.locationX, 
-            event.nativeEvent.locationY
-        );
-
-        // Get current shape dimensions
-        const { hy, wx, wy } = customization.shape;
-        
-        // Temporarily store new dimensions
-        let newHy = hy;
-        let newWx = wx;
-        let newWy = wy;
-        
-        if (activeVertexIndex === 0) {
-            // Index 0: Height/Top vertex (x is fixed at center)
-            const minTopY = EGG_VIEWBOX_BASE_Y - MAX_HEIGHT; 
-            const maxTopY = EGG_VIEWBOX_BASE_Y - MIN_HEIGHT; 
-
-            // Calculate the absolute Y of the new vertex, clamped
-            const newTopY = Math.max(minTopY, Math.min(maxTopY, unitY));
-            
-            // Convert Absolute Y-coordinate back to Height DIMENSION: BaseY - Absolute Y
-            newHy = EGG_VIEWBOX_BASE_Y - newTopY;
-            
-        } else if (activeVertexIndex === 1) {
-            // Index 1: Width/Waist vertex (y is clamped, x determines width)
-            
-            const currentTopY = EGG_VIEWBOX_BASE_Y - hy;
-
-            const minWaistX = WIDTH_VIEWBOX / 2 + MIN_WIDTH / 2;
-            const maxWaistX = WIDTH_VIEWBOX / 2 + MAX_WIDTH / 2;
-
-            // Clamping the Waist Y position relative to the current egg height
-            const availableHeight = EGG_VIEWBOX_BASE_Y - currentTopY;
-            const minWaistY = currentTopY + availableHeight * 0.15; 
-            const maxWaistY = EGG_VIEWBOX_BASE_Y - availableHeight * 0.15; 
-
-            // Calculate new X and Y, clamped
-            const newWaistX = Math.max(minWaistX, Math.min(maxWaistX, unitX));
-            newWy = Math.max(minWaistY, Math.min(maxWaistY, unitY));
-            
-            // wx is the width dimension (distance from center * 2)
-            newWx = (newWaistX - WIDTH_VIEWBOX / 2) * 2;
-        }
-
-        // 2. Update the customization state
+    const handleShapeUpdateFromSVG = useCallback((newShape) => {
         setCustomization(prev => ({
             ...prev,
-            shape: {
-                ...prev.shape,
-                hy: newHy, 
-                wx: newWx, 
-                wy: newWy, 
-            }
+            shape: newShape
         }));
-    };
-
-    const releaseUpdate = () => {
-        setDraggedVertexIndex(null);
-    };
+    }, []);
 
     const handleColorChange = (newColor) => {
         setCustomization(prev => ({ ...prev, color: newColor }));
@@ -242,18 +117,18 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                 {/* --- PREVIEW AREA (The main touch-based control) --- */}
                 <View style={styles.previewArea}>
 
-                    {/* 3. Egg Preview Window (Handles touch events for dragging) */}
+                    {/* Egg Preview Window (onLayout handles pixel size calculation) */}
                     <View 
                         style={styles.previewWindow} 
-                        onLayout={handleLayout} // Get the actual pixel size for coordinate mapping
+                        onLayout={handleLayout} 
+                        // Note: Touch handlers are now INSIDE EggPreviewSVG on the <Svg> element.
                     >
                         <EggPreviewSVG 
                             color={customization.color} 
-                            shape={customization.shape}
-                            onTouchStart={handleTouchStart} 
-                            onTouchMove={handleTouchMove} 
-                            onTouchEnd={releaseUpdate}
-                         
+                            shape={customization.shape} 
+                            onShapeChange={handleShapeUpdateFromSVG}
+                            convertPixelsToUnits={convertPixelsToUnits}
+                        /> 
                         
                         <TouchableOpacity style={styles.colorTriggerIcon} onPress={() => setIsColorPickerVisible(true)}>
                             <Ionicons name="color-palette-outline" size={24} color={primaryColor} />
@@ -265,7 +140,6 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                                 onColorChange={handleColorChange} 
                                 onClose={() => setIsColorPickerVisible(false)} 
                             />
-                        />
                         )}
                     </View>
                 </View>
