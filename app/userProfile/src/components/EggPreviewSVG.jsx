@@ -142,7 +142,7 @@ const EggPreviewSVG = ({ color, shape, onShapeChange, convertPixelsToUnits }) =>
     const rx = halfWidth; 
 
     const bottomRadiusY = bottomY - wy;
-    const topRadiusY = topY - bottomRadiusY; 
+    const topRadiusY = hy - bottomRadiusY; 
     
     let d = `M ${leftX} ${wy}`;
     d += ` A ${rx} ${bottomRadiusY} 0 0 0 ${rightX} ${wy}`; 
