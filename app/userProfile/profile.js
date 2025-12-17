@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 // Import modular components from their new relative locations
 import AvatarCustomizer from './avatar'; 
-import HamburgerMenu from '../app/src/components/HamburgerMenu'; 
+import HamburgerMenu from '../src/components/HamburgerMenu'; 
 
 // Import constants for initial state and colors
 import { 
