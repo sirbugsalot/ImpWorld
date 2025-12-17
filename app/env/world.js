@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Building from './building'; 
 import WorldBackground from './bckgrd'; 
 import Player, { BLOB_WIDTH, BLOB_HEIGHT } from './player'; 
-import HamburgerMenu from '../app/src/components/HamburgerMenu';
+import HamburgerMenu from '../src/components/HamburgerMenu';
 import { PRIMARY_COLOR, INITIAL_DARK_MODE, DARK_BG_COLOR, LIGHT_BG_COLOR } from '../src/utils/constants';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
