@@ -3,9 +3,11 @@ import { Text, View, TouchableOpacity, ScrollView, Platform } from 'react-native
 import { Ionicons } from '@expo/vector-icons'; 
 
 // Import modular components from src/
-import EggPreviewSVG from '../app/src/components/EggPreviewSVG';
-import ColorPicker from '../app/src/components/ColorPicker';
-import HamburgerMenu from '../app/src/components/HamburgerMenu';
+import EggPreviewSVG from './src/components/EggPreviewSVG';
+// Import the newly created ColorPicker component
+import ColorPicker from './src/components/ColorPicker';
+
+import HamburgerMenu from '../src/components/HamburgerMenu';
 
 // --- CONSTANTS & STYLES ---
 const VIEWBOX_SIZE = 100;
