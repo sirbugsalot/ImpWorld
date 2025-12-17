@@ -1,27 +1,43 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
+// Import constants to ensure the modal uses the same source of truth
+import { 
+    PRIMARY_COLOR, 
+    DARK_BG_COLOR, 
+    LIGHT_BG_COLOR, 
+    DARK_TEXT_COLOR, 
+    LIGHT_TEXT_COLOR,
+    INITIAL_DARK_MODE 
+} from '../../src/utils/constants';
 
 const { width } = Dimensions.get('window');
 
-// Define colors (Should be consistent with index.jsx)
-const primaryColor = '#1D4ED8'; 
-const textColor = '#1F2937';
-
 /**
- * A modal component for application settings.
- * @param {object} props - Component props.
- * @param {function} props.onClose - Callback to close the modal.
- * @param {function} props.onToggleDarkMode - Placeholder for future dark mode implementation.
+ * A centralized modal for app settings.
+ * Handles theme toggling and persists visual state.
  */
-const SettingsModal = ({ onClose, onToggleDarkMode }) => {
-    
-    // Placeholder handlers for the settings buttons
-    const handleSetting = (name) => {
-        console.log(`Setting clicked: ${name}`);
-        // For 'Dark' button, we can simulate the toggle action
-        if (name === 'Dark') {
-            onToggleDarkMode();
+const SettingsModal = ({ onClose }) => {
+    // We initialize based on our global constant
+    const [isDark, setIsDark] = useState(INITIAL_DARK_MODE);
+
+    // Dynamic theme colors based on internal state
+    const theme = {
+        bg: isDark ? DARK_BG_COLOR : '#FFFFFF',
+        card: isDark ? '#374151' : '#F3F4F6',
+        text: isDark ? DARK_TEXT_COLOR : LIGHT_TEXT_COLOR,
+        border: isDark ? '#4B5563' : '#E5E7EB',
+    };
+
+    const handleSettingPress = (name) => {
+        if (name === 'Dark Mode') {
+            const newMode = !isDark;
+            setIsDark(newMode);
+            // logic for persistent storage (e.g. AsyncStorage) would go here
+            console.log(`Theme changed to: ${newMode ? 'Dark' : 'Light'}`);
+        } else {
+            console.log(`${name} clicked`);
         }
     };
 
@@ -29,73 +45,98 @@ const SettingsModal = ({ onClose, onToggleDarkMode }) => {
         { name: 'Music', icon: 'musical-notes-outline' },
         { name: 'Sound', icon: 'volume-high-outline' },
         { name: 'Language', icon: 'language-outline' },
-        { name: 'Dark', icon: 'moon-outline' },
+        { name: 'Dark Mode', icon: isDark ? 'moon' : 'moon-outline' },
     ];
 
     return (
-        // Modal Overlay
-        <View style={modalStyles.overlay}>
-            {/* Modal Content */}
-            <View style={modalStyles.modalContainer}>
-                <View style={modalStyles.header}>
-                    <Text style={modalStyles.headerTitle}>App Settings</Text>
+        <View style={styles.overlay}>
+            <View style={[styles.modalContainer, { backgroundColor: theme.bg }]}>
+                <View style={styles.header}>
+                    <Text style={[styles.headerTitle, { color: theme.text }]}>App Settings</Text>
                     <TouchableOpacity onPress={onClose}>
-                        <Ionicons name="close-circle-outline" size={30} color={textColor} />
+                        <Ionicons name="close-circle" size={32} color={isDark ? '#9CA3AF' : '#4B5563'} />
                     </TouchableOpacity>
                 </View>
 
-                {/* Settings Grid */}
-                <View style={modalStyles.buttonGrid}>
+                <View style={styles.buttonGrid}>
                     {settingButtons.map((item) => (
                         <TouchableOpacity
                             key={item.name}
-                            style={modalStyles.settingButton}
-                            onPress={() => handleSetting(item.name)}
+                            style={[
+                                styles.settingButton, 
+                                { 
+                                    backgroundColor: theme.card, 
+                                    borderColor: theme.border,
+                                    // Highlight the Dark Mode button when active
+                                    borderWidth: (item.name === 'Dark Mode' && isDark) ? 2 : 1,
+                                    borderColor: (item.name === 'Dark Mode' && isDark) ? PRIMARY_COLOR : theme.border
+                                }
+                            ]}
+                            onPress={() => handleSettingPress(item.name)}
                         >
-                            <Ionicons name={item.icon} size={40} color={primaryColor} />
-                            <Text style={modalStyles.settingButtonText}>{item.name}</Text>
+                            <Ionicons 
+                                name={item.icon} 
+                                size={32} 
+                                color={item.name === 'Dark Mode' && isDark ? '#FBBF24' : PRIMARY_COLOR} 
+                            />
+                            <Text style={[styles.settingButtonText, { color: theme.text }]}>
+                                {item.name}
+                            </Text>
+                            {item.name === 'Dark Mode' && (
+                                <Text style={{ fontSize: 10, color: PRIMARY_COLOR, fontWeight: 'bold' }}>
+                                    {isDark ? 'ON' : 'OFF'}
+                                </Text>
+                            )}
                         </TouchableOpacity>
                     ))}
+                </View>
+
+                <View style={styles.footer}>
+                    <Text style={[styles.versionText, { color: isDark ? '#6B7280' : '#9CA3AF' }]}>
+                        v1.0.5-Alpha
+                    </Text>
                 </View>
             </View>
         </View>
     );
 };
 
-const modalStyles = StyleSheet.create({
+const styles = StyleSheet.create({
     overlay: {
         position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
         justifyContent: 'center',
         alignItems: 'center',
-        zIndex: 20, // Higher Z-index than the menu
+        zIndex: 2000, 
     },
     modalContainer: {
-        width: width * 0.9,
+        width: width * 0.85,
         maxWidth: 400,
-        backgroundColor: '#FFFFFF',
-        borderRadius: 15,
-        padding: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 5,
-        elevation: 8,
+        borderRadius: 24,
+        padding: 24,
+        ...Platform.select({
+            ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 10 },
+                shadowOpacity: 0.3,
+                shadowRadius: 20,
+            },
+            android: {
+                elevation: 10,
+            },
+        }),
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: 25,
     },
     headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: textColor,
+        fontSize: 22,
+        fontWeight: '800',
+        letterSpacing: -0.5,
     },
     buttonGrid: {
         flexDirection: 'row',
@@ -103,24 +144,27 @@ const modalStyles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     settingButton: {
-        width: '48%', // Two columns
-        padding: 15,
-        marginVertical: 5,
-        backgroundColor: '#F3F4F6',
-        borderRadius: 10,
+        width: '47%',
+        paddingVertical: 20,
+        marginVertical: 6,
+        borderRadius: 18,
         alignItems: 'center',
         justifyContent: 'center',
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
     },
     settingButtonText: {
-        marginTop: 5,
+        marginTop: 8,
         fontSize: 14,
-        fontWeight: '600',
-        color: textColor,
+        fontWeight: '700',
     },
+    footer: {
+        marginTop: 20,
+        alignItems: 'center',
+    },
+    versionText: {
+        fontSize: 12,
+        fontWeight: '500',
+    }
 });
 
 export default SettingsModal;
 
-          
