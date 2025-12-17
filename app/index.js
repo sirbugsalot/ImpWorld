@@ -14,7 +14,7 @@ import {
     DARK_BG_COLOR, 
     LIGHT_HEADER_BG, 
     DARK_HEADER_BG 
-} from '../src/utils/constants';
+} from './src/utils/constants';
 
 // Import components with updated logic
 import HamburgerMenu from './src/components/HamburgerMenu';
