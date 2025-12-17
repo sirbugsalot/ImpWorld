@@ -1,164 +1,65 @@
-import React, { useState, useCallback } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Platform } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { Ionicons } from '@expo/vector-icons'; 
-import { useRouter } from 'expo-router'; 
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Image, Platform } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
-// Import constants for initial state and colors
-import { 
-    INITIAL_DARK_MODE, 
-    PRIMARY_COLOR, 
-    LIGHT_TEXT_COLOR, 
-    DARK_TEXT_COLOR, 
-    LIGHT_BG_COLOR, 
-    DARK_BG_COLOR, 
-    LIGHT_HEADER_BG, 
-    DARK_HEADER_BG 
-} from './src/utils/constants';
-
-// Import components with updated logic
+// Centralized Menu
 import HamburgerMenu from './src/components/HamburgerMenu';
-import SettingsModal from './src/components/SettingsModal';
+import { PRIMARY_COLOR, INITIAL_DARK_MODE, DARK_BG_COLOR, LIGHT_BG_COLOR, DARK_TEXT_COLOR, LIGHT_TEXT_COLOR } from '../src/utils/constants';
 
-const App = () => {
+export default function App() {
   const router = useRouter();
-  
-  // State
-  const [isMenuOpen, setIsMenuOpen] = useState(false); 
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false); 
-  const [isDarkMode, setIsDarkMode] = useState(INITIAL_DARK_MODE);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Theme Derivation
-  const primaryColor = PRIMARY_COLOR;
-  const textColor = isDarkMode ? DARK_TEXT_COLOR : LIGHT_TEXT_COLOR;
-  const bgColor = isDarkMode ? DARK_BG_COLOR : LIGHT_BG_COLOR;
-  const headerBg = isDarkMode ? DARK_HEADER_BG : LIGHT_HEADER_BG;
-
-  // Toggle Logic
-  const handleToggleDarkMode = useCallback(() => {
-    setIsDarkMode(prev => !prev);
-  }, []);
-
-  // Define exactly which keys from the central HamburgerMenu logic should appear on Home
-  // Including the new 'sandbox' key
-  const menuKeys = ['home', 'profile', 'sandbox', 'settings', 'version', 'auth'];
-
-  // Special override: If the menu handles 'settings' via ID, we can intercept or 
-  // let the menu call a specific function. Since your Hamburger uses ids,
-  // we can pass a specific handler for settings if we want it to open the local modal.
-  const handleMenuClose = () => setIsMenuOpen(false);
+  // Theme constants applied directly from centralized source
+  const bgColor = INITIAL_DARK_MODE ? DARK_BG_COLOR : LIGHT_BG_COLOR;
+  const textColor = INITIAL_DARK_MODE ? DARK_TEXT_COLOR : LIGHT_TEXT_COLOR;
 
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
-      <StatusBar style={isDarkMode ? 'light' : 'dark'} />
-
-      {/* Header Bar */}
-      <View style={[styles.header, { backgroundColor: headerBg, borderBottomColor: isDarkMode ? '#4B5563' : '#E5E7EB' }]}>
-        <Text style={[styles.headerTitle, { color: textColor }]}>ImpWorld</Text>
+      <View style={styles.header}>
+        <Text style={[styles.logoText, { color: PRIMARY_COLOR }]}>IMP WORLD</Text>
         <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
-          <Ionicons name="menu" size={32} color={primaryColor} />
+          <Ionicons name="menu" size={32} color={PRIMARY_COLOR} />
         </TouchableOpacity>
       </View>
 
-      {/* Main Content Area */}
-      <View style={styles.mainContent}>
-        <View style={styles.heroImagePlaceholder}>
-           <Ionicons name="planet-outline" size={100} color={isDarkMode ? '#374151' : '#E5E7EB'} />
-        </View>
+      <View style={styles.content}>
+        <View style={styles.heroSection}>
+          <Ionicons name="planet-outline" size={100} color={PRIMARY_COLOR} />
+          <Text style={[styles.title, { color: textColor }]}>Welcome, Traveler</Text>
+          <Text style={styles.subtitle}>Your companion in the digital void.</Text>
+        </TouchableOpacity>
 
-        <Text style={[styles.placeholderText, { color: textColor }]}>
-            Welcome to the Imp World
-        </Text>
-        <Text style={[styles.subPlaceholderText, { color: isDarkMode ? '#9CA3AF' : '#6B7280' }]}>
-            The gateway to your digital avatar's journey.
-        </Text>
-
-        <TouchableOpacity
-            style={[styles.navButton, { backgroundColor: primaryColor }]}
-            onPress={() => router.push('/env/world')}
+        <TouchableOpacity 
+          style={[styles.mainButton, { backgroundColor: PRIMARY_COLOR }]}
+          onPress={() => router.push('/env/world')}
         >
-            <Text style={styles.navButtonText}>Enter World</Text>
+          <Text style={styles.buttonText}>Enter World</Text>
+          <Ionicons name="arrow-forward" size={20} color="white" />
         </TouchableOpacity>
       </View>
 
-      {/* Centralized Hamburger Menu */}
       {isMenuOpen && (
         <HamburgerMenu 
-            onClose={handleMenuClose} 
-            activeItems={menuKeys}
+          onClose={() => setIsMenuOpen(false)} 
+          activeItems={['profile', 'settings', 'version', 'auth']} 
         />
       )}
-
-      {/* Settings Modal Popup */}
-      {isSettingsModalOpen && (
-          <SettingsModal 
-              onClose={() => setIsSettingsModalOpen(false)} 
-              onToggleDarkMode={handleToggleDarkMode}
-              isDarkMode={isDarkMode}
-          />
-      )}
-      
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: Platform.OS === 'android' ? 30 : 50,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  mainContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  heroImagePlaceholder: {
-    marginBottom: 20,
-  },
-  placeholderText: {
-    fontSize: 26,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  subPlaceholderText: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 40,
-    lineHeight: 22,
-  },
-  navButton: {
-      width: '100%',
-      paddingVertical: 18,
-      borderRadius: 15,
-      alignItems: 'center',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 5,
-      elevation: 8,
-  },
-  navButtonText: {
-      color: 'white',
-      fontSize: 18,
-      fontWeight: '700',
-  }
+  container: { flex: 1, paddingTop: Platform.OS === 'ios' ? 60 : 40 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 25 },
+  logoText: { fontSize: 22, fontWeight: '900', letterSpacing: 1 },
+  content: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
+  heroSection: { alignItems: 'center', marginBottom: 50 },
+  title: { fontSize: 32, fontWeight: '800', marginTop: 20, textAlign: 'center' },
+  subtitle: { fontSize: 16, color: '#6B7280', marginTop: 10, textAlign: 'center' },
+  mainButton: { flexDirection: 'row', alignItems: 'center', paddingVertical: 18, paddingHorizontal: 40, borderRadius: 20, shadowColor: PRIMARY_COLOR, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
+  buttonText: { color: 'white', fontSize: 18, fontWeight: '700', marginRight: 10 }
 });
 
-export default App;
-
+              
