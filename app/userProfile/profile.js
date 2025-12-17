@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform } from '
 import { Ionicons } from '@expo/vector-icons';
 
 import AvatarCustomizer from './avatar';
-import HamburgerMenu from '../app/src/components/HamburgerMenu';
+import HamburgerMenu from '../src/components/HamburgerMenu';
 import { PRIMARY_COLOR, INITIAL_DARK_MODE, DARK_BG_COLOR, LIGHT_BG_COLOR, DARK_TEXT_COLOR, LIGHT_TEXT_COLOR } from '../src/utils/constants';
 
 export default function ProfileScreen() {
