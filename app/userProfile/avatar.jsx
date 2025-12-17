@@ -1,16 +1,14 @@
 import React, { useState, useCallback } from 'react';
 import { Text, View, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
-import Svg, { Path } from 'react-native-svg';
 
 // Import modular components from src/
-import EggPreviewSVG from './src/components/EggPreviewSVG';
-// Import the newly created ColorPicker component
-import ColorPicker from './src/components/ColorPicker';
+import EggPreviewSVG from '../app/src/components/EggPreviewSVG';
+import ColorPicker from '../app/src/components/ColorPicker';
+import HamburgerMenu from '../app/src/components/HamburgerMenu';
 
 // --- CONSTANTS & STYLES ---
 const VIEWBOX_SIZE = 100;
-const EGG_VIEWBOX_BASE_Y = 90;
 const primaryColor = '#4F46E5'; // Indigo
 const accentColor = '#10B981'; // Emerald
 
@@ -46,6 +44,10 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
     const [previewWindowPixelSize, setPreviewWindowPixelSize] = useState(VIEWBOX_SIZE);
     const [status, setStatus] = useState('Drag the red and blue markers to shape your avatar.');
     const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    // Restricted menu items for the customizer view
+    const menuKeys = ['home', 'version', 'auth', 'settings'];
 
     /**
      * Converts touch coordinates (pixels) relative to the container 
@@ -80,84 +82,95 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
     };
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={onCancel}>
-                    <Ionicons name="chevron-back" size={32} color={primaryColor} />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Customize Avatar</Text>
-                <View style={{ width: 32 }} />
-            </View>
-            
-            <View style={styles.card}>
-                <Text style={styles.statusText}>{status}</Text>
-
-                {/* --- PREVIEW AREA --- */}
-                <View style={styles.previewArea}>
-                    <View 
-                        style={styles.previewWindow} 
-                        onLayout={handleLayout} 
-                    >
-                        <EggPreviewSVG 
-                            color={customization.color} 
-                            shape={customization.shape} 
-                            onShapeChange={handleShapeUpdateFromSVG}
-                            convertPixelsToUnits={convertPixelsToUnits}
-                        /> 
-                        
-                        <TouchableOpacity 
-                            style={styles.colorTriggerIcon} 
-                            onPress={() => setIsColorPickerVisible(true)}
-                        >
-                            <Ionicons name="color-palette-outline" size={24} color={primaryColor} />
-                        </TouchableOpacity>
-                    </View>
+        <View style={{ flex: 1 }}>
+            <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={onCancel}>
+                        <Ionicons name="chevron-back" size={32} color={primaryColor} />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Customize Avatar</Text>
+                    <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
+                        <Ionicons name="menu" size={32} color={primaryColor} />
+                    </TouchableOpacity>
                 </View>
                 
-                {/* --- TYPE SELECTOR --- */}
-                <View style={styles.controlSection}>
-                    <View style={styles.buttonRow}>
-                        <TouchableOpacity 
-                            onPress={() => setCustomization(prev => ({ ...prev, type: 'egg' }))}
-                            style={[styles.typeButton, customization.type === 'egg' && styles.typeButtonActive]}
-                        >
-                            <Text style={[styles.typeButtonText, customization.type === 'egg' && styles.typeButtonTextActive]}>EGG</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity 
-                            onPress={() => setCustomization(prev => ({ ...prev, type: 'imp' }))} 
-                            style={[styles.typeButton, customization.type === 'imp' && styles.typeButtonActive]}
-                        >
-                            <Text style={[styles.typeButtonText, customization.type === 'imp' && styles.typeButtonTextActive]}>IMP</Text> 
-                        </TouchableOpacity>
-                    </View>
-                </View>
+                <View style={styles.card}>
+                    <Text style={styles.statusText}>{status}</Text>
 
-                {/* Save Button */}
-                <TouchableOpacity 
-                    onPress={() => {
-                        setStatus('Customization saved!');
-                        if (onSave) onSave(customization);
-                    }}
-                    style={[styles.actionButton, { backgroundColor: accentColor }]}
-                >
-                    <Ionicons name="save-outline" size={24} color="white" style={{ marginRight: 10 }} />
-                    <Text style={styles.actionButtonText}>SAVE</Text>
-                </TouchableOpacity>
-            </View>
-            
-            {/* Color Picker Modal */}
-            {isColorPickerVisible && (
-                <ColorPicker 
-                    selectedColor={customization.color} 
-                    onColorChange={handleColorChange} 
-                    onClose={() => setIsColorPickerVisible(false)} 
+                    {/* --- PREVIEW AREA --- */}
+                    <View style={styles.previewArea}>
+                        <View 
+                            style={styles.previewWindow} 
+                            onLayout={handleLayout} 
+                        >
+                            <EggPreviewSVG 
+                                color={customization.color} 
+                                shape={customization.shape} 
+                                onShapeChange={handleShapeUpdateFromSVG}
+                                convertPixelsToUnits={convertPixelsToUnits}
+                            /> 
+                            
+                            <TouchableOpacity 
+                                style={styles.colorTriggerIcon} 
+                                onPress={() => setIsColorPickerVisible(true)}
+                            >
+                                <Ionicons name="color-palette-outline" size={24} color={primaryColor} />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                    
+                    {/* --- TYPE SELECTOR --- */}
+                    <View style={styles.controlSection}>
+                        <View style={styles.buttonRow}>
+                            <TouchableOpacity 
+                                onPress={() => setCustomization(prev => ({ ...prev, type: 'egg' }))}
+                                style={[styles.typeButton, customization.type === 'egg' && styles.typeButtonActive]}
+                            >
+                                <Text style={[styles.typeButtonText, customization.type === 'egg' && styles.typeButtonTextActive]}>EGG</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                                onPress={() => setCustomization(prev => ({ ...prev, type: 'imp' }))} 
+                                style={[styles.typeButton, customization.type === 'imp' && styles.typeButtonActive]}
+                            >
+                                <Text style={[styles.typeButtonText, customization.type === 'imp' && styles.typeButtonTextActive]}>IMP</Text> 
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    {/* Save Button */}
+                    <TouchableOpacity 
+                        onPress={() => {
+                            setStatus('Customization saved!');
+                            if (onSave) onSave(customization);
+                        }}
+                        style={[styles.actionButton, { backgroundColor: accentColor }]}
+                    >
+                        <Ionicons name="save-outline" size={24} color="white" style={{ marginRight: 10 }} />
+                        <Text style={styles.actionButtonText}>SAVE</Text>
+                    </TouchableOpacity>
+                </View>
+                
+                {/* Color Picker Modal */}
+                {isColorPickerVisible && (
+                    <ColorPicker 
+                        selectedColor={customization.color} 
+                        onColorChange={handleColorChange} 
+                        onClose={() => setIsColorPickerVisible(false)} 
+                    />
+                )}
+            </ScrollView>
+
+            {/* Hamburger Menu Overlay */}
+            {isMenuOpen && (
+                <HamburgerMenu 
+                    onClose={() => setIsMenuOpen(false)} 
+                    activeItems={menuKeys}
                 />
             )}
-
-        </ScrollView>
+        </View>
     );
 };
 
 export default AvatarCustomizer;
 
-                   
+            
