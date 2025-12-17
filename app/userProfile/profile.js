@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Dimensions, Platform } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons'; 
 
-// Import modular components
+// Import modular components from their new relative locations
 import AvatarCustomizer from './avatar'; 
-import HamburgerMenu from './src/components/HamburgerMenu'; 
+import HamburgerMenu from '../app/src/components/HamburgerMenu'; 
 
 // Import constants for initial state and colors
 import { 
@@ -18,11 +18,10 @@ import {
     DARK_HEADER_BG 
 } from '../src/utils/constants'; 
 
-// Use correct keys (hy, wx, wy) from the customizer
 const DEFAULT_AVATAR_DATA = { 
     type: 'egg', 
     color: PRIMARY_COLOR, 
-    shape: { hy: 60, wx: 40, wy: 35 } // height-y, width-x, waist-y
+    shape: { hy: 60, wx: 40, wy: 35 } 
 };
 
 const SCREENS = {
@@ -30,15 +29,8 @@ const SCREENS = {
     CUSTOMIZER: 'customizer'
 };
 
-const BLOB_SIZE = 100;
-
-/**
- * The main Profile View component (extracted from the original profile.js)
- */
 const ProfileView = ({ avatarData, onNavigateToCustomizer, onGoBack, onToggleMenu, theme }) => {
-    // Determine the size descriptor for display
     const getSizeDescription = () => {
-        // Use the correct shape keys from the customizer
         const { hy, wx } = avatarData.shape; 
         if (hy < 40 && wx < 35) return "Small and Compact";
         if (hy > 70 && wx > 45) return "Large and Robust";
@@ -63,26 +55,22 @@ const ProfileView = ({ avatarData, onNavigateToCustomizer, onGoBack, onToggleMen
                 <Text style={[styles.label, { color: textColor }]}>Your Avatar</Text>
                 <Text style={[styles.subLabel, { color: textColor }]}>Type: {avatarData.type.toUpperCase()}</Text>
 
-                {/* Avatar Visual (Using shape dimensions to make it look unique) */}
                 <View 
                     style={[
                         styles.avatarBlob, 
                         { 
                             backgroundColor: avatarData.color,
-                            // Since we don't have the full EggPreviewSVG here, we mock the shape using borderRadius
-                            width: avatarData.shape.wx * 3, // Scale width
-                            height: avatarData.shape.hy * 1.5, // Scale height
-                            borderRadius: 100, // Makes it a rounded pill/egg shape
-                            borderColor: cardBg, // Use card background as border color for contrast
+                            width: avatarData.shape.wx * 3, 
+                            height: avatarData.shape.hy * 1.5, 
+                            borderRadius: 100, 
+                            borderColor: cardBg,
                         }
                     ]} 
                 />
                 
-                {/* Status Display of Avatar Properties */}
                 <View style={[styles.statsContainer, { backgroundColor: cardBg, borderColor: dividerColor }]}>
                     <Text style={[styles.statText, { color: textColor }]}>Color: {avatarData.color}</Text>
                     <Text style={[styles.statText, { color: textColor }]}>Shape: {getSizeDescription()}</Text>
-                    {/* Display the actual shape values saved by the customizer */}
                     <Text style={[styles.statText, { color: textColor }]}>Height Y (hy): {avatarData.shape.hy.toFixed(1)}</Text>
                     <Text style={[styles.statText, { color: textColor }]}>Width X (wx): {avatarData.shape.wx.toFixed(1)}</Text>
                     <Text style={[styles.statText, { color: textColor }]}>Waist Y (wy): {avatarData.shape.wy.toFixed(1)}</Text>
@@ -100,32 +88,25 @@ const ProfileView = ({ avatarData, onNavigateToCustomizer, onGoBack, onToggleMen
     );
 };
 
-/**
- * The main component acting as a Router and State Manager for the Profile screen.
- */
 const ProfileScreen = () => {
     const router = useRouter();
     const [currentScreen, setCurrentScreen] = useState(SCREENS.PROFILE_VIEW);
     const [avatarData, setAvatarData] = useState(DEFAULT_AVATAR_DATA);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     
-    // Hardcode theme to default (for now) or use the initial value
     const isDarkMode = INITIAL_DARK_MODE; 
     
-    // --- Theme Derivation ---
     const primaryColor = PRIMARY_COLOR;
     const theme = {
         primaryColor,
         textColor: isDarkMode ? DARK_TEXT_COLOR : LIGHT_TEXT_COLOR,
         bgColor: isDarkMode ? DARK_BG_COLOR : LIGHT_BG_COLOR,
         headerBg: isDarkMode ? DARK_HEADER_BG : '#FFFFFF',
-        cardBg: isDarkMode ? DARK_HEADER_BG : '#FFFFFF', // Using header BG for card BG in dark mode
+        cardBg: isDarkMode ? DARK_HEADER_BG : '#FFFFFF', 
         dividerColor: isDarkMode ? '#4B5563' : '#E5E7EB',
     };
 
-    // Handler to save the customization data and switch back to the profile view
     const handleCustomizationSave = (newAvatarData) => {
-        // Ensure that number values are correctly converted before saving
         setAvatarData({
             ...newAvatarData,
             shape: {
@@ -137,26 +118,10 @@ const ProfileScreen = () => {
         setCurrentScreen(SCREENS.PROFILE_VIEW);
     };
 
-    // --- Menu Actions ---
-    const handleGoHome = (onClose) => {
-        router.push('/');
-        onClose();
-    };
+    // The list of items to show in the hamburger menu
+    const menuKeys = ['home', 'profile', 'sandbox', 'settings', 'version', 'auth'];
 
-    const handleOpenSettings = (onClose) => {
-        console.log("Navigating to Settings screen. (Note: Current setup requires a dedicated Settings route/modal)");
-        // In a real app, this would route to a settings screen or open a modal
-        onClose();
-    };
-
-    const menuItems = [
-        { id: 'home', title: 'Home', action: handleGoHome },
-        { id: 'settings', title: 'Settings', action: handleOpenSettings },
-    ];
-
-    // Render the appropriate screen based on state
     if (currentScreen === SCREENS.CUSTOMIZER) {
-        // The customizer doesn't need to know about the menu or main theme
         return (
             <AvatarCustomizer
                 initialCustomization={avatarData}
@@ -176,11 +141,10 @@ const ProfileScreen = () => {
                 theme={theme}
             />
 
-            {/* Hamburger Menu Overlay */}
             {isMenuOpen && (
                 <HamburgerMenu 
                     onClose={() => setIsMenuOpen(false)} 
-                    menuItems={menuItems}
+                    activeItems={menuKeys}
                 />
             )}
         </View>
@@ -222,10 +186,8 @@ const styles = StyleSheet.create({
         marginBottom: 30,
     },
     avatarBlob: {
-        // Dynamic size and shape based on data
         marginBottom: 40,
         borderWidth: 5,
-        // Added shadow for depth
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: 0.4,
@@ -266,3 +228,4 @@ const styles = StyleSheet.create({
     }
 });
 
+                        
