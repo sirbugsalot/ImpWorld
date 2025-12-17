@@ -1,19 +1,41 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Image, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState, useCallback } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Platform } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons'; 
+import { useRouter } from 'expo-router'; 
 
-// Centralized Menu
+// Import constants for initial state and colors
+import { 
+    INITIAL_DARK_MODE, 
+    PRIMARY_COLOR, 
+    LIGHT_TEXT_COLOR, 
+    DARK_TEXT_COLOR, 
+    LIGHT_BG_COLOR, 
+    DARK_BG_COLOR, 
+    LIGHT_HEADER_BG, 
+    DARK_HEADER_BG 
+} from '../src/utils/constants';
+
+// Import components with updated logic
 import HamburgerMenu from './src/components/HamburgerMenu';
-import { PRIMARY_COLOR, INITIAL_DARK_MODE, DARK_BG_COLOR, LIGHT_BG_COLOR, DARK_TEXT_COLOR, LIGHT_TEXT_COLOR } from '../src/utils/constants';
 
-export default function App() {
+const App = () => {
   const router = useRouter();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  // Menu State (Settings is now handled inside HamburgerMenu)
+  const [isMenuOpen, setIsMenuOpen] = useState(false); 
 
-  // Theme constants applied directly from centralized source
-  const bgColor = INITIAL_DARK_MODE ? DARK_BG_COLOR : LIGHT_BG_COLOR;
-  const textColor = INITIAL_DARK_MODE ? DARK_TEXT_COLOR : LIGHT_TEXT_COLOR;
+  // Theme Derivation (Reading from centralized constants)
+  const isDarkMode = INITIAL_DARK_MODE;
+  const primaryColor = PRIMARY_COLOR;
+  const textColor = isDarkMode ? DARK_TEXT_COLOR : LIGHT_TEXT_COLOR;
+  const bgColor = isDarkMode ? DARK_BG_COLOR : LIGHT_BG_COLOR;
+  const headerBg = isDarkMode ? DARK_HEADER_BG : LIGHT_HEADER_BG;
+
+  // Items to show in the dropdown for the Home page
+  const menuKeys = ['home', 'profile', 'sandbox', 'settings', 'version', 'auth'];
+
+  const handleMenuClose = () => setIsMenuOpen(false);
 
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
@@ -49,20 +71,12 @@ export default function App() {
       </View>
 
       {/* Centralized Hamburger Menu */}
+      {/* Note: SettingsModal is called inside HamburgerMenu.jsx when the user clicks 'settings' */}
       {isMenuOpen && (
         <HamburgerMenu 
             onClose={handleMenuClose} 
             activeItems={menuKeys}
         />
-      )}
-
-      {/* Settings Modal Popup */}
-      {isSettingsModalOpen && (
-          <SettingsModal 
-              onClose={() => setIsSettingsModalOpen(false)} 
-              onToggleDarkMode={handleToggleDarkMode}
-              isDarkMode={isDarkMode}
-          />
       )}
       
     </View>
@@ -128,3 +142,5 @@ const styles = StyleSheet.create({
 });
 
 export default App;
+
+              
