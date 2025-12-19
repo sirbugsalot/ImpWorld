@@ -3,8 +3,8 @@ import { Text, View, TouchableOpacity, ScrollView, Platform, StyleSheet } from '
 import { Ionicons } from '@expo/vector-icons'; 
 
 // Import modular components
-import EggPreviewSVG from '../userProfile/src/components/EggPreviewSVG';
-import ColorPicker from '../userProfile/src/components/ColorPicker';
+import EggPreviewSVG from '../src/components/EggPreviewSVG';
+import ColorPicker from '../src/components/ColorPicker';
 import HamburgerMenu from '../src/components/HamburgerMenu';
 
 // Centralized Theme Constants
