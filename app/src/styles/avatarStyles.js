@@ -3,7 +3,7 @@ import {
     primaryColor, accentColor, backgroundColor, 
     TRACK_THICKNESS, THUMB_SIZE, HEIGHT_VIEWBOX, WIDTH_VIEWBOX,
     backgroundColor as bgColor // Assuming backgroundColor is available, otherwise define it.
-} from '../src/utils/constants';
+} from '../utils/constants';
 
 const { width: screenWidth } = Dimensions.get('window');
 
