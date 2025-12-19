@@ -1,41 +1,24 @@
-import React, { useState } from 'react';
+qimport React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-// Import constants to ensure the modal uses the same source of truth
-import { 
-    PRIMARY_COLOR, 
-    DARK_BG_COLOR, 
-    LIGHT_BG_COLOR, 
-    DARK_TEXT_COLOR, 
-    LIGHT_TEXT_COLOR,
-    INITIAL_DARK_MODE 
-} from '../../src/utils/constants';
+// Import the Theme Context hook
+import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
 /**
  * A centralized modal for app settings.
- * Handles theme toggling and persists visual state.
+ * Now acts as a consumer of the global ThemeContext.
  */
 const SettingsModal = ({ onClose }) => {
-    // We initialize based on our global constant
-    const [isDark, setIsDark] = useState(INITIAL_DARK_MODE);
-
-    // Dynamic theme colors based on internal state
-    const theme = {
-        bg: isDark ? DARK_BG_COLOR : '#FFFFFF',
-        card: isDark ? '#374151' : '#F3F4F6',
-        text: isDark ? DARK_TEXT_COLOR : LIGHT_TEXT_COLOR,
-        border: isDark ? '#4B5563' : '#E5E7EB',
-    };
+    // 1. Consume global theme state and the toggle function
+    const { isDarkMode, colors, toggleTheme } = useTheme();
 
     const handleSettingPress = (name) => {
         if (name === 'Dark Mode') {
-            const newMode = !isDark;
-            setIsDark(newMode);
-            // logic for persistent storage (e.g. AsyncStorage) would go here
-            console.log(`Theme changed to: ${newMode ? 'Dark' : 'Light'}`);
+            // 2. This triggers a re-render for EVERY component using useTheme()
+            toggleTheme();
         } else {
             console.log(`${name} clicked`);
         }
@@ -45,16 +28,21 @@ const SettingsModal = ({ onClose }) => {
         { name: 'Music', icon: 'musical-notes-outline' },
         { name: 'Sound', icon: 'volume-high-outline' },
         { name: 'Language', icon: 'language-outline' },
-        { name: 'Dark Mode', icon: isDark ? 'moon' : 'moon-outline' },
+        { name: 'Dark Mode', icon: isDarkMode ? 'moon' : 'moon-outline' },
     ];
 
     return (
         <View style={styles.overlay}>
-            <View style={[styles.modalContainer, { backgroundColor: theme.bg }]}>
+            {/* 3. We use the 'colors' object from context for all styles */}
+            <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
                 <View style={styles.header}>
-                    <Text style={[styles.headerTitle, { color: theme.text }]}>App Settings</Text>
+                    <Text style={[styles.headerTitle, { color: colors.text }]}>App Settings</Text>
                     <TouchableOpacity onPress={onClose}>
-                        <Ionicons name="close-circle" size={32} color={isDark ? '#9CA3AF' : '#4B5563'} />
+                        <Ionicons 
+                            name="close-circle" 
+                            size={32} 
+                            color={isDarkMode ? '#9CA3AF' : '#4B5563'} 
+                        />
                     </TouchableOpacity>
                 </View>
 
@@ -65,11 +53,11 @@ const SettingsModal = ({ onClose }) => {
                             style={[
                                 styles.settingButton, 
                                 { 
-                                    backgroundColor: theme.card, 
-                                    borderColor: theme.border,
-                                    // Highlight the Dark Mode button when active
-                                    borderWidth: (item.name === 'Dark Mode' && isDark) ? 2 : 1,
-                                    borderColor: (item.name === 'Dark Mode' && isDark) ? PRIMARY_COLOR : theme.border
+                                    backgroundColor: colors.card, 
+                                    borderColor: colors.border,
+                                    borderWidth: (item.name === 'Dark Mode' && isDarkMode) ? 2 : 1,
+                                    // Highlight border if active dark mode
+                                    borderColor: (item.name === 'Dark Mode' && isDarkMode) ? colors.primary : colors.border
                                 }
                             ]}
                             onPress={() => handleSettingPress(item.name)}
@@ -77,14 +65,14 @@ const SettingsModal = ({ onClose }) => {
                             <Ionicons 
                                 name={item.icon} 
                                 size={32} 
-                                color={item.name === 'Dark Mode' && isDark ? '#FBBF24' : PRIMARY_COLOR} 
+                                color={item.name === 'Dark Mode' && isDarkMode ? '#FBBF24' : colors.primary} 
                             />
-                            <Text style={[styles.settingButtonText, { color: theme.text }]}>
+                            <Text style={[styles.settingButtonText, { color: colors.text }]}>
                                 {item.name}
                             </Text>
                             {item.name === 'Dark Mode' && (
-                                <Text style={{ fontSize: 10, color: PRIMARY_COLOR, fontWeight: 'bold' }}>
-                                    {isDark ? 'ON' : 'OFF'}
+                                <Text style={{ fontSize: 10, color: colors.primary, fontWeight: 'bold' }}>
+                                    {isDarkMode ? 'ON' : 'OFF'}
                                 </Text>
                             )}
                         </TouchableOpacity>
@@ -92,7 +80,7 @@ const SettingsModal = ({ onClose }) => {
                 </View>
 
                 <View style={styles.footer}>
-                    <Text style={[styles.versionText, { color: isDark ? '#6B7280' : '#9CA3AF' }]}>
+                    <Text style={[styles.versionText, { color: isDarkMode ? '#6B7280' : '#9CA3AF' }]}>
                         v1.0.5-Alpha
                     </Text>
                 </View>
@@ -108,7 +96,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.6)',
         justifyContent: 'center',
         alignItems: 'center',
-        zIndex: 2000, 
+        zIndex: 5001, // Ensuring it stays above the Hamburger Dropdown (5000)
     },
     modalContainer: {
         width: width * 0.85,
@@ -168,3 +156,4 @@ const styles = StyleSheet.create({
 
 export default SettingsModal;
 
+                                
