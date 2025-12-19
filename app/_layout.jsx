@@ -1,5 +1,5 @@
 // Any new file you create anywhere in your project:
-import { useTheme } from '../src/context/ThemeContext'; // Always the same source
+import { useTheme } from 'src/context/ThemeContext'; // Always the same source
 
 const MyNewPage = () => {
   const { colors } = useTheme(); // Automatically works!
