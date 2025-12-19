@@ -7,15 +7,8 @@ import EggPreviewSVG from '../src/components/EggPreviewSVG';
 import ColorPicker from '../src/components/ColorPicker';
 import HamburgerMenu from '../src/components/HamburgerMenu';
 
-// Centralized Theme Constants
-import { 
-    PRIMARY_COLOR, 
-    INITIAL_DARK_MODE, 
-    DARK_BG_COLOR, 
-    LIGHT_BG_COLOR, 
-    DARK_TEXT_COLOR, 
-    LIGHT_TEXT_COLOR 
-} from '../src/utils/constants';
+// Import the Theme Context hook
+import { useTheme } from '../src/context/ThemeContext';
 
 const VIEWBOX_SIZE = 100;
 const ACCENT_COLOR = '#10B981'; // Emerald
@@ -27,18 +20,14 @@ const DEFAULT_CUSTOMIZATION = {
 };
 
 const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave, onCancel }) => {
+    // 1. Consume the global theme context
+    const { isDarkMode, colors } = useTheme();
+
     const [customization, setCustomization] = useState(initialCustomization);
     const [previewWindowPixelSize, setPreviewWindowPixelSize] = useState(VIEWBOX_SIZE);
     const [status, setStatus] = useState('Drag the red and blue markers to shape your avatar.');
     const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-    // Theme values based on global constant
-    const isDark = INITIAL_DARK_MODE;
-    const bgColor = isDark ? DARK_BG_COLOR : '#FFFFFF';
-    const cardBg = isDark ? '#1F2937' : '#F9FAFB';
-    const textColor = isDark ? DARK_TEXT_COLOR : LIGHT_TEXT_COLOR;
-    const borderColor = isDark ? '#374151' : '#E5E7EB';
 
     const menuKeys = ['home', 'version', 'auth', 'settings'];
 
@@ -57,30 +46,49 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
 
     const handleColorChange = (newColor) => setCustomization(prev => ({ ...prev, color: newColor }));
 
-    // Dynamic Styles
+    // 2. Define dynamic styles inside the component to respond to theme changes
     const dynamicStyles = StyleSheet.create({
-        container: { flex: 1, backgroundColor: bgColor, paddingTop: Platform.OS === 'ios' ? 40 : 10 },
-        header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20 },
-        headerTitle: { fontSize: 20, fontWeight: 'bold', color: textColor },
+        container: { 
+            flex: 1, 
+            backgroundColor: colors.background, 
+            paddingTop: Platform.OS === 'ios' ? 40 : 10 
+        },
+        header: { 
+            flexDirection: 'row', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            padding: 20 
+        },
+        headerTitle: { 
+            fontSize: 20, 
+            fontWeight: 'bold', 
+            color: colors.text 
+        },
         card: { 
             margin: 15, 
             padding: 20, 
             borderRadius: 16, 
             borderWidth: 1, 
-            borderColor: borderColor, 
-            backgroundColor: cardBg,
+            borderColor: colors.border, 
+            backgroundColor: colors.card,
             shadowColor: '#000',
-            shadowOpacity: isDark ? 0.3 : 0.05,
+            shadowOpacity: isDarkMode ? 0.3 : 0.05,
             elevation: 2 
         },
-        statusText: { textAlign: 'center', marginBottom: 15, fontStyle: 'italic', color: isDark ? '#9CA3AF' : '#6B7280', fontSize: 14 },
+        statusText: { 
+            textAlign: 'center', 
+            marginBottom: 15, 
+            fontStyle: 'italic', 
+            color: isDarkMode ? '#9CA3AF' : '#6B7280', 
+            fontSize: 14 
+        },
         previewWindow: { 
             width: '90%', 
             aspectRatio: 1, 
             borderWidth: 1, 
-            borderColor: borderColor, 
+            borderColor: colors.border, 
             borderRadius: 20, 
-            backgroundColor: isDark ? '#111827' : 'white', 
+            backgroundColor: isDarkMode ? '#111827' : 'white', 
             overflow: 'hidden' 
         },
         typeButton: { 
@@ -88,10 +96,13 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
             paddingHorizontal: 30, 
             borderRadius: 12, 
             borderWidth: 1, 
-            borderColor: borderColor,
-            backgroundColor: isDark ? '#374151' : 'transparent'
+            borderColor: colors.border,
+            backgroundColor: isDarkMode ? '#374151' : 'transparent'
         },
-        typeButtonText: { fontWeight: '600', color: isDark ? '#D1D5DB' : '#4B5563' },
+        typeButtonText: { 
+            fontWeight: '600', 
+            color: isDarkMode ? '#D1D5DB' : '#4B5563' 
+        },
         actionButton: { 
             flexDirection: 'row', 
             justifyContent: 'center', 
@@ -104,15 +115,15 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
     });
 
     return (
-        <View style={{ flex: 1, backgroundColor: bgColor }}>
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
             <ScrollView style={dynamicStyles.container} contentContainerStyle={{ paddingBottom: 50 }}>
                 <View style={dynamicStyles.header}>
                     <TouchableOpacity onPress={onCancel}>
-                        <Ionicons name="chevron-back" size={32} color={PRIMARY_COLOR} />
+                        <Ionicons name="chevron-back" size={32} color={colors.primary} />
                     </TouchableOpacity>
                     <Text style={dynamicStyles.headerTitle}>Customize Avatar</Text>
                     <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
-                        <Ionicons name="menu" size={32} color={PRIMARY_COLOR} />
+                        <Ionicons name="menu" size={32} color={colors.primary} />
                     </TouchableOpacity>
                 </View>
                 
@@ -128,10 +139,18 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                                 convertPixelsToUnits={convertPixelsToUnits}
                             /> 
                             <TouchableOpacity 
-                                style={{ position: 'absolute', top: 15, right: 15, backgroundColor: isDark ? '#4B5563' : 'white', padding: 8, borderRadius: 20 }} 
+                                style={{ 
+                                    position: 'absolute', 
+                                    top: 15, 
+                                    right: 15, 
+                                    backgroundColor: isDarkMode ? '#4B5563' : 'white', 
+                                    padding: 8, 
+                                    borderRadius: 20,
+                                    elevation: 3
+                                }} 
                                 onPress={() => setIsColorPickerVisible(true)}
                             >
-                                <Ionicons name="color-palette-outline" size={24} color={PRIMARY_COLOR} />
+                                <Ionicons name="color-palette-outline" size={24} color={colors.primary} />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -140,15 +159,27 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 15, marginVertical: 10 }}>
                             <TouchableOpacity 
                                 onPress={() => setCustomization(prev => ({ ...prev, type: 'egg' }))}
-                                style={[dynamicStyles.typeButton, customization.type === 'egg' && { backgroundColor: PRIMARY_COLOR, borderColor: PRIMARY_COLOR }]}
+                                style={[
+                                    dynamicStyles.typeButton, 
+                                    customization.type === 'egg' && { backgroundColor: colors.primary, borderColor: colors.primary }
+                                ]}
                             >
-                                <Text style={[dynamicStyles.typeButtonText, customization.type === 'egg' && { color: 'white' }]}>EGG</Text>
+                                <Text style={[
+                                    dynamicStyles.typeButtonText, 
+                                    customization.type === 'egg' && { color: 'white' }
+                                ]}>EGG</Text>
                             </TouchableOpacity>
                             <TouchableOpacity 
                                 onPress={() => setCustomization(prev => ({ ...prev, type: 'imp' }))} 
-                                style={[dynamicStyles.typeButton, customization.type === 'imp' && { backgroundColor: PRIMARY_COLOR, borderColor: PRIMARY_COLOR }]}
+                                style={[
+                                    dynamicStyles.typeButton, 
+                                    customization.type === 'imp' && { backgroundColor: colors.primary, borderColor: colors.primary }
+                                ]}
                             >
-                                <Text style={[dynamicStyles.typeButtonText, customization.type === 'imp' && { color: 'white' }]}>IMP</Text> 
+                                <Text style={[
+                                    dynamicStyles.typeButtonText, 
+                                    customization.type === 'imp' && { color: 'white' }
+                                ]}>IMP</Text> 
                             </TouchableOpacity>
                         </View>
                     </View>
