@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { styles } from '../styles/avatarStyles';
-import { COLOR_PALETTE } from '../constants';
+import { styles } from '../src/styles/avatarStyles';
+import { COLOR_PALETTE } from '../src/utils/constants';
 
 /**
  * Modal component for selecting the avatar color.
