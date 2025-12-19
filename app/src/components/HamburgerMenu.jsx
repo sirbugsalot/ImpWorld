@@ -18,7 +18,7 @@ const HamburgerMenu = ({ onClose, activeItems = ['home', 'profile', 'sandbox', '
     const MENU_DEFINITIONS = {
         home: { title: 'Home', icon: 'home-outline', path: '/' },
         profile: { title: 'Profile', icon: 'person-outline', path: '/userProfile/profile' },
-        sandbox: { title: 'Sandbox', icon: 'flask-outline', action: () => console.log("Sandbox accessed") },
+        sandbox: { title: 'Sandbox', icon: 'flask-outline', path: '../sandbox' },
         settings: { 
             title: 'Settings', 
             icon: 'settings-outline', 
