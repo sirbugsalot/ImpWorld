@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Rect } from 'react-native-svg';
 
-// Import existing styles and constants
 import { styles } from '../styles/avatarStyles';
 import { COLOR_PALETTE } from '../utils/constants';
 import { useTheme } from '../context/ThemeContext';
@@ -17,14 +16,20 @@ const PATTERNS = [
     { id: 'zigzag', name: 'Zigzag' },
 ];
 
-/**
- * Enhanced Modal component for selecting avatar color and patterns.
- */
-const ColorPicker = ({ selectedColor, selectedPattern, onColorChange, onPatternChange, onClose }) => {
+const ColorPicker = ({ 
+    selectedColor, 
+    patternColor, 
+    selectedPattern, 
+    onColorChange, 
+    onPatternColorChange, 
+    onPatternChange, 
+    onClose 
+}) => {
     const { colors, isDarkMode } = useTheme();
-    const [activeTab, setActiveTab] = useState('colors'); // 'colors' or 'patterns'
+    const [activeTab, setActiveTab] = useState('colors');
+    // Track which color "slot" we are filling (1 = Base, 2 = Pattern)
+    const [activeColorSlot, setActiveColorSlot] = useState(1);
 
-    // Helper to render a miniature preview of the pattern
     const PatternIcon = ({ patternId }) => (
         <Svg viewBox="0 0 40 40" width="40" height="40">
             <PatternLibrary patternId={patternId} color={isDarkMode ? '#FFFFFF' : '#333333'} />
@@ -33,61 +38,92 @@ const ColorPicker = ({ selectedColor, selectedPattern, onColorChange, onPatternC
         </Svg>
     );
 
+    const handleSelection = (color) => {
+        if (activeColorSlot === 1) {
+            onColorChange(color);
+        } else {
+            onPatternColorChange(color);
+        }
+    };
+
     return (
         <View style={styles.colorPickerModal}>
             {/* Tab Navigation */}
-            <View style={{ flexDirection: 'row', marginBottom: 20, borderRadius: 10, overflow: 'hidden', backgroundColor: isDarkMode ? '#1F2937' : '#F3F4F6' }}>
-                <TouchableOpacity 
-                    onPress={() => setActiveTab('colors')}
-                    style={{ flex: 1, paddingVertical: 10, alignItems: 'center', backgroundColor: activeTab === 'colors' ? colors.primary : 'transparent' }}
-                >
-                    <Text style={{ fontWeight: 'bold', color: activeTab === 'colors' ? 'white' : colors.text }}>Colors</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                    onPress={() => setActiveTab('patterns')}
-                    style={{ flex: 1, paddingVertical: 10, alignItems: 'center', backgroundColor: activeTab === 'patterns' ? colors.primary : 'transparent' }}
-                >
-                    <Text style={{ fontWeight: 'bold', color: activeTab === 'patterns' ? 'white' : colors.text }}>Patterns</Text>
-                </TouchableOpacity>
+            <View style={localStyles.tabContainer}>
+                {['colors', 'patterns'].map(tab => (
+                    <TouchableOpacity 
+                        key={tab}
+                        onPress={() => setActiveTab(tab)}
+                        style={[localStyles.tab, activeTab === tab && { backgroundColor: colors.primary }]}
+                    >
+                        <Text style={[localStyles.tabText, { color: activeTab === tab ? 'white' : colors.text }]}>
+                            {tab.toUpperCase()}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
             </View>
 
-            <ScrollView horizontal={false} showsVerticalScrollIndicator={false}>
+            {/* Sub-toggle for Dual Colors (Only shows if a pattern is active) */}
+            {selectedPattern && activeTab === 'colors' && (
+                <View style={localStyles.slotContainer}>
+                    <TouchableOpacity 
+                        style={[localStyles.slotBtn, activeColorSlot === 1 && { borderColor: colors.primary }]}
+                        onPress={() => setActiveColorSlot(1)}
+                    >
+                        <View style={[localStyles.slotIndicator, { backgroundColor: selectedColor }]} />
+                        <Text style={{ color: colors.text, fontSize: 12 }}>1. Base</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={[localStyles.slotBtn, activeColorSlot === 2 && { borderColor: colors.primary }]}
+                        onPress={() => setActiveColorSlot(2)}
+                    >
+                        <View style={[localStyles.slotIndicator, { backgroundColor: patternColor }]} />
+                        <Text style={{ color: colors.text, fontSize: 12 }}>2. Pattern</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+
+            <ScrollView showsVerticalScrollIndicator={false}>
                 {activeTab === 'colors' ? (
                     <View style={styles.colorPaletteGrid}>
-                        {COLOR_PALETTE.map((color, index) => (
-                            <TouchableOpacity
-                                key={index}
-                                style={[styles.paletteSwatch, { backgroundColor: color }]}
-                                onPress={() => onColorChange(color)}
-                            >
-                                {selectedColor === color && (
-                                    <Ionicons name="checkmark-circle" size={20} color="white" style={styles.checkmarkIcon} />
-                                )}
-                            </TouchableOpacity>
-                        ))}
+                        {COLOR_PALETTE.map((color, index) => {
+                            const isSlot1 = selectedColor === color;
+                            const isSlot2 = patternColor === color;
+                            
+                            return (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={[styles.paletteSwatch, { backgroundColor: color }]}
+                                    onPress={() => handleSelection(color)}
+                                >
+                                    {isSlot1 && (
+                                        <View style={localStyles.numberBadge}><Text style={localStyles.numberText}>1</Text></View>
+                                    )}
+                                    {isSlot2 && (
+                                        <View style={[localStyles.numberBadge, isSlot1 && { right: -10 }]}><Text style={localStyles.numberText}>2</Text></View>
+                                    )}
+                                </TouchableOpacity>
+                            );
+                        })}
                     </View>
                 ) : (
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 12 }}>
-                        {/* Clear Pattern Option */}
+                    <View style={localStyles.patternGrid}>
                         <TouchableOpacity
-                            style={{ alignItems: 'center', padding: 10, borderRadius: 12, borderWidth: 2, borderColor: !selectedPattern ? colors.primary : 'transparent' }}
+                            style={[localStyles.patternBtn, !selectedPattern && { borderColor: colors.primary }]}
                             onPress={() => onPatternChange(null)}
                         >
-                            <View style={{ width: 40, height: 40, borderRadius: 8, backgroundColor: isDarkMode ? '#374151' : '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
-                                <Ionicons name="ban-outline" size={24} color={colors.text} />
-                            </View>
-                            <Text style={{ fontSize: 10, marginTop: 4, color: colors.text }}>None</Text>
+                            <Ionicons name="ban-outline" size={24} color={colors.text} />
+                            <Text style={{ fontSize: 10, color: colors.text }}>None</Text>
                         </TouchableOpacity>
 
-                        {/* Pattern List */}
                         {PATTERNS.map((p) => (
                             <TouchableOpacity
                                 key={p.id}
-                                style={{ alignItems: 'center', padding: 10, borderRadius: 12, borderWidth: 2, borderColor: selectedPattern === p.id ? colors.primary : 'transparent' }}
+                                style={[localStyles.patternBtn, selectedPattern === p.id && { borderColor: colors.primary }]}
                                 onPress={() => onPatternChange(p.id)}
                             >
                                 <PatternIcon patternId={p.id} />
-                                <Text style={{ fontSize: 10, marginTop: 4, color: colors.text }}>{p.name}</Text>
+                                <Text style={{ fontSize: 10, color: colors.text }}>{p.name}</Text>
                             </TouchableOpacity>
                         ))}
                     </View>
@@ -101,6 +137,18 @@ const ColorPicker = ({ selectedColor, selectedPattern, onColorChange, onPatternC
     );
 };
 
-export default ColorPicker;
+const localStyles = StyleSheet.create({
+    tabContainer: { flexDirection: 'row', marginBottom: 15, borderRadius: 10, overflow: 'hidden', backgroundColor: 'rgba(0,0,0,0.05)' },
+    tab: { flex: 1, paddingVertical: 10, alignItems: 'center' },
+    tabText: { fontWeight: 'bold', fontSize: 12 },
+    slotContainer: { flexDirection: 'row', justifyContent: 'center', gap: 20, marginBottom: 20 },
+    slotBtn: { flexDirection: 'row', alignItems: 'center', padding: 6, borderRadius: 8, borderWidth: 2, borderColor: 'transparent', backgroundColor: 'rgba(0,0,0,0.03)' },
+    slotIndicator: { width: 16, height: 16, borderRadius: 4, marginRight: 6, borderWidth: 1, borderColor: 'rgba(0,0,0,0.1)' },
+    numberBadge: { position: 'absolute', top: -5, left: -5, backgroundColor: 'white', width: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center', elevation: 2 },
+    numberText: { color: 'black', fontWeight: 'bold', fontSize: 10 },
+    patternGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 12 },
+    patternBtn: { alignItems: 'center', padding: 8, borderRadius: 12, borderWidth: 2, borderColor: 'transparent' }
+});
 
-        
+export default ColorPicker;
+                                                      
