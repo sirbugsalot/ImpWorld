@@ -2,25 +2,22 @@ import React, { useState, useCallback } from 'react';
 import { Text, View, TouchableOpacity, ScrollView, Platform, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
 
-// Import modular components
 import EggPreviewSVG from '../src/components/EggPreviewSVG';
 import ColorPicker from '../src/components/ColorPicker';
 import HamburgerMenu from '../src/components/HamburgerMenu';
-
-// Import the Theme Context hook
 import { useTheme } from '../src/context/ThemeContext';
 
 const VIEWBOX_SIZE = 100;
-const ACCENT_COLOR = '#10B981'; // Emerald
+const ACCENT_COLOR = '#10B981';
 
 const DEFAULT_CUSTOMIZATION = {
     type: 'egg',
     color: '#059669',
+    patternId: null, // Added pattern support
     shape: { hy: 60, wx: 40, wy: 35 }
 };
 
 const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave, onCancel }) => {
-    // 1. Consume the global theme context
     const { isDarkMode, colors } = useTheme();
 
     const [customization, setCustomization] = useState(initialCustomization);
@@ -28,8 +25,6 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
     const [status, setStatus] = useState('Drag the red and blue markers to shape your avatar.');
     const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-    const menuKeys = ['home', 'version', 'auth', 'settings'];
 
     const convertPixelsToUnits = useCallback((pxX, pxY) => {
         if (previewWindowPixelSize === 0) return { unitX: pxX, unitY: pxY };
@@ -45,73 +40,18 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
     }, []);
 
     const handleColorChange = (newColor) => setCustomization(prev => ({ ...prev, color: newColor }));
+    const handlePatternChange = (newPatternId) => setCustomization(prev => ({ ...prev, patternId: newPatternId }));
 
-    // 2. Define dynamic styles inside the component to respond to theme changes
     const dynamicStyles = StyleSheet.create({
-        container: { 
-            flex: 1, 
-            backgroundColor: colors.background, 
-            paddingTop: Platform.OS === 'ios' ? 40 : 10 
-        },
-        header: { 
-            flexDirection: 'row', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            padding: 20 
-        },
-        headerTitle: { 
-            fontSize: 20, 
-            fontWeight: 'bold', 
-            color: colors.text 
-        },
-        card: { 
-            margin: 15, 
-            padding: 20, 
-            borderRadius: 16, 
-            borderWidth: 1, 
-            borderColor: colors.border, 
-            backgroundColor: colors.card,
-            shadowColor: '#000',
-            shadowOpacity: isDarkMode ? 0.3 : 0.05,
-            elevation: 2 
-        },
-        statusText: { 
-            textAlign: 'center', 
-            marginBottom: 15, 
-            fontStyle: 'italic', 
-            color: isDarkMode ? '#9CA3AF' : '#6B7280', 
-            fontSize: 14 
-        },
-        previewWindow: { 
-            width: '90%', 
-            aspectRatio: 1, 
-            borderWidth: 1, 
-            borderColor: colors.border, 
-            borderRadius: 20, 
-            backgroundColor: isDarkMode ? '#111827' : 'white', 
-            overflow: 'hidden' 
-        },
-        typeButton: { 
-            paddingVertical: 12, 
-            paddingHorizontal: 30, 
-            borderRadius: 12, 
-            borderWidth: 1, 
-            borderColor: colors.border,
-            backgroundColor: isDarkMode ? '#374151' : 'transparent'
-        },
-        typeButtonText: { 
-            fontWeight: '600', 
-            color: isDarkMode ? '#D1D5DB' : '#4B5563' 
-        },
-        actionButton: { 
-            flexDirection: 'row', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            padding: 16, 
-            borderRadius: 14, 
-            marginTop: 20,
-            backgroundColor: ACCENT_COLOR 
-        }
+        container: { flex: 1, backgroundColor: colors.background, paddingTop: Platform.OS === 'ios' ? 40 : 10 },
+        header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20 },
+        headerTitle: { fontSize: 20, fontWeight: 'bold', color: colors.text },
+        card: { margin: 15, padding: 20, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card },
+        statusText: { textAlign: 'center', marginBottom: 15, fontStyle: 'italic', color: isDarkMode ? '#9CA3AF' : '#6B7280', fontSize: 14 },
+        previewWindow: { width: '90%', aspectRatio: 1, borderWidth: 1, borderColor: colors.border, borderRadius: 20, backgroundColor: isDarkMode ? '#111827' : 'white', overflow: 'hidden' },
+        typeButton: { paddingVertical: 12, paddingHorizontal: 30, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: isDarkMode ? '#374151' : 'transparent' },
+        typeButtonText: { fontWeight: '600', color: isDarkMode ? '#D1D5DB' : '#4B5563' },
+        actionButton: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', padding: 16, borderRadius: 14, marginTop: 20, backgroundColor: ACCENT_COLOR }
     });
 
     return (
@@ -128,26 +68,18 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                 </View>
                 
                 <View style={dynamicStyles.card}>
-                    <Text style={dynamicStyles.statusText}>{status}</Text>
-
                     <View style={{ alignItems: 'center', justifyContent: 'center', marginVertical: 10 }}>
                         <View style={dynamicStyles.previewWindow} onLayout={handleLayout}>
                             <EggPreviewSVG 
                                 color={customization.color} 
+                                patternId={customization.patternId}
+                                patternColor={isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.1)'}
                                 shape={customization.shape} 
                                 onShapeChange={handleShapeUpdateFromSVG}
                                 convertPixelsToUnits={convertPixelsToUnits}
                             /> 
                             <TouchableOpacity 
-                                style={{ 
-                                    position: 'absolute', 
-                                    top: 15, 
-                                    right: 15, 
-                                    backgroundColor: isDarkMode ? '#4B5563' : 'white', 
-                                    padding: 8, 
-                                    borderRadius: 20,
-                                    elevation: 3
-                                }} 
+                                style={{ position: 'absolute', top: 15, right: 15, backgroundColor: isDarkMode ? '#4B5563' : 'white', padding: 8, borderRadius: 20, elevation: 3 }} 
                                 onPress={() => setIsColorPickerVisible(true)}
                             >
                                 <Ionicons name="color-palette-outline" size={24} color={colors.primary} />
@@ -155,35 +87,6 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                         </View>
                     </View>
                     
-                    <View style={{ marginVertical: 15 }}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 15, marginVertical: 10 }}>
-                            <TouchableOpacity 
-                                onPress={() => setCustomization(prev => ({ ...prev, type: 'egg' }))}
-                                style={[
-                                    dynamicStyles.typeButton, 
-                                    customization.type === 'egg' && { backgroundColor: colors.primary, borderColor: colors.primary }
-                                ]}
-                            >
-                                <Text style={[
-                                    dynamicStyles.typeButtonText, 
-                                    customization.type === 'egg' && { color: 'white' }
-                                ]}>EGG</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity 
-                                onPress={() => setCustomization(prev => ({ ...prev, type: 'imp' }))} 
-                                style={[
-                                    dynamicStyles.typeButton, 
-                                    customization.type === 'imp' && { backgroundColor: colors.primary, borderColor: colors.primary }
-                                ]}
-                            >
-                                <Text style={[
-                                    dynamicStyles.typeButtonText, 
-                                    customization.type === 'imp' && { color: 'white' }
-                                ]}>IMP</Text> 
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
                     <TouchableOpacity 
                         onPress={() => {
                             setStatus('Customization saved!');
@@ -199,18 +102,15 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                 {isColorPickerVisible && (
                     <ColorPicker 
                         selectedColor={customization.color} 
+                        selectedPattern={customization.patternId}
                         onColorChange={handleColorChange} 
+                        onPatternChange={handlePatternChange}
                         onClose={() => setIsColorPickerVisible(false)} 
                     />
                 )}
             </ScrollView>
 
-            {isMenuOpen && (
-                <HamburgerMenu 
-                    onClose={() => setIsMenuOpen(false)} 
-                    activeItems={menuKeys}
-                />
-            )}
+            {isMenuOpen && <HamburgerMenu onClose={() => setIsMenuOpen(false)} activeItems={['home', 'settings']} />}
         </View>
     );
 };
