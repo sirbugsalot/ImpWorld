@@ -1,82 +1,125 @@
-import React from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Platform, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import Svg, { Rect } from 'react-native-svg';
 
-// Import our context and components
+// Import context and assets
 import { useTheme } from './src/context/ThemeContext';
 import { GrassTerrain, GravelTerrain, InteriorTerrain } from './env/terrains/TerrainLibrary';
+import PatternLibrary from './src/patterns/PatternLibrary';
 import HamburgerMenu from './src/components/HamburgerMenu';
+
+const { width } = Dimensions.get('window');
+const TILE_SIZE = (width - 60) / 3; // Calculate tile size for 3-column grid
 
 const Sandbox = () => {
     const router = useRouter();
     const { isDarkMode, colors, toggleTheme } = useTheme();
-    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    // Define the specimens we want to inspect
-    const terrainSpecimens = [
-        { id: 'grass', name: 'Grasslands', Component: GrassTerrain, description: 'Natural green with dark tufts' },
-        { id: 'gravel', name: 'Stone Gravel', Component: GravelTerrain, description: 'Mixed grey pebble texture' },
-        { id: 'interior', name: 'Building Interior', Component: InteriorTerrain, description: 'Clean grid with light sheen' },
-    ];
+    // Grid State: 3x6 arrays (18 items each)
+    const [terrainGrid, setTerrainGrid] = useState(Array(18).fill('grass'));
+    const [patternGrid, setPatternGrid] = useState(Array(18).fill('polka-dots'));
+
+    const terrainTypes = ['grass', 'gravel', 'interior'];
+    const patternTypes = ['polka-dots', 'stripes', 'hearts', 'squares', 'zigzag'];
+
+    // Cycle logic for Terrain
+    const cycleTerrain = (index) => {
+        const nextGrid = [...terrainGrid];
+        const currentType = nextGrid[index];
+        const nextIndex = (terrainTypes.indexOf(currentType) + 1) % terrainTypes.length;
+        nextGrid[index] = terrainTypes[nextIndex];
+        setTerrainGrid(nextGrid);
+    };
+
+    // Cycle logic for Patterns
+    const cyclePattern = (index) => {
+        const nextGrid = [...patternGrid];
+        const currentType = nextGrid[index];
+        const nextIndex = (patternTypes.indexOf(currentType) + 1) % patternTypes.length;
+        nextGrid[index] = patternTypes[nextIndex];
+        setPatternGrid(nextGrid);
+    };
+
+    const renderTerrainTile = (type) => {
+        switch (type) {
+            case 'grass': return <GrassTerrain />;
+            case 'gravel': return <GravelTerrain />;
+            case 'interior': return <InteriorTerrain />;
+            default: return null;
+        }
+    };
+
+    const PatternTile = ({ patternId }) => (
+        <View style={styles.tileInner}>
+            <Svg height="100%" width="100%">
+                <PatternLibrary patternId={patternId} color={isDarkMode ? '#6366F1' : '#4F46E5'} />
+                <Rect width="100%" height="100%" fill={isDarkMode ? '#1F2937' : '#E5E7EB'} />
+                <Rect width="100%" height="100%" fill={`url(#${patternId})`} />
+            </Svg>
+        </View>
+    );
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            {/* Header Section */}
             <View style={[styles.header, { borderBottomColor: colors.border }]}>
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="arrow-back" size={28} color={colors.primary} />
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: colors.text }]}>Terrain Sandbox</Text>
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Interactive Sandbox</Text>
                 <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
                     <Ionicons name="menu" size={32} color={colors.primary} />
                 </TouchableOpacity>
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                <View style={styles.introBox}>
+                <View style={styles.controlPanel}>
                     <Text style={[styles.introText, { color: colors.text }]}>
-                        Inspect terrain textures and test how they interact with the current theme.
+                        Tap any tile to cycle through variations. Useful for testing grid continuity.
                     </Text>
                     <TouchableOpacity 
                         style={[styles.themeToggle, { backgroundColor: colors.primary }]} 
                         onPress={toggleTheme}
                     >
                         <Ionicons name={isDarkMode ? "sunny" : "moon"} size={20} color="white" />
-                        <Text style={styles.themeToggleText}>
-                            Switch to {isDarkMode ? 'Light' : 'Dark'} Mode
-                        </Text>
+                        <Text style={styles.themeToggleText}>Toggle Theme</Text>
                     </TouchableOpacity>
                 </View>
 
-                {/* Display each terrain type */}
-                {terrainSpecimens.map((item) => (
-                    <View key={item.id} style={[styles.specimenCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                        <View style={styles.terrainPreview}>
-                            <item.Component style={styles.fullTile} />
-                        </View>
-                        <View style={styles.specimenInfo}>
-                            <Text style={[styles.specimenName, { color: colors.text }]}>{item.name}</Text>
-                            <Text style={[styles.specimenDesc, { color: isDarkMode ? '#9CA3AF' : '#6B7280' }]}>
-                                {item.description}
-                            </Text>
-                        </View>
-                    </View>
-                ))}
+                {/* Terrain 3x6 Grid */}
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Terrain Continuity (3x6)</Text>
+                <View style={styles.gridContainer}>
+                    {terrainGrid.map((type, index) => (
+                        <TouchableOpacity 
+                            key={`terrain-${index}`} 
+                            style={styles.gridTile} 
+                            onPress={() => cycleTerrain(index)}
+                        >
+                            {renderTerrainTile(type)}
+                            <View style={styles.tileLabel}>
+                                <Text style={styles.tileLabelText}>{type.charAt(0).toUpperCase()}</Text>
+                            </View>
+                        </TouchableOpacity>
+                    ))}
+                </View>
 
-                {/* Tiled Grid Example */}
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>Grid Continuity Test</Text>
-                <View style={styles.gridPreview}>
-                    <View style={styles.row}>
-                        <GrassTerrain style={styles.smallTile} />
-                        <GrassTerrain style={styles.smallTile} />
-                        <GravelTerrain style={styles.smallTile} />
-                    </View>
-                    <View style={styles.row}>
-                        <GrassTerrain style={styles.smallTile} />
-                        <InteriorTerrain style={styles.smallTile} />
-                        <InteriorTerrain style={styles.smallTile} />
-                    </View>
+                {/* Pattern 3x6 Grid */}
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Pattern Visuals (3x6)</Text>
+                <View style={styles.gridContainer}>
+                    {patternGrid.map((type, index) => (
+                        <TouchableOpacity 
+                            key={`pattern-${index}`} 
+                            style={styles.gridTile} 
+                            onPress={() => cyclePattern(index)}
+                        >
+                            <PatternTile patternId={type} />
+                            <View style={styles.tileLabel}>
+                                <Text style={styles.tileLabelText}>{type.slice(0, 3).toUpperCase()}</Text>
+                            </View>
+                        </TouchableOpacity>
+                    ))}
                 </View>
             </ScrollView>
 
@@ -104,86 +147,75 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
     },
     headerTitle: {
-        fontSize: 20,
-        fontWeight: '800',
+        fontSize: 18,
+        fontWeight: '900',
     },
     scrollContent: {
         padding: 20,
     },
-    introBox: {
-        marginBottom: 25,
+    controlPanel: {
+        marginBottom: 20,
     },
     introText: {
-        fontSize: 14,
-        lineHeight: 20,
-        marginBottom: 15,
-        opacity: 0.8,
+        fontSize: 13,
+        marginBottom: 10,
+        opacity: 0.7,
     },
     themeToggle: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        borderRadius: 10,
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 8,
         alignSelf: 'flex-start',
     },
     themeToggleText: {
         color: 'white',
-        fontWeight: '600',
-        marginLeft: 8,
+        fontWeight: 'bold',
+        marginLeft: 6,
+        fontSize: 12,
     },
-    specimenCard: {
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: '800',
+        marginTop: 20,
+        marginBottom: 10,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+    },
+    gridContainer: {
         flexDirection: 'row',
-        borderRadius: 16,
-        borderWidth: 1,
-        marginBottom: 15,
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        backgroundColor: '#000',
+        padding: 1,
+        borderRadius: 4,
+    },
+    gridTile: {
+        width: TILE_SIZE,
+        height: TILE_SIZE,
+        marginBottom: 1,
+        backgroundColor: '#333',
         overflow: 'hidden',
     },
-    terrainPreview: {
-        width: 100,
-        height: 100,
-    },
-    fullTile: {
+    tileInner: {
         width: '100%',
         height: '100%',
     },
-    specimenInfo: {
-        flex: 1,
-        padding: 15,
-        justifyContent: 'center',
+    tileLabel: {
+        position: 'absolute',
+        bottom: 2,
+        right: 4,
+        backgroundColor: 'rgba(0,0,0,0.4)',
+        paddingHorizontal: 4,
+        borderRadius: 4,
     },
-    specimenName: {
-        fontSize: 18,
-        fontWeight: '700',
-        marginBottom: 4,
-    },
-    specimenDesc: {
-        fontSize: 13,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        marginTop: 20,
-        marginBottom: 15,
-    },
-    gridPreview: {
-        borderRadius: 12,
-        overflow: 'hidden',
-        borderWidth: 2,
-        borderColor: '#000',
-        width: 186, // 60 * 3 + margins
-    },
-    row: {
-        flexDirection: 'row',
-    },
-    smallTile: {
-        width: 60,
-        height: 60,
-        borderWidth: 0.5,
-        borderColor: 'rgba(0,0,0,0.1)',
-    },
+    tileLabelText: {
+        color: 'white',
+        fontSize: 8,
+        fontWeight: 'bold',
+    }
 });
 
 export default Sandbox;
 
-          
