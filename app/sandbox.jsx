@@ -8,24 +8,31 @@ import Svg, { Rect } from 'react-native-svg';
 import { useTheme } from './src/context/ThemeContext';
 import { GrassTerrain, GravelTerrain, InteriorTerrain } from './env/terrains/TerrainLibrary';
 import PatternLibrary from './src/patterns/PatternLibrary';
+import ColorPicker from './src/components/ColorPicker';
 import HamburgerMenu from './src/components/HamburgerMenu';
 
 const { width } = Dimensions.get('window');
-const TILE_SIZE = (width - 60) / 3; // Calculate tile size for 3-column grid
+// Horizontal 6x3 grid: 6 columns
+const GRID_COLUMNS = 6;
+const TILE_SIZE = (width - 40) / GRID_COLUMNS; 
 
 const Sandbox = () => {
     const router = useRouter();
     const { isDarkMode, colors, toggleTheme } = useTheme();
+    
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [editingIndex, setEditingIndex] = useState(null); // Track which pattern tile is being edited
 
-    // Grid State: 3x6 arrays (18 items each)
+    // Grid State: 6x3 arrays (18 items each)
     const [terrainGrid, setTerrainGrid] = useState(Array(18).fill('grass'));
-    const [patternGrid, setPatternGrid] = useState(Array(18).fill('polka-dots'));
+    const [patternGrid, setPatternGrid] = useState(Array(18).fill({ 
+        id: 'polka-dots', 
+        color: '#6366F1' 
+    }));
 
     const terrainTypes = ['grass', 'gravel', 'interior'];
-    const patternTypes = ['polka-dots', 'stripes', 'hearts', 'squares', 'zigzag'];
 
-    // Cycle logic for Terrain
+    // Terrain Cycle Logic (Simple tap)
     const cycleTerrain = (index) => {
         const nextGrid = [...terrainGrid];
         const currentType = nextGrid[index];
@@ -34,12 +41,18 @@ const Sandbox = () => {
         setTerrainGrid(nextGrid);
     };
 
-    // Cycle logic for Patterns
-    const cyclePattern = (index) => {
+    // Pattern Selection Logic (Opens Picker)
+    const handleUpdatePattern = (id) => {
+        if (editingIndex === null) return;
         const nextGrid = [...patternGrid];
-        const currentType = nextGrid[index];
-        const nextIndex = (patternTypes.indexOf(currentType) + 1) % patternTypes.length;
-        nextGrid[index] = patternTypes[nextIndex];
+        nextGrid[editingIndex] = { ...nextGrid[editingIndex], id };
+        setPatternGrid(nextGrid);
+    };
+
+    const handleUpdateColor = (color) => {
+        if (editingIndex === null) return;
+        const nextGrid = [...patternGrid];
+        nextGrid[editingIndex] = { ...nextGrid[editingIndex], color };
         setPatternGrid(nextGrid);
     };
 
@@ -52,23 +65,13 @@ const Sandbox = () => {
         }
     };
 
-    const PatternTile = ({ patternId }) => (
-        <View style={styles.tileInner}>
-            <Svg height="100%" width="100%">
-                <PatternLibrary patternId={patternId} color={isDarkMode ? '#6366F1' : '#4F46E5'} />
-                <Rect width="100%" height="100%" fill={isDarkMode ? '#1F2937' : '#E5E7EB'} />
-                <Rect width="100%" height="100%" fill={`url(#${patternId})`} />
-            </Svg>
-        </View>
-    );
-
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={[styles.header, { borderBottomColor: colors.border }]}>
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="arrow-back" size={28} color={colors.primary} />
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: colors.text }]}>Interactive Sandbox</Text>
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Texture Sandbox</Text>
                 <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
                     <Ionicons name="menu" size={32} color={colors.primary} />
                 </TouchableOpacity>
@@ -76,20 +79,17 @@ const Sandbox = () => {
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.controlPanel}>
-                    <Text style={[styles.introText, { color: colors.text }]}>
-                        Tap any tile to cycle through variations. Useful for testing grid continuity.
-                    </Text>
                     <TouchableOpacity 
                         style={[styles.themeToggle, { backgroundColor: colors.primary }]} 
                         onPress={toggleTheme}
                     >
-                        <Ionicons name={isDarkMode ? "sunny" : "moon"} size={20} color="white" />
+                        <Ionicons name={isDarkMode ? "sunny" : "moon"} size={18} color="white" />
                         <Text style={styles.themeToggleText}>Toggle Theme</Text>
                     </TouchableOpacity>
                 </View>
 
-                {/* Terrain 3x6 Grid */}
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>Terrain Continuity (3x6)</Text>
+                {/* Terrain 6x3 Grid */}
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Terrains (6x3 seamless)</Text>
                 <View style={styles.gridContainer}>
                     {terrainGrid.map((type, index) => (
                         <TouchableOpacity 
@@ -98,30 +98,43 @@ const Sandbox = () => {
                             onPress={() => cycleTerrain(index)}
                         >
                             {renderTerrainTile(type)}
-                            <View style={styles.tileLabel}>
-                                <Text style={styles.tileLabelText}>{type.charAt(0).toUpperCase()}</Text>
-                            </View>
                         </TouchableOpacity>
                     ))}
                 </View>
 
-                {/* Pattern 3x6 Grid */}
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>Pattern Visuals (3x6)</Text>
+                {/* Pattern 6x3 Grid */}
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Patterns (6x3 clickable)</Text>
                 <View style={styles.gridContainer}>
-                    {patternGrid.map((type, index) => (
+                    {patternGrid.map((config, index) => (
                         <TouchableOpacity 
                             key={`pattern-${index}`} 
                             style={styles.gridTile} 
-                            onPress={() => cyclePattern(index)}
+                            onPress={() => setEditingIndex(index)}
                         >
-                            <PatternTile patternId={type} />
-                            <View style={styles.tileLabel}>
-                                <Text style={styles.tileLabelText}>{type.slice(0, 3).toUpperCase()}</Text>
+                            <View style={styles.tileInner}>
+                                <Svg height="100%" width="100%">
+                                    <PatternLibrary patternId={config.id} color={config.color} />
+                                    <Rect width="100%" height="100%" fill={isDarkMode ? '#111827' : '#F9FAFB'} />
+                                    <Rect width="100%" height="100%" fill={`url(#${config.id})`} />
+                                </Svg>
                             </View>
                         </TouchableOpacity>
                     ))}
                 </View>
+                
+                <View style={{ height: 100 }} />
             </ScrollView>
+
+            {/* Color/Pattern Picker Overlay */}
+            {editingIndex !== null && (
+                <ColorPicker 
+                    selectedColor={patternGrid[editingIndex].color}
+                    selectedPattern={patternGrid[editingIndex].id}
+                    onColorChange={handleUpdateColor}
+                    onPatternChange={handleUpdatePattern}
+                    onClose={() => setEditingIndex(null)}
+                />
+            )}
 
             {isMenuOpen && (
                 <HamburgerMenu 
@@ -154,12 +167,7 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     controlPanel: {
-        marginBottom: 20,
-    },
-    introText: {
-        fontSize: 13,
         marginBottom: 10,
-        opacity: 0.7,
     },
     themeToggle: {
         flexDirection: 'row',
@@ -176,46 +184,32 @@ const styles = StyleSheet.create({
         fontSize: 12,
     },
     sectionTitle: {
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: '800',
         marginTop: 20,
         marginBottom: 10,
         textTransform: 'uppercase',
-        letterSpacing: 1,
+        letterSpacing: 0.5,
     },
     gridContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        backgroundColor: '#000',
-        padding: 1,
-        borderRadius: 4,
+        width: TILE_SIZE * GRID_COLUMNS,
+        alignSelf: 'center',
     },
     gridTile: {
         width: TILE_SIZE,
         height: TILE_SIZE,
-        marginBottom: 1,
         backgroundColor: '#333',
         overflow: 'hidden',
+        // Zero margins for seamless testing
     },
     tileInner: {
         width: '100%',
         height: '100%',
-    },
-    tileLabel: {
-        position: 'absolute',
-        bottom: 2,
-        right: 4,
-        backgroundColor: 'rgba(0,0,0,0.4)',
-        paddingHorizontal: 4,
-        borderRadius: 4,
-    },
-    tileLabelText: {
-        color: 'white',
-        fontSize: 8,
-        fontWeight: 'bold',
     }
 });
 
 export default Sandbox;
 
+            
