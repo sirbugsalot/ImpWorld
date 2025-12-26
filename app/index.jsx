@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons'; 
 import { useRouter } from 'expo-router'; 
@@ -8,17 +8,43 @@ import { useRouter } from 'expo-router';
 import { useTheme } from './src/context/ThemeContext';
 import HamburgerMenu from './src/components/HamburgerMenu';
 
+// NEW: Import Firebase initialization
+import { initFirebaseStack } from './src/config/firebase';
+
 const App = () => {
   const router = useRouter();
-  
-  // 2. Consume the global theme state
-  // This automatically replaces all your old local theme derivation logic
   const { isDarkMode, colors } = useTheme();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false); 
+  
+  // NEW: Firebase connection state
+  const [isFirebaseReady, setIsFirebaseReady] = useState(false);
+
+  // NEW: Initialize Firebase on mount
+  useEffect(() => {
+    const setup = async () => {
+      try {
+        await initFirebaseStack();
+        setIsFirebaseReady(true);
+      } catch (error) {
+        console.error("Firebase init failed:", error);
+      }
+    };
+    setup();
+  }, []);
 
   const menuKeys = ['home', 'profile', 'sandbox', 'settings', 'version', 'auth'];
   const handleMenuClose = () => setIsMenuOpen(false);
+
+  // NEW: Show loading until Firebase (Anonymous Auth) is ready
+  if (!isFirebaseReady) {
+    return (
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={{ color: colors.text, marginTop: 10 }}>Syncing with cloud...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -78,6 +104,12 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: Platform.OS === 'android' ? 30 : 50,
   },
+  // NEW: Loading styles
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -132,5 +164,3 @@ const styles = StyleSheet.create({
 });
 
 export default App;
-
-    
