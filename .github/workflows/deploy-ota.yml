@@ -38,9 +38,6 @@ jobs:
       - name: Install EAS CLI Globally
         run: npm install -g eas-cli
       
-      - name: Install Firebase
-        run: npx expo install @react-native-firebase/app @react-native-firebase/auth @react-native-firebase/crashlytics
-        
       - name: Install Dependencies
         run: npm install
 
@@ -56,6 +53,9 @@ jobs:
           #EXPO_PROJECT_ID: e8bf1a0e-2db1-42e2-af27-30ca210d3b51
         run: npx eas init --non-interactive --force
 
+      - name: Install Firebase
+        run: npx expo install @react-native-firebase/app @react-native-firebase/auth @react-native-firebase/crashlytics
+        
       - name: Publish Update
         # Authentication and non-interactive flags are applied here
         #env:
