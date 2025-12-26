@@ -25,7 +25,7 @@ const App = () => {
         if (!isFirebaseReady && isMounted) {
           setError("Connection timed out. Check your internet or Firebase config.");
         }
-      }, 10000);
+      }, 10);
 
       try {
         await initFirebaseStack();
