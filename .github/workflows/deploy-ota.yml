@@ -54,7 +54,7 @@ jobs:
         run: npx eas init --non-interactive --force
 
       - name: Install Firebase
-        run: npx expo install @react-native-firebase/app @react-native-firebase/auth @react-native-firebase/crashlytics
+        run: npx expo install firebase
         
       - name: Publish Update
         # Authentication and non-interactive flags are applied here
