@@ -17,32 +17,20 @@ const App = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    let isMounted = true;
-
-    const setup = async () => {
-      // Safety Timeout: If Firebase takes > 10s, throw an error so we don't hang
-      const timeout = setTimeout(() => {
-        if (!isFirebaseReady && isMounted) {
-          setError("Connection timed out. Check your internet or Firebase config.");
-        }
-      }, 10);
-
+    async function startApp() {
       try {
-        await initFirebaseStack();
-        if (isMounted) {
-          setIsFirebaseReady(true);
-          clearTimeout(timeout);
-        }
-      } catch (err) {
-        if (isMounted) {
-          setError(err.message || "Failed to sync with cloud.");
-          clearTimeout(timeout);
-        }
+        // Attempt initialization with a timeout race
+        await Promise.race([
+          initFirebaseStack(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 8000))
+        ]);
+        setStatus('ready');
+      } catch (e) {
+        console.error("Firebase startup failed:", e);
+        setStatus('ready'); // Fallback to ready (Offline Mode)
       }
-    };
-
-    setup();
-    return () => { isMounted = false; };
+    }
+    startApp();
   }, []);
 
   const handleRetry = () => {
