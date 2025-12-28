@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Platform, Dimensions, Animated } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Platform, Dimensions, Animated, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
+
+// Firebase Imports
+import { auth, db, appId } from '../src/config/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 import Building from './building'; 
 import WorldBackground from './bckgrd'; 
@@ -14,12 +18,23 @@ const SCREEN_HEIGHT = Dimensions.get('window').height - (Platform.OS === 'androi
 const STEP_SIZE = 4;
 const MOVEMENT_SPEED_MS = 25; 
 
+// Default Avatar if none is found in cloud
+const DEFAULT_AVATAR = {
+    color: '#8A2BE2',
+    patternId: null,
+    patternColor: '#FFFFFF',
+    shape: { hy: 60, wx: 40, wy: 35 }
+};
+
 const welcomeCenter = new Building('Welcome Center', 'rectangle', { width: 100, height: 80 }, { x: 50, y: 75 });
 const buildingMapPosition = { x: 50, y: 100 };
 
 const WorldScreen = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [activeDirection, setActiveDirection] = useState(null); 
+    const [isLoading, setIsLoading] = useState(true);
+    const [playerCustomization, setPlayerCustomization] = useState(DEFAULT_AVATAR);
+    
     const movementIntervalRef = useRef(null);
 
     const initialOffsetX = -(buildingMapPosition.x - (SCREEN_WIDTH / 2));
@@ -27,6 +42,34 @@ const WorldScreen = () => {
     
     const worldOffsetAnim = useRef(new Animated.ValueXY({ x: initialOffsetX, y: initialOffsetY })).current;
     const worldOffsetRef = useRef({ x: initialOffsetX, y: initialOffsetY });
+
+    // 1. Fetch Cloud Avatar on Load
+    useEffect(() => {
+        const fetchPlayerAvatar = async () => {
+            if (!auth.currentUser) {
+                console.log("No user detected, using default avatar.");
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                // Path mandated by Rule 1
+                const avatarRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'settings', 'avatar');
+                const docSnap = await getDoc(avatarRef);
+
+                if (docSnap.exists()) {
+                    setPlayerCustomization(docSnap.data());
+                    console.log("Cloud Avatar Loaded successfully.");
+                }
+            } catch (error) {
+                console.error("Failed to load cloud avatar:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchPlayerAvatar();
+    }, []);
 
     const moveWorld = (direction) => {
         let { x, y } = worldOffsetRef.current;
@@ -58,6 +101,15 @@ const WorldScreen = () => {
         </TouchableOpacity>
     );
 
+    if (isLoading) {
+        return (
+            <View style={[styles.fullContainer, styles.centered, { backgroundColor: INITIAL_DARK_MODE ? DARK_BG_COLOR : LIGHT_BG_COLOR }]}>
+                <ActivityIndicator size="large" color={PRIMARY_COLOR} />
+                <Text style={{ marginTop: 10, color: PRIMARY_COLOR }}>Summoning your Imp...</Text>
+            </View>
+        );
+    }
+
     return (
         <View style={[styles.fullContainer, { backgroundColor: INITIAL_DARK_MODE ? DARK_BG_COLOR : LIGHT_BG_COLOR }]}>
             <View style={styles.header}>
@@ -75,10 +127,15 @@ const WorldScreen = () => {
                         <View style={styles.buildingDoor} />
                     </View>
                 </Animated.View>
+                
+                {/* 2. Pass the cloud-fetched customization to the Player component */}
                 <Player 
                     activeDirection={activeDirection} 
-                    customization={{ color: '#8A2BE2' }} 
-                    playerCenterStyle={{ left: SCREEN_WIDTH / 2 - BLOB_WIDTH / 2, top: SCREEN_HEIGHT / 2 - BLOB_HEIGHT / 2 }} 
+                    customization={playerCustomization} 
+                    playerCenterStyle={{ 
+                        left: SCREEN_WIDTH / 2 - BLOB_WIDTH / 2, 
+                        top: SCREEN_HEIGHT / 2 - BLOB_HEIGHT / 2 
+                    }} 
                 />
             </View>
             
@@ -94,13 +151,14 @@ const WorldScreen = () => {
                 </View>
             </View>
 
-            {isMenuOpen && <HamburgerMenu onClose={() => setIsMenuOpen(false)} activeItems={['home', 'profile', 'settings']} />}
+            {isMenuOpen && <HamburgerMenu onClose={() => setIsMenuOpen(false)} activeItems={['home', 'profile', 'settings', 'auth']} />}
         </View>
     );
 };
 
 const styles = StyleSheet.create({
     fullContainer: { flex: 1, paddingTop: Platform.OS === 'ios' ? 60 : 40 },
+    centered: { justifyContent: 'center', alignItems: 'center' },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 10 },
     headerTitle: { fontSize: 22, fontWeight: '700', color: PRIMARY_COLOR },
     gameContainer: { flex: 1, overflow: 'hidden' },
@@ -116,4 +174,3 @@ const styles = StyleSheet.create({
 
 export default WorldScreen;
 
-                            
