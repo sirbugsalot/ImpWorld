@@ -1,6 +1,10 @@
-import React, { useState, useCallback } from 'react';
-import { Text, View, TouchableOpacity, ScrollView, Platform, StyleSheet } from 'react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Text, View, TouchableOpacity, ScrollView, Platform, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
+
+// Firebase imports
+import { auth, db, appId } from '../src/config/firebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 import EggPreviewSVG from '../src/components/EggPreviewSVG';
 import ColorPicker from '../src/components/ColorPicker';
@@ -18,14 +22,74 @@ const DEFAULT_CUSTOMIZATION = {
     shape: { hy: 60, wx: 40, wy: 35 }
 };
 
-const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave, onCancel }) => {
+const AvatarCustomizer = ({ onSave, onCancel }) => {
     const { isDarkMode, colors } = useTheme();
 
-    const [customization, setCustomization] = useState(initialCustomization);
+    const [customization, setCustomization] = useState(DEFAULT_CUSTOMIZATION);
     const [previewWindowPixelSize, setPreviewWindowPixelSize] = useState(VIEWBOX_SIZE);
     const [status, setStatus] = useState('Drag the markers to shape your avatar.');
     const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+
+    // 1. Fetch existing avatar on load
+    useEffect(() => {
+        const fetchAvatar = async () => {
+            if (!auth.currentUser) {
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                // Rule 1 Path: artifacts/{appId}/users/{userId}/{collectionName}/{docId}
+                const avatarRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'settings', 'avatar');
+                const docSnap = await getDoc(avatarRef);
+
+                if (docSnap.exists()) {
+                    setCustomization(docSnap.data());
+                    setStatus('Welcome back! Your avatar is loaded.');
+                }
+            } catch (error) {
+                console.error("Error fetching avatar:", error);
+                setStatus('Could not load saved avatar.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchAvatar();
+    }, []);
+
+    // 2. Save logic to Firestore
+    const handleSaveToCloud = async () => {
+        if (!auth.currentUser) {
+            setStatus('Please log in (Guest) to save to the cloud.');
+            return;
+        }
+
+        setIsSaving(true);
+        setStatus('Syncing with ImpWorld...');
+
+        try {
+            // Rule 1 Path
+            const avatarRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'settings', 'avatar');
+            
+            // Save to Firestore
+            await setDoc(avatarRef, {
+                ...customization,
+                lastUpdated: new Date().toISOString()
+            }, { merge: true });
+
+            setStatus('Saved to cloud!');
+            if (onSave) onSave(customization);
+        } catch (error) {
+            console.error("Error saving avatar:", error);
+            setStatus('Save failed. Check connection.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     // Coordinate mapping for touch events
     const convertPixelsToUnits = useCallback((pxX, pxY) => {
@@ -69,10 +133,7 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
             backgroundColor: isDarkMode ? '#4B5563' : 'white', 
             padding: 10, 
             borderRadius: 25, 
-            elevation: 4,
-            shadowColor: '#000',
-            shadowOpacity: 0.2,
-            shadowRadius: 3
+            elevation: 4
         },
         actionButton: { 
             flexDirection: 'row', 
@@ -81,9 +142,19 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
             padding: 16, 
             borderRadius: 14, 
             marginTop: 20, 
-            backgroundColor: ACCENT_COLOR 
+            backgroundColor: ACCENT_COLOR,
+            opacity: isSaving ? 0.7 : 1
         }
     });
+
+    if (isLoading) {
+        return (
+            <View style={[dynamicStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={{ color: colors.text, marginTop: 10 }}>Fetching your avatar...</Text>
+            </View>
+        );
+    }
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -120,14 +191,18 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
                     </View>
 
                     <TouchableOpacity 
-                        onPress={() => {
-                            setStatus('Customization saved!');
-                            if (onSave) onSave(customization);
-                        }}
+                        onPress={handleSaveToCloud}
+                        disabled={isSaving}
                         style={dynamicStyles.actionButton}
                     >
-                        <Ionicons name="save-outline" size={24} color="white" style={{ marginRight: 10 }} />
-                        <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 18 }}>SAVE AVATAR</Text>
+                        {isSaving ? (
+                            <ActivityIndicator color="white" />
+                        ) : (
+                            <>
+                                <Ionicons name="cloud-upload-outline" size={24} color="white" style={{ marginRight: 10 }} />
+                                <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 18 }}>SAVE TO CLOUD</Text>
+                            </>
+                        )}
                     </TouchableOpacity>
                 </View>
             </ScrollView>
@@ -147,7 +222,7 @@ const AvatarCustomizer = ({ initialCustomization = DEFAULT_CUSTOMIZATION, onSave
             {isMenuOpen && (
                 <HamburgerMenu 
                     onClose={() => setIsMenuOpen(false)} 
-                    activeItems={['home', 'settings']} 
+                    activeItems={['home', 'settings', 'auth']} 
                 />
             )}
         </View>
