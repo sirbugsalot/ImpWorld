@@ -1,49 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Dimensions, Platform, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import SettingsModal from './SettingsModal';
 
-// NEW: Firebase imports
+// Firebase imports
 import { auth } from '../config/firebase';
-import { signInAnonymously } from 'firebase/auth';
+import { signInAnonymously, onAuthStateChanged, signOut } from 'firebase/auth';
 
 const { width, height } = Dimensions.get('window');
 
 /**
- * Updated HamburgerMenu with Firebase Guest Login Logic
+ * HamburgerMenu with Real-Time Auth State Tracking
  */
 const HamburgerMenu = ({ onClose, activeItems = ['home', 'profile', 'sandbox', 'settings', 'version', 'auth'] }) => {
     const router = useRouter();
     const [isSettingsVisible, setIsSettingsVisible] = useState(false);
     
-    // NEW: Local state for auth feedback
+    // Auth State
+    const [user, setUser] = useState(auth?.currentUser || null);
     const [authLoading, setAuthLoading] = useState(false);
-    const [authStatus, setAuthStatus] = useState(null); // 'success', 'error', or null
 
-    // 1. Logic to handle guest login
-    const handleGuestLogin = async () => {
-        if (!auth) {
-            setAuthStatus('error');
-            console.error("Firebase Auth not initialized. Check your config.");
-            return;
-        }
+    // Subscribe to auth state changes on mount
+    useEffect(() => {
+        if (!auth) return;
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    const handleAuthAction = async () => {
+        if (!auth) return;
 
         setAuthLoading(true);
-        setAuthStatus(null);
-
         try {
-            const userCredential = await signInAnonymously(auth);
-            console.log("Guest User Signed In:", userCredential.user.uid);
-            setAuthStatus('success');
-            
-            // Close menu after a brief success display
-            setTimeout(() => {
-                onClose();
-            }, 1000);
+            if (user) {
+                // If already logged in, the action becomes 'Sign Out'
+                await signOut(auth);
+                console.log("User signed out");
+            } else {
+                // If not logged in, perform Guest Login
+                const userCredential = await signInAnonymously(auth);
+                console.log("Guest User Signed In:", userCredential.user.uid);
+                // We don't need to manually set user; onAuthStateChanged handles it
+            }
         } catch (error) {
-            console.error("Auth Error:", error.code, error.message);
-            setAuthStatus('error');
+            console.error("Auth Error:", error.message);
         } finally {
             setAuthLoading(false);
         }
@@ -60,9 +63,10 @@ const HamburgerMenu = ({ onClose, activeItems = ['home', 'profile', 'sandbox', '
         },
         version: { title: 'Version', icon: 'information-circle-outline', action: () => console.log("v1.0.5-Alpha") },
         auth: { 
-            title: authStatus === 'success' ? 'Connected!' : 'Log In (Guest)', 
-            icon: authStatus === 'success' ? 'checkmark-circle' : 'log-in-outline', 
-            action: handleGuestLogin 
+            // DYNAMIC TITLE: Shows 'Guest' if logged in anonymously, else 'Log In'
+            title: user ? (user.isAnonymous ? 'Guest (Sign Out)' : 'User (Sign Out)') : 'Log In / Sign Up', 
+            icon: user ? 'log-out-outline' : 'log-in-outline', 
+            action: handleAuthAction 
         },
     };
 
@@ -75,7 +79,7 @@ const HamburgerMenu = ({ onClose, activeItems = ['home', 'profile', 'sandbox', '
             onClose();
         } else if (item.action) {
             item.action();
-            // Don't close if it's settings (modal) or auth (needs to show loading/status)
+            // Don't close if it's settings (modal) or auth (needs to show loading)
             if (id !== 'settings' && id !== 'auth') onClose();
         }
     };
@@ -108,19 +112,18 @@ const HamburgerMenu = ({ onClose, activeItems = ['home', 'profile', 'sandbox', '
                             onPress={() => handleAction(id)}
                         >
                             {isAuthItem && authLoading ? (
-                                <ActivityIndicator size="small" color="#1D4ED8" />
+                                <ActivityIndicator size="small" color="#1D4ED8" style={{ width: 20 }} />
                             ) : (
                                 <Ionicons 
                                     name={item.icon} 
                                     size={20} 
-                                    color={isAuthItem && authStatus === 'error' ? '#EF4444' : "#1D4ED8"} 
+                                    color={isAuthItem && user ? '#EF4444' : "#1D4ED8"} 
                                 />
                             )}
                             
                             <Text style={[
                                 styles.menuItemText,
-                                isAuthItem && authStatus === 'error' && { color: '#EF4444' },
-                                isAuthItem && authStatus === 'success' && { color: '#10B981' }
+                                isAuthItem && user && { color: '#EF4444' } // Red text for Sign Out
                             ]}>
                                 {item.title}
                             </Text>
@@ -212,3 +215,4 @@ const styles = StyleSheet.create({
 
 export default HamburgerMenu;
 
+                                     
