@@ -1,20 +1,54 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Dimensions, Platform } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Dimensions, Platform, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import SettingsModal from './SettingsModal';
 
+// NEW: Firebase imports
+import { auth } from '../config/firebase';
+import { signInAnonymously } from 'firebase/auth';
+
 const { width, height } = Dimensions.get('window');
 
 /**
- * A Dropdown-style Navigation Menu.
- * Anchors to the top-right and provides quick access to app features.
+ * Updated HamburgerMenu with Firebase Guest Login Logic
  */
 const HamburgerMenu = ({ onClose, activeItems = ['home', 'profile', 'sandbox', 'settings', 'version', 'auth'] }) => {
     const router = useRouter();
     const [isSettingsVisible, setIsSettingsVisible] = useState(false);
+    
+    // NEW: Local state for auth feedback
+    const [authLoading, setAuthLoading] = useState(false);
+    const [authStatus, setAuthStatus] = useState(null); // 'success', 'error', or null
 
-    // Centralized definitions for menu items
+    // 1. Logic to handle guest login
+    const handleGuestLogin = async () => {
+        if (!auth) {
+            setAuthStatus('error');
+            console.error("Firebase Auth not initialized. Check your config.");
+            return;
+        }
+
+        setAuthLoading(true);
+        setAuthStatus(null);
+
+        try {
+            const userCredential = await signInAnonymously(auth);
+            console.log("Guest User Signed In:", userCredential.user.uid);
+            setAuthStatus('success');
+            
+            // Close menu after a brief success display
+            setTimeout(() => {
+                onClose();
+            }, 1000);
+        } catch (error) {
+            console.error("Auth Error:", error.code, error.message);
+            setAuthStatus('error');
+        } finally {
+            setAuthLoading(false);
+        }
+    };
+
     const MENU_DEFINITIONS = {
         home: { title: 'Home', icon: 'home-outline', path: '/' },
         profile: { title: 'Profile', icon: 'person-outline', path: '/userProfile/profile' },
@@ -25,7 +59,11 @@ const HamburgerMenu = ({ onClose, activeItems = ['home', 'profile', 'sandbox', '
             action: () => setIsSettingsVisible(true) 
         },
         version: { title: 'Version', icon: 'information-circle-outline', action: () => console.log("v1.0.5-Alpha") },
-        auth: { title: 'Log In / Sign Up', icon: 'log-in-outline', action: () => console.log("Auth trigger") },
+        auth: { 
+            title: authStatus === 'success' ? 'Connected!' : 'Log In (Guest)', 
+            icon: authStatus === 'success' ? 'checkmark-circle' : 'log-in-outline', 
+            action: handleGuestLogin 
+        },
     };
 
     const handleAction = (id) => {
@@ -37,14 +75,13 @@ const HamburgerMenu = ({ onClose, activeItems = ['home', 'profile', 'sandbox', '
             onClose();
         } else if (item.action) {
             item.action();
-            // Don't close the overlay if settings is open (modal needs the background)
-            if (id !== 'settings') onClose();
+            // Don't close if it's settings (modal) or auth (needs to show loading/status)
+            if (id !== 'settings' && id !== 'auth') onClose();
         }
     };
 
     return (
         <View style={styles.fullScreenOverlay}>
-            {/* Tapping the transparent background closes the dropdown */}
             <TouchableOpacity 
                 style={styles.backdrop} 
                 activeOpacity={1} 
@@ -58,28 +95,45 @@ const HamburgerMenu = ({ onClose, activeItems = ['home', 'profile', 'sandbox', '
                     const item = MENU_DEFINITIONS[id];
                     if (!item) return null;
                     
+                    const isAuthItem = id === 'auth';
+                    
                     return (
                         <TouchableOpacity 
                             key={id} 
+                            disabled={isAuthItem && authLoading}
                             style={[
                                 styles.menuItem, 
                                 index === activeItems.length - 1 && styles.lastItem
                             ]} 
                             onPress={() => handleAction(id)}
                         >
-                            <Ionicons name={item.icon} size={20} color="#1D4ED8" />
-                            <Text style={styles.menuItemText}>{item.title}</Text>
+                            {isAuthItem && authLoading ? (
+                                <ActivityIndicator size="small" color="#1D4ED8" />
+                            ) : (
+                                <Ionicons 
+                                    name={item.icon} 
+                                    size={20} 
+                                    color={isAuthItem && authStatus === 'error' ? '#EF4444' : "#1D4ED8"} 
+                                />
+                            )}
+                            
+                            <Text style={[
+                                styles.menuItemText,
+                                isAuthItem && authStatus === 'error' && { color: '#EF4444' },
+                                isAuthItem && authStatus === 'success' && { color: '#10B981' }
+                            ]}>
+                                {item.title}
+                            </Text>
                         </TouchableOpacity>
                     );
                 })}
             </View>
 
-            {/* Centralized Settings Modal */}
             {isSettingsVisible && (
                 <SettingsModal 
                     onClose={() => {
                         setIsSettingsVisible(false);
-                        onClose(); // Close both when done
+                        onClose();
                     }} 
                 />
             )}
@@ -98,17 +152,16 @@ const styles = StyleSheet.create({
     },
     backdrop: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.1)', // Very light dimming for dropdowns
+        backgroundColor: 'rgba(0,0,0,0.1)',
     },
     dropdownCard: {
         position: 'absolute',
-        top: Platform.OS === 'ios' ? 95 : 75, // Anchored below header
+        top: Platform.OS === 'ios' ? 95 : 75,
         right: 20,
         width: 220,
         backgroundColor: '#FFFFFF',
         borderRadius: 15,
         paddingVertical: 8,
-        // Shadow/Elevation for "Floating" effect
         ...Platform.select({
             ios: {
                 shadowColor: '#000',
