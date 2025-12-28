@@ -10,7 +10,15 @@ import { getFirestore } from 'firebase/firestore';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
 // 1. Setup Config from environment globals
-const firebaseConfig = JSON.parse(__firebase_config);
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDUkPq-CW-nwjxpYgXaxkiMggGkEma2Z_4",
+  authDomain: "impworld-a9539.firebaseapp.com",
+  projectId: "impworld-a9539",
+  storageBucket: "impworld-a9539.firebasestorage.app",
+  messagingSenderId: "489040160134",
+  appId: "1:489040160134:web:4b09d4929ba6e590873807"
+};
 
 // 2. Initialize App
 const app = initializeApp(firebaseConfig);
