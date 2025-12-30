@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Platform, Dimensions, Animated, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
+import { useFocusEffect } from '@react-navigation/native'; // Highly recommended for refreshing data
 
 // Firebase Imports
 import { auth, db, appId } from '../src/config/firebase';
@@ -18,7 +19,7 @@ const SCREEN_HEIGHT = Dimensions.get('window').height - (Platform.OS === 'androi
 const STEP_SIZE = 4;
 const MOVEMENT_SPEED_MS = 25; 
 
-// Default Avatar if none is found in cloud
+// Default Avatar matches the Oval component props
 const DEFAULT_AVATAR = {
     color: '#8A2BE2',
     patternId: null,
@@ -43,33 +44,48 @@ const WorldScreen = () => {
     const worldOffsetAnim = useRef(new Animated.ValueXY({ x: initialOffsetX, y: initialOffsetY })).current;
     const worldOffsetRef = useRef({ x: initialOffsetX, y: initialOffsetY });
 
-    // 1. Fetch Cloud Avatar on Load
-    useEffect(() => {
-        const fetchPlayerAvatar = async () => {
-            if (!auth.currentUser) {
-                console.log("No user detected, using default avatar.");
-                setIsLoading(false);
-                return;
+    // 1. Fetch Cloud Avatar
+    // Using useCallback + useFocusEffect ensures that if the user 
+    // edits their avatar and comes back, the world updates.
+    const fetchPlayerAvatar = useCallback(async () => {
+        if (!auth.currentUser) {
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            const avatarRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'settings', 'avatar');
+            const docSnap = await getDoc(avatarRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setPlayerCustomization({
+                    color: data.color || DEFAULT_AVATAR.color,
+                    patternId: data.patternId || null,
+                    patternColor: data.patternColor || DEFAULT_AVATAR.patternColor,
+                    shape: data.shape || DEFAULT_AVATAR.shape
+                });
             }
-
-            try {
-                // Path mandated by Rule 1
-                const avatarRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'settings', 'avatar');
-                const docSnap = await getDoc(avatarRef);
-
-                if (docSnap.exists()) {
-                    setPlayerCustomization(docSnap.data());
-                    console.log("Cloud Avatar Loaded successfully.");
-                }
-            } catch (error) {
-                console.error("Failed to load cloud avatar:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchPlayerAvatar();
+        } catch (error) {
+            console.error("Failed to load cloud avatar:", error);
+        } finally {
+            setIsLoading(false);
+        }
     }, []);
+
+    // Trigger fetch on initial load
+    useEffect(() => {
+        fetchPlayerAvatar();
+    }, [fetchPlayerAvatar]);
+
+    // Optional: Refresh when screen comes into focus (if using React Navigation)
+    /*
+    useFocusEffect(
+        useCallback(() => {
+            fetchPlayerAvatar();
+        }, [fetchPlayerAvatar])
+    );
+    */
 
     const moveWorld = (direction) => {
         let { x, y } = worldOffsetRef.current;
@@ -105,7 +121,7 @@ const WorldScreen = () => {
         return (
             <View style={[styles.fullContainer, styles.centered, { backgroundColor: INITIAL_DARK_MODE ? DARK_BG_COLOR : LIGHT_BG_COLOR }]}>
                 <ActivityIndicator size="large" color={PRIMARY_COLOR} />
-                <Text style={{ marginTop: 10, color: PRIMARY_COLOR }}>Summoning your Imp...</Text>
+                <Text style={{ marginTop: 10, color: PRIMARY_COLOR, fontWeight: '600' }}>Entering World...</Text>
             </View>
         );
     }
@@ -128,7 +144,6 @@ const WorldScreen = () => {
                     </View>
                 </Animated.View>
                 
-                {/* 2. Pass the cloud-fetched customization to the Player component */}
                 <Player 
                     activeDirection={activeDirection} 
                     customization={playerCustomization} 
