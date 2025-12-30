@@ -14,12 +14,13 @@ import { useTheme } from '../src/context/ThemeContext';
 const VIEWBOX_SIZE = 100;
 const ACCENT_COLOR = '#10B981';
 
+// Consistent data structure for Cloud and Local State
 const DEFAULT_CUSTOMIZATION = {
     type: 'egg',
-    color: '#059669',        // Slot 1 (Base)
-    patternId: null,         // Pattern ID
-    patternColor: '#FFFFFF', // Slot 2 (Pattern)
-    shape: { hy: 60, wx: 40, wy: 35 }
+    color: '#059669',        // Base Color
+    patternId: null,         // Pattern Reference
+    patternColor: '#FFFFFF', // Pattern Detail Color
+    shape: { hy: 60, wx: 40, wy: 35 } // Shared geometry params
 };
 
 const AvatarCustomizer = ({ onSave, onCancel }) => {
@@ -33,7 +34,7 @@ const AvatarCustomizer = ({ onSave, onCancel }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
 
-    // 1. Fetch existing avatar on load
+    // Fetch existing avatar on load
     useEffect(() => {
         const fetchAvatar = async () => {
             if (!auth.currentUser) {
@@ -42,17 +43,16 @@ const AvatarCustomizer = ({ onSave, onCancel }) => {
             }
 
             try {
-                // Rule 1 Path: artifacts/{appId}/users/{userId}/{collectionName}/{docId}
                 const avatarRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'settings', 'avatar');
                 const docSnap = await getDoc(avatarRef);
 
                 if (docSnap.exists()) {
                     setCustomization(docSnap.data());
-                    setStatus('Welcome back! Your avatar is loaded.');
+                    setStatus('Cloud profile loaded.');
                 }
             } catch (error) {
                 console.error("Error fetching avatar:", error);
-                setStatus('Could not load saved avatar.');
+                setStatus('Local mode (load failed).');
             } finally {
                 setIsLoading(false);
             }
@@ -61,37 +61,41 @@ const AvatarCustomizer = ({ onSave, onCancel }) => {
         fetchAvatar();
     }, []);
 
-    // 2. Save logic to Firestore
+    // Updated Save Logic
     const handleSaveToCloud = async () => {
         if (!auth.currentUser) {
-            setStatus('Please log in (Guest) to save to the cloud.');
+            setStatus('Please log in (Guest) to sync cloud data.');
             return;
         }
 
         setIsSaving(true);
-        setStatus('Syncing with ImpWorld...');
+        setStatus('Transmitting to ImpWorld...');
 
         try {
-            // Rule 1 Path
             const avatarRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'settings', 'avatar');
             
-            // Save to Firestore
-            await setDoc(avatarRef, {
-                ...customization,
+            // Explicitly defining the structure to ensure world.jsx receives exactly what it needs
+            const payload = {
+                type: customization.type,
+                color: customization.color,
+                patternId: customization.patternId,
+                patternColor: customization.patternColor,
+                shape: customization.shape,
                 lastUpdated: new Date().toISOString()
-            }, { merge: true });
+            };
 
-            setStatus('Saved to cloud!');
-            if (onSave) onSave(customization);
+            await setDoc(avatarRef, payload, { merge: true });
+
+            setStatus('Cloud Sync Successful!');
+            if (onSave) onSave(payload);
         } catch (error) {
             console.error("Error saving avatar:", error);
-            setStatus('Save failed. Check connection.');
+            setStatus('Sync error. Retrying later.');
         } finally {
             setIsSaving(false);
         }
     };
 
-    // Coordinate mapping for touch events
     const convertPixelsToUnits = useCallback((pxX, pxY) => {
         if (previewWindowPixelSize === 0) return { unitX: pxX, unitY: pxY };
         let unitX = Math.max(0, Math.min(VIEWBOX_SIZE, (pxX / previewWindowPixelSize) * VIEWBOX_SIZE));
@@ -105,7 +109,6 @@ const AvatarCustomizer = ({ onSave, onCancel }) => {
         setCustomization(prev => ({ ...prev, shape: newShape }));
     }, []);
 
-    // Color/Pattern Handlers
     const handleColorChange = (newColor) => setCustomization(prev => ({ ...prev, color: newColor }));
     const handlePatternColorChange = (newColor) => setCustomization(prev => ({ ...prev, patternColor: newColor }));
     const handlePatternChange = (newPatternId) => setCustomization(prev => ({ ...prev, patternId: newPatternId }));
@@ -151,7 +154,6 @@ const AvatarCustomizer = ({ onSave, onCancel }) => {
         return (
             <View style={[dynamicStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
                 <ActivityIndicator size="large" color={colors.primary} />
-                <Text style={{ color: colors.text, marginTop: 10 }}>Fetching your avatar...</Text>
             </View>
         );
     }
@@ -163,7 +165,7 @@ const AvatarCustomizer = ({ onSave, onCancel }) => {
                     <TouchableOpacity onPress={onCancel}>
                         <Ionicons name="chevron-back" size={32} color={colors.primary} />
                     </TouchableOpacity>
-                    <Text style={dynamicStyles.headerTitle}>Customize Avatar</Text>
+                    <Text style={dynamicStyles.headerTitle}>Imp Studio</Text>
                     <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
                         <Ionicons name="menu" size={32} color={colors.primary} />
                     </TouchableOpacity>
@@ -199,8 +201,8 @@ const AvatarCustomizer = ({ onSave, onCancel }) => {
                             <ActivityIndicator color="white" />
                         ) : (
                             <>
-                                <Ionicons name="cloud-upload-outline" size={24} color="white" style={{ marginRight: 10 }} />
-                                <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 18 }}>SAVE TO CLOUD</Text>
+                                <Ionicons name="cloud-done-outline" size={24} color="white" style={{ marginRight: 10 }} />
+                                <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 18 }}>SYNC AVATAR</Text>
                             </>
                         )}
                     </TouchableOpacity>
@@ -231,3 +233,4 @@ const AvatarCustomizer = ({ onSave, onCancel }) => {
 
 export default AvatarCustomizer;
 
+    
