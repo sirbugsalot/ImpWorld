@@ -9,6 +9,7 @@ import { GrassTerrain, GravelTerrain, InteriorTerrain } from './env/terrains/Ter
 import PatternLibrary from './src/patterns/PatternLibrary';
 import ColorPicker from './src/components/ColorPicker';
 import HamburgerMenu from './src/components/HamburgerMenu';
+import Imp from './src/components/Imp';
 
 const { width } = Dimensions.get('window');
 const GRID_COLUMNS = 6;
@@ -22,12 +23,19 @@ const Sandbox = () => {
     const [editingIndex, setEditingIndex] = useState(null);
 
     const [terrainGrid, setTerrainGrid] = useState(Array(18).fill('grass'));
-    // Each tile now tracks both base color AND pattern color
     const [patternGrid, setPatternGrid] = useState(Array(18).fill({ 
         id: 'polka-dots', 
         color: '#6366F1',
-        patternColor: '#FFFFFF' // Default pattern color
+        patternColor: '#FFFFFF' 
     }));
+
+    // Imp Customization State for Testing
+    const [impConfig, setImpConfig] = useState({
+        bodyColor: "#E0E0E0",
+        hairColor: "#5D4037",
+        noseSize: 0.6,
+        eyeScale: 1.0
+    });
 
     const terrainTypes = ['grass', 'gravel', 'interior'];
 
@@ -41,20 +49,6 @@ const Sandbox = () => {
         if (editingIndex === null) return;
         const nextGrid = [...patternGrid];
         nextGrid[editingIndex] = { ...nextGrid[editingIndex], id };
-        setPatternGrid(nextGrid);
-    };
-
-    const handleUpdateBaseColor = (color) => {
-        if (editingIndex === null) return;
-        const nextGrid = [...patternGrid];
-        nextGrid[editingIndex] = { ...nextGrid[editingIndex], color };
-        setPatternGrid(nextGrid);
-    };
-
-    const handleUpdatePatternColor = (color) => {
-        if (editingIndex === null) return;
-        const nextGrid = [...patternGrid];
-        nextGrid[editingIndex] = { ...nextGrid[editingIndex], patternColor: color };
         setPatternGrid(nextGrid);
     };
 
@@ -72,6 +66,33 @@ const Sandbox = () => {
                         <Ionicons name={isDarkMode ? "sunny" : "moon"} size={18} color="white" />
                         <Text style={styles.themeToggleText}>Toggle Theme</Text>
                     </TouchableOpacity>
+                </View>
+
+                {/* NEW: Entity Research Section */}
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Entity Research (Imp)</Text>
+                <View style={[styles.impPreviewFrame, { borderColor: colors.border }]}>
+                    <View style={styles.impDisplay}>
+                         <Imp 
+                            hairColor={impConfig.hairColor}
+                            noseSize={impConfig.noseSize}
+                            bodyColor={impConfig.bodyColor}
+                            eyeScale={impConfig.eyeScale}
+                         />
+                    </View>
+                    <View style={styles.impControls}>
+                        <TouchableOpacity 
+                            style={styles.miniControl} 
+                            onPress={() => setImpConfig(prev => ({ ...prev, noseSize: prev.noseSize > 1 ? 0.4 : 1.2 }))}
+                        >
+                            <Text style={styles.miniControlText}>Toggle Nose</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            style={styles.miniControl} 
+                            onPress={() => setImpConfig(prev => ({ ...prev, hairColor: prev.hairColor === "#5D4037" ? "#EF4444" : "#5D4037" }))}
+                        >
+                            <Text style={styles.miniControlText}>Toggle Hair</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>Terrains (6x3)</Text>
@@ -103,8 +124,16 @@ const Sandbox = () => {
                     selectedColor={patternGrid[editingIndex].color}
                     patternColor={patternGrid[editingIndex].patternColor || '#FFFFFF'}
                     selectedPattern={patternGrid[editingIndex].id}
-                    onColorChange={handleUpdateBaseColor}
-                    onPatternColorChange={handleUpdatePatternColor}
+                    onColorChange={(color) => {
+                        const next = [...patternGrid];
+                        next[editingIndex].color = color;
+                        setPatternGrid(next);
+                    }}
+                    onPatternColorChange={(color) => {
+                        const next = [...patternGrid];
+                        next[editingIndex].patternColor = color;
+                        setPatternGrid(next);
+                    }}
                     onPatternChange={handleUpdatePattern}
                     onClose={() => setEditingIndex(null)}
                 />
@@ -125,7 +154,20 @@ const styles = StyleSheet.create({
     themeToggleText: { color: 'white', fontWeight: 'bold', marginLeft: 6, fontSize: 12 },
     sectionTitle: { fontSize: 14, fontWeight: '800', marginTop: 20, marginBottom: 10, textTransform: 'uppercase' },
     gridContainer: { flexDirection: 'row', flexWrap: 'wrap', width: TILE_SIZE * GRID_COLUMNS, alignSelf: 'center' },
-    gridTile: { width: TILE_SIZE, height: TILE_SIZE, backgroundColor: '#333', overflow: 'hidden' }
+    gridTile: { width: TILE_SIZE, height: TILE_SIZE, backgroundColor: '#333', overflow: 'hidden' },
+    impPreviewFrame: { 
+        flexDirection: 'row', 
+        height: 120, 
+        borderWidth: 1, 
+        borderRadius: 12, 
+        padding: 10, 
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.02)'
+    },
+    impDisplay: { width: 100, height: 100 },
+    impControls: { flex: 1, paddingLeft: 20 },
+    miniControl: { backgroundColor: '#4B5563', padding: 8, borderRadius: 6, marginBottom: 8 },
+    miniControlText: { color: 'white', fontSize: 12, fontWeight: 'bold', textAlign: 'center' }
 });
 
 export default Sandbox;
