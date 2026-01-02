@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Mascot = ({ 
+const Imp = ({ 
   hairColor = "#4A90E2", 
   bodyColor = "#F5F5F5", 
   noseSize = 0.8, 
