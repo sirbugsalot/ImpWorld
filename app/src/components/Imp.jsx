@@ -1,5 +1,6 @@
 import React from 'react';
 import Svg, { Path, Circle, G } from 'react-native-svg';
+import { Oval } from '../src/components/shapes';
 
 const Imp = ({ 
   hairColor = "#4A90E2", 
@@ -9,8 +10,13 @@ const Imp = ({
   return (
     <Svg viewBox="0 0 200 200" width="100%" height="100%">
       {/* --- Body --- */}
-      <Circle cx="100" cy="110" r="60" fill={bodyColor} stroke="#333" strokeWidth="2" />
-
+      <Oval 
+                    pos={{ x: 50, y: 95 }} // Positioned near bottom of local 100x100 box
+                    shape={shape} 
+                    color={color} 
+                    patternId={patternId} 
+                    patternColor={patternColor} 
+      />
       {/* --- Smooth Wavy Hair using T --- 
           M 50 80          -> Start the pen at the left temple
           Q 65 30, 80 60   -> Initial curve (Control point at 65,30)
