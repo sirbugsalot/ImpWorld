@@ -14,92 +14,58 @@ import Svg, {
 const Imp = ({ 
   hairColor = "#4A90E2", 
   bodyColor = "#F5F5F5", 
-  noseSize = 0.8, 
-  showPencil = true,
-  smileType = "benevolent" 
+  noseSize = 0.8,
+  eyeSize = 5 // Example of your "learning tool" customization
 }) => {
   return (
-    <Svg 
-      viewBox="0 0 200 200" 
-      width="100%" 
-      height="100%"
-    >
-      {/* --- Body --- */}
-      <Circle cx="100" cy="110" r="60" fill={bodyColor} stroke="#333" strokeWidth="2" />
-
-      {/* --- Panda/Cat Hybrid Ears --- */}
-      {/* Left Ear */}
+    <Svg viewBox="0 0 200 200" width="100%" height="100%">
+      {/* BODY SHAPE (The "Teardrop" style from your image)
+        M: Start at bottom center
+        Q: Curve up left side to the neck
+        Q: Curve around the top of the head
+        Q: Curve down the right side
+        Z: Close at the bottom
+      */}
       <Path 
-        d="M60 60 Q40 20 80 50" 
-        fill="#333" 
+        d="M 100 180 
+           Q 40 180, 50 110 
+           Q 50 40, 100 40 
+           Q 150 40, 150 110 
+           Q 160 180, 100 180 
+           Z" 
+        fill={bodyColor} 
         stroke="#333" 
-        strokeWidth="2" 
-        strokeLinecap="round" 
-      />
-      {/* Right Ear - Poking through hair */}
-      <Path 
-        d="M120 50 Q160 20 140 60" 
-        fill="#333" 
-        stroke="#333" 
-        strokeWidth="2" 
+        strokeWidth="3" 
       />
 
-      {/* --- Messy Hair --- */}
-      <Path 
-        d="M50 70 Q40 40 70 50 T100 30 T130 50 T150 70" 
-        fill="none" 
-        stroke={hairColor} 
-        strokeWidth="8" 
-        strokeLinecap="round" 
-      />
-      <Path 
-        d="M65 60 Q80 35 95 55 M105 55 Q120 35 135 60" 
-        stroke={hairColor} 
-        strokeWidth="4" 
-        fill="none" 
-      />
-
-      {/* --- Face --- */}
-      {/* Eyes */}
-      <Circle cx="80" cy="95" r="5" fill="#333" />
-      <Circle cx="120" cy="95" r="5" fill="#333" />
-      
-      {/* Small Nose */}
-      <Ellipse 
-        cx="100" 
-        cy="105" 
-        rx={4 * noseSize} 
-        ry={3 * noseSize} 
-        fill="#FF9999" 
-      />
-
-      {/* Benevolent Smile */}
-      <Path 
-        d="M85 115 Q100 130 115 115" 
-        fill="none" 
-        stroke="#333" 
-        strokeWidth="2" 
-        strokeLinecap="round" 
-      />
-
-      {/* --- Left Arm & Yellow Pencil --- */}
-      <G transform="translate(45, 120)">
-        {/* Arm */}
-        <Path d="M0 0 Q-20 10 -10 30" fill="none" stroke={bodyColor} strokeWidth="12" strokeLinecap="round" />
-        <Path d="M0 0 Q-20 10 -10 30" fill="none" stroke="#333" strokeWidth="2" strokeLinecap="round" />
+      {/* FACE FEATURES */}
+      <G>
+        {/* Eyes - using your request for adjustable size */}
+        <Circle cx="80" cy="90" r={eyeSize} fill="#333" />
+        <Circle cx="120" cy="90" r={eyeSize} fill="#333" />
         
-        {/* Simple Yellow Pencil */}
-        {showPencil && (
-          <G transform="rotate(-15, -10, 30)">
-            <Rect x="-13" y="20" width="6" height="25" fill="#FFD700" stroke="#333" strokeWidth="1" />
-            <Path d="M-13 45 L-10 52 L-7 45 Z" fill="#F5CBA7" stroke="#333" strokeWidth="1" />
-            <Path d="M-11 50 L-10 52 L-9 50 Z" fill="#333" />
-          </G>
-        )}
-        
-        {/* Hand closing over pencil */}
-        <Circle cx="-10" cy="30" r="8" fill={bodyColor} stroke="#333" strokeWidth="2" />
+        {/* Mouth - A simple benevolent curve */}
+        <Path 
+          d="M 85 110 Q 100 125, 115 110" 
+          fill="none" 
+          stroke="#333" 
+          strokeWidth="2" 
+          strokeLinecap="round" 
+        />
       </G>
+
+      {/* MESSY HAIR 
+        Using 'M' to jump and 'Q' to create individual tufts
+      */}
+      <Path 
+        d="M 70 45 Q 60 10, 85 35 
+           M 90 35 Q 100 0, 115 35
+           M 120 35 Q 140 10, 130 50" 
+        stroke={hairColor} 
+        strokeWidth="6" 
+        fill="none" 
+        strokeLinecap="round"
+      />
     </Svg>
   );
 };
