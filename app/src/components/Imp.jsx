@@ -1,6 +1,6 @@
 import React from 'react';
 import Svg, { Path, Circle, G } from 'react-native-svg';
-import { Oval } from '../src/components/shapes';
+import { Oval } from '../components/shapes';
 
 
 const { 
