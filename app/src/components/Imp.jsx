@@ -1,68 +1,70 @@
 import React from 'react';
 import Svg, { Path, Circle, G } from 'react-native-svg';
-import { Oval } from '../components/shapes';
+// Note: Ensure the path to shapes is correct for your local environment
+import { Oval } from './shapes'; 
 
-
-const { 
+/**
+ * Imp Component
+ * Fixed scope issues and tag capitalization to prevent sandbox crashes.
+ */
+const Imp = ({ 
+  customization, // Passed in from Sandbox or WorldScreen
+  hairColor = "#4A90E2", 
+  waveIntensity = 20,
+  eyeSize = 5,
+  noseSize = 0.8
+}) => {
+    // FIX 1: Destructuring MUST happen inside the component to access the 'customization' prop
+    const { 
         color = '#8A2BE2', 
         shape = { hy: 60, wx: 40, wy: 35 }, 
         patternId = null, 
         patternColor = '#FFFFFF' 
-    } = customization || {};
+    } = customization || {}; // Fallback to empty object to prevent "cannot read property of undefined"
 
-const Imp = ({ 
-  hairColor = "#4A90E2", 
-  bodyColor = "#F5F5F5",
-  waveIntensity = 20 // We can use this to make the hair "messier"
-}) => {
-  return (
-    <Svg viewBox="0 0 200 200" width="100%" height="100%">
-      {/* --- Body --- */}
-      <Oval 
-                    pos={{ x: 50, y: 95 }} // Positioned near bottom of local 100x100 box
+    return (
+        /* FIX 2: Use capitalized <Svg> for React Native compatibility */
+        <Svg viewBox="0 0 200 200" width="100%" height="100%">
+            
+            {/* --- Body (The Oval) --- */}
+            <G transform="scale(2)">
+                <Oval 
+                    pos={{ x: 50, y: 85 }} 
                     shape={shape} 
                     color={color} 
                     patternId={patternId} 
                     patternColor={patternColor} 
-      />
-      {/* --- Smooth Wavy Hair using T --- 
-          M 50 80          -> Start the pen at the left temple
-          Q 65 30, 80 60   -> Initial curve (Control point at 65,30)
-          T 110 60         -> Smoothly continues to 110,60
-          T 140 60         -> Smoothly continues to 140,60
-          T 160 90         -> Ends at the right temple
-      */}
-      <Path 
-        d={`M 50 80 
-            Q 75 ${80 - waveIntensity}, 100 80 
-            T 150 80`} 
-        fill="none" 
-        stroke={hairColor} 
-        strokeWidth="8" 
-        strokeLinecap="round" 
-      />
+                />
+            </G>
 
-      {/* --- Spiky T-Path (Adding points to make it look messy) --- */}
-      <Path 
-        d="M 60 70 
-           Q 80 20, 100 70 
-           T 140 70" 
-        fill="none" 
-        stroke={hairColor} 
-        strokeWidth="4" 
-        strokeLinecap="round"
-        opacity="0.7"
-      />
+            {/* --- Messy Hair using T-command --- */}
+            <Path 
+                d={`M 50 80 
+                    Q 75 ${80 - waveIntensity}, 100 80 
+                    T 150 80`} 
+                fill="none" 
+                stroke={hairColor} 
+                strokeWidth="8" 
+                strokeLinecap="round" 
+            />
 
-      {/* Face for context */}
-      <G>
-        <Circle cx="80" cy="100" r="5" fill="#333" />
-        <Circle cx="120" cy="100" r="5" fill="#333" />
-        <Path d="M 90 120 Q 100 130 110 120" stroke="#333" strokeWidth="2" fill="none" strokeLinecap="round" />
-      </G>
-    </Svg>
-  );
+            {/* --- Face Overlay --- */}
+            <G>
+                {/* Eyes - Adjustable for your learning tool */}
+                <Circle cx="80" cy="100" r={eyeSize} fill="#333" />
+                <Circle cx="120" cy="100" r={eyeSize} fill="#333" />
+                
+                {/* Benevolent Smile */}
+                <Path 
+                    d="M 85 125 Q 100 135, 115 125" 
+                    stroke="#333" 
+                    strokeWidth="2" 
+                    fill="none" 
+                    strokeLinecap="round" 
+                />
+            </G>
+        </Svg>
+    );
 };
 
 export default Imp;
-
