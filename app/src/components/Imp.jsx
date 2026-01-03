@@ -2,6 +2,14 @@ import React from 'react';
 import Svg, { Path, Circle, G } from 'react-native-svg';
 import { Oval } from '../src/components/shapes';
 
+
+const { 
+        color = '#8A2BE2', 
+        shape = { hy: 60, wx: 40, wy: 35 }, 
+        patternId = null, 
+        patternColor = '#FFFFFF' 
+    } = customization || {};
+
 const Imp = ({ 
   hairColor = "#4A90E2", 
   bodyColor = "#F5F5F5",
