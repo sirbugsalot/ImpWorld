@@ -52,8 +52,8 @@ const Imp = ({
                     strokeLinecap="round" 
                 />
             </G>
-          {/* reference point */}
-          <Circle cx="100" cy="160" r=2 fill="#333" />
+            {/* reference point */}
+            <Circle cx="100" cy="160" r=2 fill="#333" />
         </Svg>
     );
 };
