@@ -53,7 +53,7 @@ const Imp = ({
                 />
             </G>
           {/* reference point */}
-          <Circle cx="100" cy="160" r=2 fill="#111" />
+          <Circle cx="100" cy="160" r=2 fill="#333" />
         </Svg>
     );
 };
