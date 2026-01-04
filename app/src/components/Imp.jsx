@@ -17,7 +17,7 @@ const Imp = ({
     // FIX 1: Destructuring MUST happen inside the component to access the 'customization' prop
     const { 
         color = '#8A2BE2', 
-        shape = { hy: 80, wx: 30, wy: 60 }, 
+        shape = { hy: 90, wx: 40, wy: 80 }, 
         patternId = null, 
         patternColor = '#FFFFFF' 
     } = customization || {}; // Fallback to empty object to prevent "cannot read property of undefined"
@@ -35,6 +35,9 @@ const Imp = ({
                     patternId={patternId} 
                     patternColor={patternColor} 
                 />
+                {/* reference point */}
+                <Circle cx="50" cy="85" r="2" fill="#333" />
+              
             </G>
 
             {/* --- Face Overlay --- */}
@@ -43,9 +46,7 @@ const Imp = ({
                 <Circle cx="80" cy="100" r={eyeSize} fill="#333" />
                 <Circle cx="120" cy="100" r={eyeSize} fill="#333" />
               
-                {/* reference point */}
-                <Circle cx="100" cy="160" r="2" fill="#333" />
-              
+                
                 {/* Benevolent Smile */}
                 <Path 
                     d="M 85 125 Q 100 135, 115 125" 
