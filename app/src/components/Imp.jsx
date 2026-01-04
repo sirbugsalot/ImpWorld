@@ -42,7 +42,10 @@ const Imp = ({
                 {/* Eyes - Adjustable for your learning tool */}
                 <Circle cx="80" cy="100" r={eyeSize} fill="#333" />
                 <Circle cx="120" cy="100" r={eyeSize} fill="#333" />
-                
+              
+                {/* reference point */}
+                <Circle cx="100" cy="160" r="2" fill="#333" />
+              
                 {/* Benevolent Smile */}
                 <Path 
                     d="M 85 125 Q 100 135, 115 125" 
@@ -52,8 +55,7 @@ const Imp = ({
                     strokeLinecap="round" 
                 />
             </G>
-            {/* reference point */}
-            <Circle cx="100" cy="160" r=2 fill="#333" />
+            
         </Svg>
     );
 };
