@@ -32,9 +32,9 @@ const Imp = ({
                 {/* FIX: Changed double quotes to backticks so ${pos.x} evaluates correctly */}
                 <Path 
                     d={`M ${pos.x} ${pos.y} 
-                       Q ${pos.x}-15 ${pos.y}+5, ${pos.x}-15 ${pos.y}+13 
-                       Q ${pos.x}-10 ${pos.y}+13, ${pos.x}-15 ${pos.y}+17 
-                       T ${pos.x}-20 ${pos.y}+17`} 
+                       Q ${pos.x-15} ${pos.y+5}, ${pos.x-15} ${pos.y+13}
+                       Q ${pos.x-10} ${pos.y+13}, ${pos.x}-15 ${pos.y+17}
+                       T ${pos.x-20} ${pos.y+17}`} 
                     stroke="#FF0000" 
                     strokeWidth="1" 
                     fill="none" 
