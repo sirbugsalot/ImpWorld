@@ -32,7 +32,7 @@ const Imp = ({
                     d={`M ${pos.x} ${pos.y} 
                        Q ${pos.x - 15} ${pos.y + 5}, ${pos.x - 15} ${pos.y + 13}
                        Q ${pos.x - 10} ${pos.y + 13}, ${pos.x - 15} ${pos.y + 17}
-                       T ${pos.x - 20} ${pos.y + 17}
+                       Q ${pos.x - 17} ${pos.y + 20}, ${pos.x - 20} ${pos.y + 17}
                        L ${pos.x - shape.wx/2} ${shape.wy}
                        Z`} 
                     stroke="#FF0000" 
