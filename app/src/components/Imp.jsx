@@ -17,6 +17,7 @@ const Imp = ({
     // FIX 1: Destructuring MUST happen inside the component to access the 'customization' prop
     const { 
         color = '#8A2BE2', 
+        pos = { x: 50, y: 80 },
         shape = { hy: 80, wx: 70, wy: 60 }, 
         patternId = null, 
         patternColor = '#FFFFFF' 
@@ -37,7 +38,7 @@ const Imp = ({
                     strokeLinecap="round" 
                 />
                 <Oval 
-                    pos={{ x: 50, y: 80 }} 
+                    pos={pos} 
                     shape={shape} 
                     color={color} 
                     patternId={patternId} 
