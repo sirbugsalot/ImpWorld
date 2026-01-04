@@ -30,21 +30,21 @@ const Imp = ({
             <G transform="scale(2)">
                 {/* --- left foot --- */}
                 <Path 
-                    d="M 50 90 Q 40 90, 40 100 Q 50 105, 40 110" 
+                    d="M 50 80 Q 40 80, 40 90 Q 50 95, 40 97" 
                     stroke="#333" 
                     strokeWidth="3" 
                     fill="none" 
                     strokeLinecap="round" 
                 />
                 <Oval 
-                    pos={{ x: 50, y: 90 }} 
+                    pos={{ x: 50, y: 80 }} 
                     shape={shape} 
                     color={color} 
                     patternId={patternId} 
                     patternColor={patternColor} 
                 />
                 {/* reference point */}
-                <Circle cx="50" cy="90" r="2" fill="#333" />
+                <Circle cx="50" cy="80" r="2" fill="#333" />
               
             </G>
 
