@@ -33,7 +33,19 @@ const Imp = ({
                        Q ${pos.x - 15} ${pos.y + 5}, ${pos.x - 15} ${pos.y + 13}
                        Q ${pos.x - 13} ${pos.y + 13}, ${pos.x - 15} ${pos.y + 16}
                        Q ${pos.x - 18} ${pos.y + 18}, ${pos.x - 22} ${pos.y + 16}
-                       Q ${pos.x - shape.wx/2 -3} ${shape.wy+20}, ${pos.x - shape.wx/2} ${shape.wy}
+                       Q ${pos.x - shape.wx/2 - 3} ${shape.wy + 20}, ${pos.x - shape.wx/2} ${shape.wy}
+                       Z`} 
+                    stroke="#FF0000" 
+                    strokeWidth="1" 
+                    fill={color}
+                    strokeLinecap="round" 
+                />
+                {/* --- Right Foot --- */}
+                <Path 
+                    d={`M ${pos.x + 2} ${pos.y} 
+                       Q ${pos.x + 8} ${pos.y + 12}, ${pos.x + 8} ${pos.y + 15}
+                       Q ${pos.x + 18} ${pos.y + 15}, ${pos.x + 13} ${pos.y + 13}
+                       Q ${pos.x + shape.wx/2 + 3} ${shape.wy + 25}, ${pos.x + shape.wx/2 - 5} ${shape.wy}
                        Z`} 
                     stroke="#FF0000" 
                     strokeWidth="1" 
