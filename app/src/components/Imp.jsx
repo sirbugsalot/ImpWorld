@@ -37,17 +37,6 @@ const Imp = ({
                 />
             </G>
 
-            {/* --- Messy Hair using T-command --- */}
-            <Path 
-                d={`M 50 80 
-                    Q 75 ${80 - waveIntensity}, 100 80 
-                    T 150 80`} 
-                fill="none" 
-                stroke={hairColor} 
-                strokeWidth="8" 
-                strokeLinecap="round" 
-            />
-
             {/* --- Face Overlay --- */}
             <G>
                 {/* Eyes - Adjustable for your learning tool */}
