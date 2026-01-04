@@ -16,7 +16,7 @@ const Imp = ({
     const { 
         color = '#8A2BE2', 
         pos = { x: 50, y: 80 },
-        shape = { hy: 80, wx: 50, wy: 60 }, 
+        shape = { hy: 80, wx: 70, wy: 40 }, 
         patternId = null, 
         patternColor = '#FFFFFF' 
     } = customization || {};
@@ -32,10 +32,12 @@ const Imp = ({
                     d={`M ${pos.x} ${pos.y} 
                        Q ${pos.x - 15} ${pos.y + 5}, ${pos.x - 15} ${pos.y + 13}
                        Q ${pos.x - 10} ${pos.y + 13}, ${pos.x - 15} ${pos.y + 17}
-                       T ${pos.x - 25} ${pos.y + 17}`} 
+                       T ${pos.x - 20} ${pos.y + 17}
+                       L ${pos.x - shape.wx/2} ${shape.wy}
+                       Z`} 
                     stroke="#FF0000" 
                     strokeWidth="1" 
-                    fill="none" 
+                    fill={color}
                     strokeLinecap="round" 
                 />
 
