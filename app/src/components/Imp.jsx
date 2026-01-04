@@ -28,6 +28,14 @@ const Imp = ({
             
             {/* --- Body (The Oval) --- */}
             <G transform="scale(2)">
+                {/* --- left foot --- */}
+                <Path 
+                    d="M 50 90 Q 20 90, 40 100" 
+                    stroke="#333" 
+                    strokeWidth="3" 
+                    fill="none" 
+                    strokeLinecap="round" 
+                />
                 <Oval 
                     pos={{ x: 50, y: 90 }} 
                     shape={shape} 
