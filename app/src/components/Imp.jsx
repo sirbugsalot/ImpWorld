@@ -43,8 +43,9 @@ const Imp = ({
                 {/* --- Right Foot --- */}
                 <Path 
                     d={`M ${pos.x + 2} ${pos.y} 
-                       Q ${pos.x + 8} ${pos.y + 10}, ${pos.x + 8} ${pos.y + 15}
-                       Q ${pos.x + 18} ${pos.y + 20}, ${pos.x + 13} ${pos.y + 13}
+                       Q ${pos.x + 9} ${pos.y + 12}, ${pos.x + 8} ${pos.y + 17}
+                       Q ${pos.x + 11} ${pos.y + 20}, ${pos.x + 14} ${pos.y + 17}
+                       Q ${pos.x + 16} ${pos.y + 15}, ${pos.x + 12} ${pos.y + 14}
                        Q ${pos.x + shape.wx/2 + 3} ${shape.wy + 25}, ${pos.x + shape.wx/2 - 10} ${shape.wy}
                        Z`} 
                     stroke="#FF0000" 
@@ -62,26 +63,11 @@ const Imp = ({
                 />
 
                 {/* Pivot Point for debugging */}
-                <Circle cx={pos.x} cy={pos.y} r="1" fill="#FF0000" opacity="0.7" />
-                <Circle cx={pos.x - 15} cy={pos.y + 13} r="1" fill="#333" opacity="0.5" />
-                <Circle cx={pos.x - 15} cy={pos.y + 16} r="1" fill="#333" opacity="0.5" />
-                <Circle cx={pos.x - 22} cy={pos.y + 16} r="1" fill="#333" opacity="0.5" />
+                <Circle cx={pos.x + 2} cy={pos.y} r="1" fill="#FF0000" opacity="0.7" />
+                <Circle cx={pos.x + 8} cy={pos.y + 17} r="1" fill="#333" opacity="0.5" />
+                <Circle cx={pos.x + 14} cy={pos.y + 17} r="1" fill="#333" opacity="0.5" />
+                <Circle cx={pos.x + 12} cy={pos.y + 14} r="1" fill="#333" opacity="0.5" />
             </G>
-
-            {/* --- Face Overlay --- */}
-            <G>
-                <Circle cx="80" cy="100" r={eyeSize} fill="#333" />
-                <Circle cx="120" cy="100" r={eyeSize} fill="#333" />
-              
-                <Path 
-                    d="M 85 125 Q 100 135, 115 125" 
-                    stroke="#333" 
-                    strokeWidth="2" 
-                    fill="none" 
-                    strokeLinecap="round" 
-                />
-            </G>
-            
         </Svg>
     );
 };
