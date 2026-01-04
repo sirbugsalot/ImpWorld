@@ -31,9 +31,9 @@ const Imp = ({
             <G transform="scale(2)">
                 {/* --- left foot --- */}
                 <Path 
-                    d="M 50 80 Q 40 80, 40 90 Q 50 95, 40 97" 
-                    stroke="#333" 
-                    strokeWidth="3" 
+                    d="M 50 80 Q 40 80, 40 90 Q 50 95, 40 97 T 25 97" 
+                    stroke="#111" 
+                    strokeWidth="2" 
                     fill="none" 
                     strokeLinecap="round" 
                 />
