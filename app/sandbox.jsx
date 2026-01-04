@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 8,
     },
-    impWrapper: { width: '80%', height: '80%' },
+    impWrapper: { width: '95%', height: '95%' },
     sectionTitle: { fontSize: 12, fontWeight: '800', marginTop: 15, marginBottom: 10, textTransform: 'uppercase', opacity: 0.6 },
     controlRow: { 
         flexDirection: 'row', 
