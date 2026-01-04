@@ -43,9 +43,9 @@ const Imp = ({
                 {/* --- Right Foot --- */}
                 <Path 
                     d={`M ${pos.x + 2} ${pos.y} 
-                       Q ${pos.x + 8} ${pos.y + 12}, ${pos.x + 8} ${pos.y + 15}
+                       Q ${pos.x + 8} ${pos.y + 10}, ${pos.x + 8} ${pos.y + 14}
                        Q ${pos.x + 12} ${pos.y + 18}, ${pos.x + 17} ${pos.y + 15}
-                       Q ${pos.x + 20} ${pos.y + 11}, ${pos.x + 17} ${pos.y + 12}
+                       Q ${pos.x + 19} ${pos.y + 14}, ${pos.x + 17} ${pos.y + 12}
                        Q ${pos.x + shape.wx/2 + 3} ${shape.wy + 25}, ${pos.x + shape.wx/2 - 10} ${shape.wy}
                        Z`} 
                     stroke="#FF0000" 
@@ -64,7 +64,7 @@ const Imp = ({
 
                 {/* Pivot Point for debugging */}
                 <Circle cx={pos.x + 2} cy={pos.y} r="1" fill="#FF0000" opacity="0.7" />
-                <Circle cx={pos.x + 8} cy={pos.y + 15} r="1" fill="#333" opacity="0.5" />
+                <Circle cx={pos.x + 8} cy={pos.y + 14} r="1" fill="#333" opacity="0.5" />
                 <Circle cx={pos.x + 17} cy={pos.y + 15} r="1" fill="#333" opacity="0.5" />
                 <Circle cx={pos.x + 17} cy={pos.y + 12} r="1" fill="#333" opacity="0.5" />
             </G>
