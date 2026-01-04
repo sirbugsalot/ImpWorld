@@ -17,7 +17,7 @@ const Imp = ({
     // FIX 1: Destructuring MUST happen inside the component to access the 'customization' prop
     const { 
         color = '#8A2BE2', 
-        shape = { hy: 60, wx: 40, wy: 35 }, 
+        shape = { hy: 80, wx: 30, wy: 60 }, 
         patternId = null, 
         patternColor = '#FFFFFF' 
     } = customization || {}; // Fallback to empty object to prevent "cannot read property of undefined"
@@ -63,6 +63,8 @@ const Imp = ({
                     strokeLinecap="round" 
                 />
             </G>
+          {/* reference point */}
+          <Circle cx="100" cy="160" r=2 fill="#111" />
         </Svg>
     );
 };
