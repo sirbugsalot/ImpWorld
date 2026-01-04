@@ -17,7 +17,7 @@ const Imp = ({
     // FIX 1: Destructuring MUST happen inside the component to access the 'customization' prop
     const { 
         color = '#8A2BE2', 
-        shape = { hy: 90, wx: 40, wy: 80 }, 
+        shape = { hy: 80, wx: 70, wy: 60 }, 
         patternId = null, 
         patternColor = '#FFFFFF' 
     } = customization || {}; // Fallback to empty object to prevent "cannot read property of undefined"
@@ -29,14 +29,14 @@ const Imp = ({
             {/* --- Body (The Oval) --- */}
             <G transform="scale(2)">
                 <Oval 
-                    pos={{ x: 50, y: 85 }} 
+                    pos={{ x: 50, y: 90 }} 
                     shape={shape} 
                     color={color} 
                     patternId={patternId} 
                     patternColor={patternColor} 
                 />
                 {/* reference point */}
-                <Circle cx="50" cy="85" r="2" fill="#333" />
+                <Circle cx="50" cy="90" r="2" fill="#333" />
               
             </G>
 
