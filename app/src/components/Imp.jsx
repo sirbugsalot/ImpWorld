@@ -31,8 +31,8 @@ const Imp = ({
                 <Path 
                     d={`M ${pos.x} ${pos.y} 
                        Q ${pos.x - 15} ${pos.y + 5}, ${pos.x - 15} ${pos.y + 13}
-                       Q ${pos.x - 10} ${pos.y + 13}, ${pos.x - 15} ${pos.y + 16}
-                       Q ${pos.x - 19} ${pos.y + 18}, ${pos.x - 24} ${pos.y + 16}
+                       Q ${pos.x - 13} ${pos.y + 13}, ${pos.x - 15} ${pos.y + 16}
+                       Q ${pos.x - 18} ${pos.y + 18}, ${pos.x - 22} ${pos.y + 16}
                        Q ${pos.x - shape.wx/2 -3} ${shape.wy+20}, ${pos.x - shape.wx/2} ${shape.wy}
                        Z`} 
                     stroke="#FF0000" 
@@ -53,7 +53,7 @@ const Imp = ({
                 <Circle cx={pos.x} cy={pos.y} r="1" fill="#FF0000" opacity="0.7" />
                 <Circle cx={pos.x - 15} cy={pos.y + 13} r="1" fill="#333" opacity="0.5" />
                 <Circle cx={pos.x - 15} cy={pos.y + 16} r="1" fill="#333" opacity="0.5" />
-                <Circle cx={pos.x - 24} cy={pos.y + 16} r="1" fill="#333" opacity="0.5" />
+                <Circle cx={pos.x - 22} cy={pos.y + 16} r="1" fill="#333" opacity="0.5" />
             </G>
 
             {/* --- Face Overlay --- */}
