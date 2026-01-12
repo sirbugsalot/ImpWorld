@@ -7,7 +7,6 @@ import { auth, db, appId } from '../src/config/firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 import EggPreviewSVG from '../src/components/EggPreviewSVG';
-import Imp from '../src/components/Imp'; // Import your new Imp component
 import ColorPicker from '../src/components/ColorPicker';
 import HamburgerMenu from '../src/components/HamburgerMenu';
 import { useTheme } from '../src/context/ThemeContext';
@@ -15,16 +14,13 @@ import { useTheme } from '../src/context/ThemeContext';
 const VIEWBOX_SIZE = 100;
 const ACCENT_COLOR = '#10B981';
 
+// Consistent data structure for Cloud and Local State
 const DEFAULT_CUSTOMIZATION = {
-    type: 'egg', // 'egg' or 'imp'
-    color: '#8A2BE2',
-    patternId: null,
-    patternColor: '#FFFFFF',
-    shape: { hy: 80, wx: 50, wy: 60 },
-    pos: { x: 50, y: 80 },
-    footLength: 1.0,
-    eyeSize: 5,
-    activeCategory: 'Body' // Controls which dots appear
+    type: 'egg',
+    color: '#059669',        // Base Color
+    patternId: null,         // Pattern Reference
+    patternColor: '#FFFFFF', // Pattern Detail Color
+    shape: { hy: 60, wx: 40, wy: 35 } // Shared geometry params
 };
 
 const AvatarCustomizer = ({ onSave, onCancel }) => {
@@ -32,51 +28,97 @@ const AvatarCustomizer = ({ onSave, onCancel }) => {
 
     const [customization, setCustomization] = useState(DEFAULT_CUSTOMIZATION);
     const [previewWindowPixelSize, setPreviewWindowPixelSize] = useState(VIEWBOX_SIZE);
-    const [status, setStatus] = useState('Select a part to begin research.');
+    const [status, setStatus] = useState('Drag the markers to shape your avatar.');
     const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
 
+    // Fetch existing avatar on load
     useEffect(() => {
         const fetchAvatar = async () => {
-            if (!auth.currentUser) { setIsLoading(false); return; }
+            if (!auth.currentUser) {
+                setIsLoading(false);
+                return;
+            }
+
             try {
                 const avatarRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'settings', 'avatar');
                 const docSnap = await getDoc(avatarRef);
+
                 if (docSnap.exists()) {
-                    setCustomization({ ...DEFAULT_CUSTOMIZATION, ...docSnap.data() });
+                    setCustomization(docSnap.data());
+                    setStatus('Cloud profile loaded.');
                 }
             } catch (error) {
                 console.error("Error fetching avatar:", error);
-            } finally { setIsLoading(false); }
+                setStatus('Local mode (load failed).');
+            } finally {
+                setIsLoading(false);
+            }
         };
+
         fetchAvatar();
     }, []);
 
+    // Updated Save Logic
     const handleSaveToCloud = async () => {
-        if (!auth.currentUser) { setStatus('Please log in to sync.'); return; }
+        if (!auth.currentUser) {
+            setStatus('Please log in (Guest) to sync cloud data.');
+            return;
+        }
+
         setIsSaving(true);
+        setStatus('Transmitting to ImpWorld...');
+
         try {
             const avatarRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'settings', 'avatar');
-            const payload = { ...customization, lastUpdated: new Date().toISOString() };
+            
+            // Explicitly defining the structure to ensure world.jsx receives exactly what it needs
+            const payload = {
+                type: customization.type,
+                color: customization.color,
+                patternId: customization.patternId,
+                patternColor: customization.patternColor,
+                shape: customization.shape,
+                lastUpdated: new Date().toISOString()
+            };
+
             await setDoc(avatarRef, payload, { merge: true });
-            setStatus('Research Synced!');
+
+            setStatus('Cloud Sync Successful!');
             if (onSave) onSave(payload);
         } catch (error) {
-            setStatus('Sync error.');
-        } finally { setIsSaving(false); }
+            console.error("Error saving avatar:", error);
+            setStatus('Sync error. Retrying later.');
+        } finally {
+            setIsSaving(false);
+        }
     };
+
+    const convertPixelsToUnits = useCallback((pxX, pxY) => {
+        if (previewWindowPixelSize === 0) return { unitX: pxX, unitY: pxY };
+        let unitX = Math.max(0, Math.min(VIEWBOX_SIZE, (pxX / previewWindowPixelSize) * VIEWBOX_SIZE));
+        let unitY = Math.max(0, Math.min(VIEWBOX_SIZE, (pxY / previewWindowPixelSize) * VIEWBOX_SIZE)); 
+        return { unitX, unitY };
+    }, [previewWindowPixelSize]);
 
     const handleLayout = (event) => setPreviewWindowPixelSize(event.nativeEvent.layout.width);
 
-    const categories = ['Body', 'Feet', 'Arms', 'Face', 'Accessories'];
+    const handleShapeUpdateFromSVG = useCallback((newShape) => {
+        setCustomization(prev => ({ ...prev, shape: newShape }));
+    }, []);
+
+    const handleColorChange = (newColor) => setCustomization(prev => ({ ...prev, color: newColor }));
+    const handlePatternColorChange = (newColor) => setCustomization(prev => ({ ...prev, patternColor: newColor }));
+    const handlePatternChange = (newPatternId) => setCustomization(prev => ({ ...prev, patternId: newPatternId }));
 
     const dynamicStyles = StyleSheet.create({
         container: { flex: 1, backgroundColor: colors.background, paddingTop: Platform.OS === 'ios' ? 40 : 10 },
         header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20 },
         headerTitle: { fontSize: 20, fontWeight: 'bold', color: colors.text },
         card: { margin: 15, padding: 20, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card },
+        statusText: { textAlign: 'center', marginBottom: 15, fontStyle: 'italic', color: isDarkMode ? '#9CA3AF' : '#6B7280', fontSize: 14 },
         previewWindow: { 
             width: '90%', 
             aspectRatio: 1, 
@@ -85,87 +127,110 @@ const AvatarCustomizer = ({ onSave, onCancel }) => {
             borderRadius: 20, 
             backgroundColor: isDarkMode ? '#111827' : 'white', 
             overflow: 'hidden',
-            alignSelf: 'center',
-            position: 'relative'
+            alignSelf: 'center'
         },
-        categoryScroll: { marginVertical: 15, paddingLeft: 5 },
-        categoryBtn: { 
-            paddingHorizontal: 16, 
-            paddingVertical: 8, 
-            borderRadius: 20, 
-            marginRight: 10,
-            borderWidth: 1,
-            borderColor: colors.border
+        paletteButton: { 
+            position: 'absolute', 
+            top: 15, 
+            right: 15, 
+            backgroundColor: isDarkMode ? '#4B5563' : 'white', 
+            padding: 10, 
+            borderRadius: 25, 
+            elevation: 4
         },
-        categoryBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-        categoryText: { fontWeight: '600', color: colors.text },
-        categoryTextActive: { color: 'white' },
-        typeSelector: { flexDirection: 'row', justifyContent: 'center', gap: 10, marginBottom: 10 },
-        typeBtn: { padding: 10, borderRadius: 10, borderWidth: 1, borderColor: colors.border }
+        actionButton: { 
+            flexDirection: 'row', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            padding: 16, 
+            borderRadius: 14, 
+            marginTop: 20, 
+            backgroundColor: ACCENT_COLOR,
+            opacity: isSaving ? 0.7 : 1
+        }
     });
+
+    if (isLoading) {
+        return (
+            <View style={[dynamicStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
-            <ScrollView style={dynamicStyles.container}>
+            <ScrollView style={dynamicStyles.container} contentContainerStyle={{ paddingBottom: 50 }}>
                 <View style={dynamicStyles.header}>
-                    <TouchableOpacity onPress={onCancel}><Ionicons name="chevron-back" size={32} color={colors.primary} /></TouchableOpacity>
+                    <TouchableOpacity onPress={onCancel}>
+                        <Ionicons name="chevron-back" size={32} color={colors.primary} />
+                    </TouchableOpacity>
                     <Text style={dynamicStyles.headerTitle}>Imp Studio</Text>
-                    <TouchableOpacity onPress={() => setIsMenuOpen(true)}><Ionicons name="menu" size={32} color={colors.primary} /></TouchableOpacity>
-                </View>
-
-                <View style={dynamicStyles.typeSelector}>
-                    {['egg', 'imp'].map(t => (
-                        <TouchableOpacity 
-                            key={t}
-                            style={[dynamicStyles.typeBtn, customization.type === t && { backgroundColor: colors.primary }]}
-                            onPress={() => setCustomization(p => ({ ...p, type: t }))}
-                        >
-                            <Text style={{ color: customization.type === t ? 'white' : colors.text }}>{t.toUpperCase()}</Text>
-                        </TouchableOpacity>
-                    ))}
+                    <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
+                        <Ionicons name="menu" size={32} color={colors.primary} />
+                    </TouchableOpacity>
                 </View>
                 
                 <View style={dynamicStyles.card}>
+                    <Text style={dynamicStyles.statusText}>{status}</Text>
+
                     <View style={dynamicStyles.previewWindow} onLayout={handleLayout}>
-                        {customization.type === 'egg' ? (
-                            <EggPreviewSVG 
-                                color={customization.color} 
-                                shape={customization.shape} 
-                                onShapeChange={(s) => setCustomization(p => ({ ...p, shape: s }))}
-                            /> 
-                        ) : (
-                            <Imp 
-                                customization={customization}
-                                setCustomization={setCustomization}
-                                activeCategory={customization.activeCategory}
-                            />
-                        )}
+                        <EggPreviewSVG 
+                            color={customization.color} 
+                            patternId={customization.patternId}
+                            patternColor={customization.patternColor}
+                            shape={customization.shape} 
+                            onShapeChange={handleShapeUpdateFromSVG}
+                            convertPixelsToUnits={convertPixelsToUnits}
+                        /> 
+                        
+                        <TouchableOpacity 
+                            style={dynamicStyles.paletteButton} 
+                            onPress={() => setIsColorPickerVisible(true)}
+                        >
+                            <Ionicons name="color-palette" size={26} color={colors.primary} />
+                        </TouchableOpacity>
                     </View>
 
-                    {customization.type === 'imp' && (
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={dynamicStyles.categoryScroll}>
-                            {categories.map(cat => (
-                                <TouchableOpacity 
-                                    key={cat} 
-                                    style={[dynamicStyles.categoryBtn, customization.activeCategory === cat && dynamicStyles.categoryBtnActive]}
-                                    onPress={() => setCustomization(p => ({ ...p, activeCategory: cat }))}
-                                >
-                                    <Text style={[dynamicStyles.categoryText, customization.activeCategory === cat && dynamicStyles.categoryTextActive]}>{cat}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </ScrollView>
-                    )}
-
-                    <TouchableOpacity onPress={handleSaveToCloud} disabled={isSaving} style={[dynamicStyles.categoryBtn, { backgroundColor: ACCENT_COLOR, padding: 15, marginTop: 10, alignItems: 'center' }]}>
-                        <Text style={{ color: 'white', fontWeight: 'bold' }}>{isSaving ? 'TRANSMITTING...' : 'SYNC RESEARCH'}</Text>
+                    <TouchableOpacity 
+                        onPress={handleSaveToCloud}
+                        disabled={isSaving}
+                        style={dynamicStyles.actionButton}
+                    >
+                        {isSaving ? (
+                            <ActivityIndicator color="white" />
+                        ) : (
+                            <>
+                                <Ionicons name="cloud-done-outline" size={24} color="white" style={{ marginRight: 10 }} />
+                                <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 18 }}>SYNC AVATAR</Text>
+                            </>
+                        )}
                     </TouchableOpacity>
                 </View>
             </ScrollView>
 
-            {isMenuOpen && <HamburgerMenu onClose={() => setIsMenuOpen(false)} activeItems={['home', 'settings']} />}
+            {isColorPickerVisible && (
+                <ColorPicker 
+                    selectedColor={customization.color} 
+                    patternColor={customization.patternColor}
+                    selectedPattern={customization.patternId}
+                    onColorChange={handleColorChange} 
+                    onPatternColorChange={handlePatternColorChange}
+                    onPatternChange={handlePatternChange}
+                    onClose={() => setIsColorPickerVisible(false)} 
+                />
+            )}
+
+            {isMenuOpen && (
+                <HamburgerMenu 
+                    onClose={() => setIsMenuOpen(false)} 
+                    activeItems={['home', 'settings', 'auth']} 
+                />
+            )}
         </View>
     );
 };
 
 export default AvatarCustomizer;
 
+    
