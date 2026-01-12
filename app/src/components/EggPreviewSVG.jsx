@@ -1,125 +1,110 @@
-import React, { useState } from 'react';
-import Svg, { Path, Circle } from 'react-native-svg';
-import { Oval } from './shapes';
+import React, { useRef } from 'react';
+import { View, PanResponder, StyleSheet } from 'react-native';
+import Svg, { G, Path, Circle } from 'react-native-svg';
+import { Oval, Feet } from './shapes'; // Ensure Feet is exported from shapes.jsx
 
-const VIEWBOX_SIZE = 100; 
-const EGG_VIEWBOX_BASE_Y = 90; 
-const MAX_HEIGHT = 70; 
-const MIN_HEIGHT = 10;
-const MAX_WIDTH = 60;
-const MIN_WIDTH = 30;
-const DRAG_THRESHOLD = 15; 
+const EggPreviewSVG = ({ 
+    color, 
+    shape, 
+    type, 
+    footLength = 1.0, 
+    activeCategory = 'BODY', 
+    onShapeChange, 
+    onFootChange 
+}) => {
+    const { hy, wx, wy } = shape;
+    const pos = { x: 50, y: 80 }; // Shared pivot point
 
-/**
- * Refactored EggPreviewSVG
- * Uses the shared Oval component for rendering, while maintaining drag logic.
- */
-const EggPreviewSVG = ({ color, patternId, patternColor = '#FFFFFF', shape, onShapeChange, convertPixelsToUnits }) => {
-    const [draggedVertexIndex, setDraggedVertexIndex] = useState(null);
-
-    const { hy = 60, wx = 40, wy = 35 } = shape || {}; 
-
-    const bottomY = EGG_VIEWBOX_BASE_Y; 
-    const topY = bottomY - hy; 
-    const centerX = VIEWBOX_SIZE / 2; 
-
-    // Draggable handles positions
-    const eggVertices = [
-        { x: centerX, y: topY },
-        { x: centerX + wx / 2, y: wy }
-    ];
-    
-    const getActiveVertex = (unitX, unitY) => {
-        for (let i = 0; i < eggVertices.length; i++){
-            const vertex = eggVertices[i];
-            const distance = Math.sqrt((unitX - vertex.x)**2 + (unitY - vertex.y)**2);
-            if (distance <= DRAG_THRESHOLD) return i;
+    // --- BODY RESPONDERS ---
+    const heightResponder = useRef(PanResponder.create({
+        onStartShouldSetPanResponder: () => activeCategory === 'BODY',
+        onPanResponderMove: (_, gesture) => {
+            const newHy = Math.max(40, Math.min(95, hy - gesture.dy / 2));
+            onShapeChange({ ...shape, hy: newHy });
         }
-        return null; 
-    };
-    
-    const handleTouchStart = (event) => {
-        const { unitX, unitY } = convertPixelsToUnits(
-            event.nativeEvent.locationX, 
-            event.nativeEvent.locationY
-        );
-        const activeVertexIndex = getActiveVertex(unitX, unitY);
-        if (activeVertexIndex !== null) {
-            setDraggedVertexIndex(activeVertexIndex);
+    })).current;
+
+    const widthResponder = useRef(PanResponder.create({
+        onStartShouldSetPanResponder: () => activeCategory === 'BODY',
+        onPanResponderMove: (_, gesture) => {
+            const newWx = Math.max(20, Math.min(80, wx + gesture.dx / 2));
+            onShapeChange({ ...shape, wx: newWx });
         }
-    };
+    })).current;
 
-    const handleTouchMove = (event) => {
-        if (draggedVertexIndex === null) return;
-        
-        const { unitX, unitY } = convertPixelsToUnits(
-            event.nativeEvent.locationX, 
-            event.nativeEvent.locationY
-        );
-
-        let newHy = hy;
-        let newWx = wx;
-        let newWy = wy;
-        
-        if (draggedVertexIndex === 0) {
-            const minTopY = EGG_VIEWBOX_BASE_Y - MAX_HEIGHT;
-            const maxTopY = EGG_VIEWBOX_BASE_Y - MIN_HEIGHT;
-            const newTopY = Math.max(minTopY, Math.min(maxTopY, unitY));
-            newHy = EGG_VIEWBOX_BASE_Y - newTopY;
-        } else if (draggedVertexIndex === 1) {
-            const minWaistX = centerX + MIN_WIDTH / 2;
-            const maxWaistX = centerX + MAX_WIDTH / 2;
-            const newWaistX = Math.max(minWaistX, Math.min(maxWaistX, unitX));
-            newWx = (newWaistX - centerX) * 2;
-
-            const currentTopY = EGG_VIEWBOX_BASE_Y - hy;
-            const availableHeight = EGG_VIEWBOX_BASE_Y - currentTopY;
-            const minWaistY = currentTopY + availableHeight * 0.15;
-            const maxWaistY = EGG_VIEWBOX_BASE_Y - availableHeight * 0.15;
-            newWy = Math.max(minWaistY, Math.min(maxWaistY, unitY));
+    // --- FEET RESPONDER ---
+    const feetResponder = useRef(PanResponder.create({
+        onStartShouldSetPanResponder: () => activeCategory === 'FEET',
+        onPanResponderMove: (_, gesture) => {
+            const newLen = Math.max(0.2, Math.min(3.0, footLength - gesture.dy * 0.02));
+            if (onFootChange) onFootChange(newLen);
         }
-        onShapeChange({ hy: newHy, wx: newWx, wy: newWy });
-    };
+    })).current;
 
     return (
-        <Svg 
-            height="100%" 
-            width="100%" 
-            viewBox={`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={() => setDraggedVertexIndex(null)}  
-        >
-            {/* Background Frame */}
-            <Path d="M 5 5 L 95 5 L 95 95 L 5 95 Z" fill="#F9FAFB" stroke="#D1D5DB" strokeWidth="1" />
-            
-            {/* Guide Lines */}
-            <Path d={`M 20 ${bottomY} L 80 ${bottomY}`} stroke="#EF4444" strokeWidth="1" strokeDasharray="4 4" strokeOpacity="0.3" />
-            <Path d={`M 20 ${wy} L 80 ${wy}`} stroke="#3B82F6" strokeWidth="1" strokeDasharray="4 4" strokeOpacity="0.3" />
+        <View style={styles.container}>
+            <Svg viewBox="0 0 100 100" width="100%" height="100%">
+                <G>
+                    {/* Only render feet if type is 'imp' */}
+                    {type === 'imp' && (
+                        <Feet pos={pos} shape={shape} color={color} length={footLength} />
+                    )}
 
-            {/* CALLING SHARED COMPONENT */}
-            <Oval 
-                pos={{ x: centerX, y: bottomY }} 
-                shape={{ hy, wx, wy }} 
-                color={color} 
-                patternId={patternId} 
-                patternColor={patternColor} 
+                    <Oval pos={pos} shape={shape} color={color} />
+                </G>
+            </Svg>
+
+            {/* --- INTERACTIVE DOTS --- */}
+
+            {/* Height/Width dots: Always present, only active/visible when category is BODY */}
+            <View 
+                {...heightResponder.panHandlers}
+                style={[
+                    styles.dot, 
+                    { left: '50%', top: `${pos.y - hy}%`, opacity: activeCategory === 'BODY' ? 1 : 0 }
+                ]}
+            />
+            <View 
+                {...widthResponder.panHandlers}
+                style={[
+                    styles.dot, 
+                    { left: `${pos.x + wx/2}%`, top: `${wy}%`, opacity: activeCategory === 'BODY' ? 1 : 0 }
+                ]}
             />
 
-            {/* Draggable Handles */}
-            {eggVertices.map((vertex, index) => (
-                <Circle 
-                    key={index} 
-                    cx={vertex.x} 
-                    cy={vertex.y} 
-                    r={3.5} 
-                    fill={index === 0 ? '#EF4444' : '#3B82F6'} 
-                    stroke="white" 
-                    strokeWidth="1.5" 
+            {/* Foot Length dot: Only visible when category is FEET and type is 'imp' */}
+            {type === 'imp' && (
+                <View 
+                    {...feetResponder.panHandlers}
+                    style={[
+                        styles.dot, 
+                        { 
+                            left: `${pos.x}%`, 
+                            top: `${pos.y - 10}%`, 
+                            backgroundColor: '#3B82F6', 
+                            opacity: activeCategory === 'FEET' ? 1 : 0 
+                        }
+                    ]}
                 />
-            ))}
-        </Svg>
+            )}
+        </View>
     );
 };
 
+const styles = StyleSheet.create({
+    container: { width: '100%', aspectRatio: 1, position: 'relative' },
+    dot: {
+        position: 'absolute',
+        width: 26,
+        height: 26,
+        borderRadius: 13,
+        backgroundColor: '#10B981',
+        borderWidth: 3,
+        borderColor: 'white',
+        transform: [{ translateX: -13 }, { translateY: -13 }],
+        zIndex: 100
+    }
+});
+
 export default EggPreviewSVG;
+
