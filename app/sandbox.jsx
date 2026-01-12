@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Platform, PanResponder } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
@@ -10,19 +10,44 @@ const Sandbox = () => {
     const router = useRouter();
     const { isDarkMode, colors, toggleTheme } = useTheme();
     
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-    // Imp Customization State
+    // Imp Customization State - Matching the new object structure
     const [config, setConfig] = useState({
-        hairColor: "#5D4037",
-        bodyColor: "#E0E0E0",
-        noseSize: 0.6,
-        showPencil: true,
-        smileType: "benevolent"
+        customization: {
+            color: '#8A2BE2',
+            pos: { x: 50, y: 80 }, // The pivot point
+            shape: { hy: 80, wx: 50, wy: 60 },
+            patternId: null,
+            patternColor: '#FFFFFF',
+        },
+        footLength: 1.0,
+        eyeSize: 5
     });
+
+    // PanResponder for the sliding dot at [pos.x, pos.y - 10]
+    const panResponder = useRef(
+        PanResponder.create({
+            onStartShouldSetPanResponder: () => true,
+            onMoveShouldSetPanResponder: () => true,
+            onPanResponderMove: (evt, gestureState) => {
+                // Modulate length based on vertical drag
+                // Dragging UP (negative dy) increases length
+                const sensitivity = 0.02;
+                const newLength = Math.max(0.2, Math.min(3.0, config.footLength - gestureState.dy * sensitivity));
+                
+                setConfig(prev => ({ ...prev, footLength: newLength }));
+            },
+        })
+    ).current;
 
     const updateConfig = (key, value) => {
         setConfig(prev => ({ ...prev, [key]: value }));
+    };
+
+    const updateNestedConfig = (key, value) => {
+        setConfig(prev => ({
+            ...prev,
+            customization: { ...prev.customization, [key]: value }
+        }));
     };
 
     return (
@@ -43,61 +68,71 @@ const Sandbox = () => {
                 <View style={[styles.previewCard, { backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF', borderColor: colors.border }]}>
                     <View style={styles.impWrapper}>
                         <Imp 
-                            hairColor={config.hairColor}
-                            bodyColor={config.bodyColor}
-                            noseSize={config.noseSize}
-                            showPencil={config.showPencil}
-                            smileType={config.smileType}
+                            customization={config.customization}
+                            footLength={config.footLength}
+                            eyeSize={config.eyeSize}
                         />
+
+                        {/* Interactive Sliding Dot 
+                            Positioned at [pos.x, pos.y - 10] 
+                            Since Imp is scaled by 2, x=50 becomes 50% left, 
+                            and y=80-10=70 becomes 70% from top (30% from bottom).
+                        */}
+                        <View 
+                            {...panResponder.panHandlers}
+                            style={[
+                                styles.sliderDot, 
+                                { 
+                                    left: `${config.customization.pos.x}%`, 
+                                    top: `${config.customization.pos.y - 10}%`,
+                                    backgroundColor: colors.primary,
+                                    transform: [{ translateX: -17 }, { translateY: -17 }] // Center the 34px dot
+                                }
+                            ]} 
+                        >
+                            <Ionicons name="move" size={18} color="white" />
+                        </View>
                     </View>
                 </View>
 
                 {/* Control Panel */}
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>Body Proportions</Text>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Morphology</Text>
                 <View style={styles.controlRow}>
-                    <Text style={[styles.label, { color: colors.text }]}>Nose Size: {config.noseSize.toFixed(1)}</Text>
+                    <View>
+                        <Text style={[styles.label, { color: colors.text }]}>Foot Length: {config.footLength.toFixed(2)}</Text>
+                        <Text style={[styles.hint, { color: colors.text }]}>Drag the dot at [{config.customization.pos.x}, {config.customization.pos.y - 10}]</Text>
+                    </View>
+                </View>
+
+                <View style={styles.controlRow}>
+                    <Text style={[styles.label, { color: colors.text }]}>Eye Size: {config.eyeSize}</Text>
                     <View style={styles.buttonGroup}>
                         <TouchableOpacity 
                             style={styles.miniBtn} 
-                            onPress={() => updateConfig('noseSize', Math.max(0.2, config.noseSize - 0.2))}
+                            onPress={() => updateConfig('eyeSize', Math.max(2, config.eyeSize - 1))}
                         >
                             <Ionicons name="remove" size={20} color="white" />
                         </TouchableOpacity>
                         <TouchableOpacity 
                             style={styles.miniBtn} 
-                            onPress={() => updateConfig('noseSize', Math.min(2.0, config.noseSize + 0.2))}
+                            onPress={() => updateConfig('eyeSize', Math.min(15, config.eyeSize + 1))}
                         >
                             <Ionicons name="add" size={20} color="white" />
                         </TouchableOpacity>
                     </View>
                 </View>
 
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>Colors & Styles</Text>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Colors</Text>
                 <View style={styles.grid}>
-                    <TouchableOpacity 
-                        style={[styles.actionBtn, { backgroundColor: '#5D4037' }]}
-                        onPress={() => updateConfig('hairColor', '#5D4037')}
-                    >
-                        <Text style={styles.btnText}>Dark Hair</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                        style={[styles.actionBtn, { backgroundColor: '#4A90E2' }]}
-                        onPress={() => updateConfig('hairColor', '#4A90E2')}
-                    >
-                        <Text style={styles.btnText}>Blue Hair</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                        style={[styles.actionBtn, { backgroundColor: config.showPencil ? '#EF4444' : '#10B981' }]}
-                        onPress={() => updateConfig('showPencil', !config.showPencil)}
-                    >
-                        <Text style={styles.btnText}>{config.showPencil ? "Remove Pencil" : "Add Pencil"}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                        style={[styles.actionBtn, { backgroundColor: '#6B7280' }]}
-                        onPress={() => updateConfig('bodyColor', config.bodyColor === '#E0E0E0' ? '#F5F5F5' : '#E0E0E0')}
-                    >
-                        <Text style={styles.btnText}>Shift Tone</Text>
-                    </TouchableOpacity>
+                    {['#8A2BE2', '#FF6B6B', '#4ECDC4', '#FFD93D'].map(color => (
+                        <TouchableOpacity 
+                            key={color}
+                            style={[styles.actionBtn, { backgroundColor: color }]}
+                            onPress={() => updateNestedConfig('color', color)}
+                        >
+                            <Text style={styles.btnText}>{color}</Text>
+                        </TouchableOpacity>
+                    ))}
                 </View>
 
                 <View style={{ height: 60 }} />
@@ -119,13 +154,24 @@ const styles = StyleSheet.create({
         justifyContent: 'center', 
         alignItems: 'center',
         marginBottom: 20,
-        elevation: 4,
+        position: 'relative',
+        overflow: 'hidden'
+    },
+    impWrapper: { width: '100%', height: '100%', position: 'relative' },
+    sliderDot: {
+        position: 'absolute',
+        width: 34,
+        height: 34,
+        borderRadius: 17,
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 8,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        zIndex: 100,
     },
-    impWrapper: { width: '95%', height: '95%' },
     sectionTitle: { fontSize: 12, fontWeight: '800', marginTop: 15, marginBottom: 10, textTransform: 'uppercase', opacity: 0.6 },
     controlRow: { 
         flexDirection: 'row', 
@@ -134,6 +180,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10
     },
     label: { fontSize: 16, fontWeight: '600' },
+    hint: { fontSize: 11, opacity: 0.5, marginTop: 2 },
     buttonGroup: { flexDirection: 'row' },
     miniBtn: { 
         backgroundColor: '#4B5563', 
@@ -153,7 +200,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center', 
         alignItems: 'center' 
     },
-    btnText: { color: 'white', fontWeight: 'bold', fontSize: 13 }
+    btnText: { color: 'white', fontWeight: 'bold', fontSize: 11, textTransform: 'uppercase' }
 });
 
 export default Sandbox;
