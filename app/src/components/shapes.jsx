@@ -75,20 +75,6 @@ export const Arms = ({ pos, shape, color, length = 1.0 }) => {
                 fill={color}
                 strokeLinecap="round" 
             />
-/**
-            {/* --- Right arm --- */}
-            <Path 
-                d={`M ${pos.x + 2} ${pos.y} 
-                   Q ${pos.x + 8} ${pos.y + reach(10)}, ${pos.x + 8} ${pos.y + reach(14)}
-                   Q ${pos.x + 12} ${pos.y + reach(17)}, ${pos.x + 18} ${pos.y + reach(15)}
-                   Q ${pos.x + 19} ${pos.y + reach(14)}, ${pos.x + 17} ${pos.y + reach(12)}
-                   Q ${pos.x + wx / 2 + 3} ${wy + reach(25)}, ${pos.x + wx / 2 - 10} ${wy}
-                   Z`} 
-                stroke="#111" 
-                strokeWidth="1" 
-                fill={color}
-                strokeLinecap="round" 
-            /> */
         </>
     );
 };
