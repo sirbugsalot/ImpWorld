@@ -48,6 +48,51 @@ export const Feet = ({ pos, shape, color, length = 1.0 }) => {
     );
 };
 
+/**
+ * Arms Component
+ * @param {object} pos - Pivot point {x, y}
+ * @param {object} shape - Body parameters {wx, wy}
+ * @param {string} color - Fill color
+ * @param {number} length - Multiplier for arm length (default 1.0)
+ */
+export const Arms = ({ pos, shape, color, length = 1.0 }) => {
+    const { wx = 50, wy = 60 } = shape || {};
+    
+    // We use 'length' to scale the horizontal offsets from the pivot point
+    const reach = (offset) => offset * length;
+
+    return (
+        <>
+            {/* --- Left Arm --- */}
+            <Path 
+                d={`M ${pos.x - 15} ${pos.y - 30} 
+                   Q ${pos.x - 10} ${pos.y - 20}, ${pos.x - 17} ${pos.y - 25}
+                   Q ${pos.x - 10} ${pos.y - 22}, ${pos.x - 12} ${pos.y - 20}
+                   Q ${pos.x - 5} ${pos.y - 25}, ${pos.x} ${pos.y - 23}
+                   Z`} 
+                stroke="#111" 
+                strokeWidth="1" 
+                fill={color}
+                strokeLinecap="round" 
+            />
+/**
+            {/* --- Right arm --- */}
+            <Path 
+                d={`M ${pos.x + 2} ${pos.y} 
+                   Q ${pos.x + 8} ${pos.y + reach(10)}, ${pos.x + 8} ${pos.y + reach(14)}
+                   Q ${pos.x + 12} ${pos.y + reach(17)}, ${pos.x + 18} ${pos.y + reach(15)}
+                   Q ${pos.x + 19} ${pos.y + reach(14)}, ${pos.x + 17} ${pos.y + reach(12)}
+                   Q ${pos.x + wx / 2 + 3} ${wy + reach(25)}, ${pos.x + wx / 2 - 10} ${wy}
+                   Z`} 
+                stroke="#111" 
+                strokeWidth="1" 
+                fill={color}
+                strokeLinecap="round" 
+            /> */
+        </>
+    );
+};
+
 export const Oval = ({ pos, shape, color, patternId, patternColor = '#FFFFFF' }) => {
     const { hy = 60, wx = 40, wy = 35 } = shape || {};
     const centerX = pos.x;
