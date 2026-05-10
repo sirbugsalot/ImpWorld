@@ -15,7 +15,7 @@ const Sandbox = () => {
         customization: {
             color: '#8A2BE2',
             pos: { x: 50, y: 80 }, // The pivot point
-            shape: { hy: 80, wx: 50, wy: 60 },
+            shape: { hy: 60, wx: 50, wy: 60 },
             patternId: null,
             patternColor: '#FFFFFF',
         },
@@ -33,7 +33,7 @@ const Sandbox = () => {
                 // Modulate length based on vertical drag
                 // Dragging UP (negative dy) increases length
                 const sensitivity = 0.02;
-                const newLength = Math.max(0.2, Math.min(3.0, config.footLength - gestureState.dy * sensitivity));
+                const newLength = Math.max(0.2, Math.min(3.0, config.footLength + gestureState.dy * sensitivity));
                 
                 setConfig(prev => ({ ...prev, footLength: newLength }));
             },
