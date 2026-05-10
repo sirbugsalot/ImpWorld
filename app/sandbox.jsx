@@ -20,6 +20,7 @@ const Sandbox = () => {
             patternColor: '#FFFFFF',
         },
         footLength: 1.0,
+        armLength: 1.0,
         eyeSize: 5
     });
 
@@ -71,6 +72,7 @@ const Sandbox = () => {
                             customization={config.customization}
                             footLength={config.footLength}
                             eyeSize={config.eyeSize}
+                            armLength={config.armLength}
                         />
 
                         {/* Interactive Sliding Dot 
