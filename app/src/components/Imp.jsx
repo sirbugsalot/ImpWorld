@@ -27,19 +27,19 @@ const Imp = ({
                     length={footLength} 
                 />
               
-                <Arms 
-                    pos={pos} 
-                    shape={shape} 
-                    color={color} 
-                    length={armLength} 
-                />
-
                 <Oval 
                     pos={pos} 
                     shape={shape} 
                     color={color} 
                     patternId={patternId} 
                     patternColor={patternColor} 
+                />
+
+                <Arms 
+                    pos={pos} 
+                    shape={shape} 
+                    color={color} 
+                    length={armLength} 
                 />
             </G>
 
