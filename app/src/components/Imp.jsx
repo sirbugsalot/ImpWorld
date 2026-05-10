@@ -5,12 +5,13 @@ import { Oval, Feet } from './shapes';
 const Imp = ({ 
   customization, 
   eyeSize = 5,
-  footLength = 1.0 // New prop for customization
+  footLength = 1.0, // New prop for customization
+  armLength = 1.0
 }) => {
     const { 
         color = '#8A2BE2', 
         pos = { x: 50, y: 80 },
-        shape = { hy: 80, wx: 50, wy: 60 }, 
+        shape = { hy: 70, wx: 60, wy: 60 }, 
         patternId = null, 
         patternColor = '#FFFFFF' 
     } = customization || {};
@@ -24,6 +25,13 @@ const Imp = ({
                     shape={shape} 
                     color={color} 
                     length={footLength} 
+                />
+              
+                <Arms 
+                    pos={pos} 
+                    shape={shape} 
+                    color={color} 
+                    length={armLength} 
                 />
 
                 <Oval 
