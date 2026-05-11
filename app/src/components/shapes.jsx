@@ -56,7 +56,7 @@ export const Feet = ({ pos, shape, color, length = 1.0 }) => {
  * @param {number} length - Multiplier for arm length (default 1.0)
  */
 export const Arms = ({ pos, shape, color, length = 1.0 }) => {
-    const { wx = 50, wy = 60 } = shape || {};
+    const { wx, wy } = shape || {};
     
     // We use 'length' to scale the horizontal offsets from the pivot point
     const reach = (offset) => offset * length;
@@ -65,7 +65,7 @@ export const Arms = ({ pos, shape, color, length = 1.0 }) => {
         <>
             {/* --- Left Arm --- */}
             <Path 
-                d={`M ${pos.x - wx /2} ${pos.y - wy *2} 
+                d={`M ${pos.x - wx /2} ${pos.y - wy/2} 
                    Q ${pos.x - 10} ${pos.y - 20}, ${pos.x - 17} ${pos.y - 25}
                    Q ${pos.x - 10} ${pos.y - 22}, ${pos.x - 12} ${pos.y - 20}
                    Q ${pos.x - 5} ${pos.y - 25}, ${pos.x} ${pos.y - 23}
