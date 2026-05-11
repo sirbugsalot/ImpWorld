@@ -32,7 +32,7 @@ const Sandbox = () => {
             onPanResponderMove: (evt, gestureState) => {
                 // Modulate length based on vertical drag
                 // Dragging UP (negative dy) increases length
-                const sensitivity = 0.02;
+                const sensitivity = 0.01;
                 const newLength = Math.max(0.2, Math.min(3.0, config.footLength + gestureState.dy * sensitivity));
                 
                 setConfig(prev => ({ ...prev, footLength: newLength }));
