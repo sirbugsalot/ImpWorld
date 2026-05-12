@@ -67,10 +67,10 @@ export const Arms = ({ pos, shape, color, length = 1.0 }) => {
             <Path 
                 d={`M ${pos.x - 0.5*0.95*wx} ${pos.y - 0.4*hy} 
                    Q ${pos.x - 0.52*wx} ${pos.y - 0.22*hy}, ${pos.x - 0.5*0.9*wx} ${pos.y - 0.18*hy}
-                   Q ${pos.x - 0.5*0.7*wx - reach(1)} ${pos.y - 0.10*hy}, ${pos.x - 0.5*0.42*wx - reach(3)} ${pos.y - 0.19*hy}
-                   Q ${pos.x - 0.5*0.22*wx - reach(5)} ${pos.y - 0.20*hy}, ${pos.x - 0.5*0.3*wx - reach(5)} ${pos.y - 0.27*hy}
-                   Q ${pos.x - 0.5*0.22*wx - reach(5)} ${pos.y - 0.30*hy}, ${pos.x - 0.5*0.4*wx - reach(5)} ${pos.y - 0.3*hy}
-                   Q ${pos.x - 0.5*0.4*wx - reach(5)} ${pos.y - 0.40*hy}, ${pos.x - 0.5*0.5*wx - reach(5)} ${pos.y - 0.3*hy}
+                   Q ${pos.x - 0.5*0.7*wx - reach(0.5)} ${pos.y - 0.10*hy}, ${pos.x - 0.5*0.42*wx - reach(3)} ${pos.y - 0.19*hy}
+                   Q ${pos.x - 0.5*0.22*wx - reach(1)} ${pos.y - 0.20*hy}, ${pos.x - 0.5*0.3*wx - reach(1)} ${pos.y - 0.27*hy}
+                   Q ${pos.x - 0.5*0.22*wx - reach(1)} ${pos.y - 0.30*hy}, ${pos.x - 0.5*0.4*wx - reach(1)} ${pos.y - 0.3*hy}
+                   Q ${pos.x - 0.5*0.4*wx - reach(1)} ${pos.y - 0.40*hy}, ${pos.x - 0.5*0.5*wx - reach(1)} ${pos.y - 0.3*hy}
                    Q ${pos.x - 0.5*0.74*wx} ${pos.y - 0.27*hy}, ${pos.x - 0.5*0.75*wx} ${pos.y - 0.39*hy}
                    `} 
                 stroke="#111" 
