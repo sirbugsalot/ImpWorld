@@ -66,9 +66,9 @@ export const Arms = ({ pos, shape, color, length = 1.0 }) => {
             {/* --- Left Arm --- */}
             <Path 
                 d={`M ${pos.x - 0.5*0.95*wx} ${pos.y - 0.4*hy} 
-                   Q ${pos.x - 27} ${pos.y - 18}, ${pos.x - 21} ${pos.y - 13}
-                   Q ${pos.x - 15} ${pos.y - 10}, ${pos.x - 8} ${pos.y - 14}
-                   Q ${pos.x - 5} ${pos.y - 25}, ${pos.x} ${pos.y - 23}
+                   Q ${pos.x - 0.5*wx} ${pos.y - 0.3*hy}, ${pos.x - 0.5*0.9*wx} ${pos.y - 18*hy}
+                   Q ${pos.x - reach(0.5*0.7*wx)} ${pos.y - 0.15*hy}, ${pos.x - reach(0.5*0.42*wx)} ${pos.y - 0.2*hy}
+                   Q ${pos.x - reach(0.5*0.2*wx)} ${pos.y - 0.22*hy}, ${pos.x - reach(0.5*0.3*wx)} ${pos.y - 0.27*hy}
                    Z`} 
                 stroke="#111" 
                 strokeWidth="1" 
