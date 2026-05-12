@@ -71,7 +71,7 @@ export const Arms = ({ pos, shape, color, length = 1.0 }) => {
                    Q ${pos.x - reach(0.5*0.22*wx)} ${pos.y - 0.20*hy}, ${pos.x - reach(0.5*0.3*wx)} ${pos.y - 0.27*hy}
                    Q ${pos.x - reach(0.5*0.22*wx)} ${pos.y - 0.30*hy}, ${pos.x - reach(0.5*0.4*wx)} ${pos.y - 0.3*hy}
                    Q ${pos.x - reach(0.5*0.4*wx)} ${pos.y - 0.40*hy}, ${pos.x - reach(0.5*0.5*wx)} ${pos.y - 0.3*hy}
-                   Q ${pos.x - 0.5*0.6*wx} ${pos.y - 0.34*hy}, ${pos.x - 0.5*0.75*wx} ${pos.y - 0.39*hy}
+                   Q ${pos.x - 0.5*0.6*wx} ${pos.y - 0.3*hy}, ${pos.x - 0.5*0.75*wx} ${pos.y - 0.39*hy}
                    `} 
                 stroke="#111" 
                 strokeWidth="1" 
