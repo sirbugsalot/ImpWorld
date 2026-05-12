@@ -17,7 +17,7 @@ export const Feet = ({ pos, shape, color, length = 1.0 }) => {
 
     return (
         <>
-            {/* --- Left Foot --- */}
+            {/* --- RIGHT Foot --- */}
             <Path 
                 d={`M ${pos.x} ${pos.y} 
                    Q ${pos.x - 15} ${pos.y + reach(5)}, ${pos.x - 15} ${pos.y + reach(13)}
@@ -31,7 +31,7 @@ export const Feet = ({ pos, shape, color, length = 1.0 }) => {
                 strokeLinecap="round" 
             />
 
-            {/* --- Right Foot --- */}
+            {/* --- LEFT Foot --- */}
             <Path 
                 d={`M ${pos.x + 2} ${pos.y} 
                    Q ${pos.x + 8} ${pos.y + reach(10)}, ${pos.x + 8} ${pos.y + reach(14)}
