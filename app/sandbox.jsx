@@ -33,9 +33,8 @@ const Sandbox = () => {
                 // Modulate length based on vertical drag
                 // Dragging UP (negative dy) increases length
                 const sensitivity = 0.01;
-                const armsSensitivity = 0.1;
                 const newLength = Math.max(0.2, Math.min(1.1, config.footLength + gestureState.dy * sensitivity));
-                const newArmLength = Math.max(0.15, Math.min(3.0, config.armLength - gestureState.dx * armsSensitivity));
+                const newArmLength = Math.max(0.15, Math.min(3.0, config.armLength - gestureState.dx * sensitivity));
 
                 setConfig(prev => ({ ...prev, footLength: newLength }));
                 setConfig(prev => ({ ...prev, armLength: newArmLength }));
