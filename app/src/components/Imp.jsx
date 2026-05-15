@@ -1,6 +1,6 @@
 import React from 'react';
 import Svg, { Path, Circle, G } from 'react-native-svg';
-import { Oval, Feet, Arms } from './shapes'; 
+import { Oval, Feet, LeftArm, RightArm } from './shapes'; 
 
 const Imp = ({ 
   customization, 
