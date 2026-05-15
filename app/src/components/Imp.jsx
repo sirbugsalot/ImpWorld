@@ -26,6 +26,13 @@ const Imp = ({
                     color={color} 
                     length={footLength} 
                 />
+
+                <LeftArm 
+                    pos={pos} 
+                    shape={shape} 
+                    color={color} 
+                    length={armLength} 
+                />
               
                 <Oval 
                     pos={pos} 
@@ -35,7 +42,7 @@ const Imp = ({
                     patternColor={patternColor} 
                 />
 
-                <Arms 
+                <RightArm 
                     pos={pos} 
                     shape={shape} 
                     color={color} 
