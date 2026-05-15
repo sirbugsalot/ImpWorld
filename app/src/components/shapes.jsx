@@ -55,7 +55,7 @@ export const Feet = ({ pos, shape, color, length = 1.0 }) => {
  * @param {string} color - Fill color
  * @param {number} length - Multiplier for arm length (default 1.0)
  */
-export const Arms = ({ pos, shape, color, length = 1.0 }) => {
+export const RightArm = ({ pos, shape, color, length = 1.0 }) => {
     const { hy, wx, wy } = shape || {};
     
     // We use 'length' to scale the horizontal offsets from the pivot point
@@ -72,6 +72,39 @@ export const Arms = ({ pos, shape, color, length = 1.0 }) => {
                    Q ${pos.x - 0.5*0.22*wx + reach(2)} ${pos.y - 0.30*hy}, ${pos.x - 0.5*0.4*wx + reach(2)} ${pos.y - 0.3*hy}
                    Q ${pos.x - 0.5*0.4*wx + reach(2)} ${pos.y - 0.40*hy}, ${pos.x - 0.5*0.5*wx + reach(2)} ${pos.y - 0.3*hy}
                    Q ${pos.x - 0.5*0.74*wx} ${pos.y - 0.27*hy}, ${pos.x - 0.5*0.75*wx} ${pos.y - 0.39*hy}
+                   `} 
+                stroke="#111" 
+                strokeWidth="1" 
+                fill={color}
+                strokeLinecap="round" 
+            />
+        </>
+    );
+};
+
+/**
+ * Arms Component
+ * @param {object} pos - Pivot point {x, y}
+ * @param {object} shape - Body parameters {wx, wy}
+ * @param {string} color - Fill color
+ * @param {number} length - Multiplier for arm length (default 1.0)
+ */
+export const LeftArm = ({ pos, shape, color, length = 1.0 }) => {
+    const { hy, wx, wy } = shape || {};
+    
+    // We use 'length' to scale the horizontal offsets from the pivot point
+    const reach = (offset) => offset * length;
+
+    return (
+        <>
+            {/* --- LEFT Arm --- */}
+            <Path 
+                d={`M ${pos.x + 0.5*0.8*wx} ${pos.y - 0.45*hy} 
+                   Q ${pos.x + 1.0*wx + reach(2)} ${pos.y - 0.46*hy}, ${pos.x + 0.5*1.2*wx reach(2)} ${pos.y - 0.5*hy}
+                   Q ${pos.x + 0.5*1.4*wx + reach(2)} ${pos.y - 0.6*hy}
+                   Q ${pos.x + 0.5*1.5*wx + reach(2)} ${pos.y - 0.47*hy}
+                   Q ${pos.x + 0.5*1.45*wx + reach(2)} ${pos.y - 0.45*hy}, ${pos.x - 0.5*1.4*wx + reach(2)} ${pos.y - 0.4*hy}
+                   Q ${pos.x + 0.5*0.9*wx} ${pos.y - 0.25*hy}
                    `} 
                 stroke="#111" 
                 strokeWidth="1" 
