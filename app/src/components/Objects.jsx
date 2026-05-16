@@ -11,7 +11,7 @@ export const Pencil = ({ pos, color }) => {
         <>
             {/* --- RIGHT Foot --- */}
             <Path 
-                d={`M ${pos.x - } ${pos.y} 
+                d={`M ${pos.x} ${pos.y} 
                    Q ${pos.x - 15} ${pos.y + reach(5)}, ${pos.x - 15} ${pos.y + reach(13)}
                    Q ${pos.x - 13} ${pos.y + reach(13)}, ${pos.x - 15} ${pos.y + reach(16)}
                    Q ${pos.x - 18} ${pos.y + reach(18)}, ${pos.x - 22} ${pos.y + reach(16)}
