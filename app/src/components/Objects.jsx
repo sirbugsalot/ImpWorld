@@ -1,4 +1,4 @@
-import { Path } from 'react-native-svg';
+import { Path, Circle} from 'react-native-svg';
 
 /**
 Position is obtained from within the hand
