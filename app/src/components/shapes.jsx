@@ -131,7 +131,7 @@ export const LeftArm = ({ pos, shape, color, length = 1.0 }) => {
     
     // We use 'length' to scale the horizontal offsets from the pivot point
     const reach = (offset) => offset * length;
-    const handCenter = {x: pos.x + 0.65*wx, y: pos.y - 0.5*hy };
+    const handCenter = {x: pos.x + 0.65*wx + reach(2), y: pos.y - 0.5*hy };
 
     return (
         <>
