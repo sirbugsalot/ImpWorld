@@ -134,7 +134,7 @@ export const LeftArm = ({ pos, shape, color, length = 1.0 }) => {
     const handCenter = {x: pos.x + 0.65*wx, y: pos.y - 0.5*hy };
 
     return (
-        <G>
+        <>
             {/* --- LEFT Arm --- */}
             <Path 
                 d={`M ${pos.x + 0.5*0.8*wx} ${pos.y - 0.4*hy} 
@@ -152,7 +152,7 @@ export const LeftArm = ({ pos, shape, color, length = 1.0 }) => {
             <Pencil
                 pos = {handCenter}
             />
-        </G>
+        </>
     );
 };
 
