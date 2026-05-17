@@ -1,6 +1,43 @@
-import React from 'react';
-import { Path, Defs } from 'react-native-svg';
+import { Defs, Path } from 'react-native-svg';
 import PatternLibrary from '../patterns/PatternLibrary';
+import Pencil from './Objects';
+
+/**
+ * Oval Component
+ * @param {object} pos - Pivot point {x, y}
+ * @param {object} shape - Body parameters {wx, wy}
+ * @param {string} color - Fill color
+ * @param {number} length - Multiplier for foot length (default 1.0)
+ */
+export const Oval = ({ pos, shape, color, patternId, patternColor = '#FFFFFF' }) => {
+    const { hy = 60, wx = 40, wy = 35 } = shape || {};
+    const centerX = pos.x;
+    const baseLineY = pos.y; 
+
+    const halfWidth = wx / 2;
+    const rightX = centerX + halfWidth;
+    const leftX = centerX - halfWidth;
+    const rx = halfWidth;
+    
+    const bottomRadiusY = baseLineY - wy;
+    const topY = baseLineY - hy;
+    const topRadiusY = wy - topY;
+
+    const d = `M ${leftX} ${wy} 
+               A ${rx} ${bottomRadiusY} 0 0 0 ${rightX} ${wy} 
+               A ${rx} ${topRadiusY} 0 0 0 ${leftX} ${wy}`;
+
+    return (
+        <>
+            <Defs>
+                <PatternLibrary patternId={patternId} color={patternColor} />
+            </Defs>
+            <Path d={d} fill={color || '#059669'} />
+            {patternId && <Path d={d} fill={`url(#${patternId})`} />}
+            <Path d={d} fill="none" stroke="#374151" strokeWidth="1.5" />
+        </>
+    );
+};
 
 /**
  * Feet Component
@@ -94,6 +131,7 @@ export const LeftArm = ({ pos, shape, color, length = 1.0 }) => {
     
     // We use 'length' to scale the horizontal offsets from the pivot point
     const reach = (offset) => offset * length;
+    const handCenter = {x: pos.x + 0.65*wx, y: pos.y - 0.5*hy };
 
     return (
         <>
@@ -111,36 +149,9 @@ export const LeftArm = ({ pos, shape, color, length = 1.0 }) => {
                 fill={color}
                 strokeLinecap="round" 
             />
-        </>
-    );
-};
-
-export const Oval = ({ pos, shape, color, patternId, patternColor = '#FFFFFF' }) => {
-    const { hy = 60, wx = 40, wy = 35 } = shape || {};
-    const centerX = pos.x;
-    const baseLineY = pos.y; 
-
-    const halfWidth = wx / 2;
-    const rightX = centerX + halfWidth;
-    const leftX = centerX - halfWidth;
-    const rx = halfWidth;
-    
-    const bottomRadiusY = baseLineY - wy;
-    const topY = baseLineY - hy;
-    const topRadiusY = wy - topY;
-
-    const d = `M ${leftX} ${wy} 
-               A ${rx} ${bottomRadiusY} 0 0 0 ${rightX} ${wy} 
-               A ${rx} ${topRadiusY} 0 0 0 ${leftX} ${wy}`;
-
-    return (
-        <>
-            <Defs>
-                <PatternLibrary patternId={patternId} color={patternColor} />
-            </Defs>
-            <Path d={d} fill={color || '#059669'} />
-            {patternId && <Path d={d} fill={`url(#${patternId})`} />}
-            <Path d={d} fill="none" stroke="#374151" strokeWidth="1.5" />
+            <Pencil
+                pos = {handCenter}
+            />
         </>
     );
 };

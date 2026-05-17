@@ -1,24 +1,29 @@
-import React from 'react';
-import { Path, Defs } from 'react-native-svg';
-import PatternLibrary from '../patterns/PatternLibrary';
+import { Path } from 'react-native-svg';
 
 /**
 Position is obtained from within the hand
 */
-export const Pencil = ({ pos, color }) => {
+export const Pencil = ({ pos, color= "#f9c92a" }) => {
     
     return (
         <>
-            {/* --- RIGHT Foot --- */}
+            {/* --- Pencil Body--- 
+            Path logic: given pos(x,y) is the center
+            Color logic: main color of the pencil*/}
             <Path 
-                d={`M ${pos.x} ${pos.y} 
-                   Q ${pos.x - 15} ${pos.y + reach(5)}, ${pos.x - 15} ${pos.y + reach(13)}
-                   Q ${pos.x - 13} ${pos.y + reach(13)}, ${pos.x - 15} ${pos.y + reach(16)}
-                   Q ${pos.x - 18} ${pos.y + reach(18)}, ${pos.x - 22} ${pos.y + reach(16)}
-                   Q ${pos.x - wx / 2 - 3} ${wy + reach(20)}, ${pos.x - wx / 2} ${wy}
-                   Z`} 
+                d={`M ${pos.x - 0.2*pos.x} ${pos.y - pos.y - 0.4*pos.y}
+                    L ${pos.x + 0.2*pos.x} ${pos.y - pos.y + 0.4*pos.y}
+                    Q ${pos.x + 0.195*pos.x} ${pos.y + 0.35*pos.y}, ${pos.x + 0.19*pos.x} ${pos.y + 0.38*pos.y}
+                    L ${pos.x - 0.19*pos.x} ${pos.y - 0.38*pos.y}
+                    L ${pos.x - 0.22*pos.x} ${pos.y - 0.44*pos.y}
+                    L ${pos.x + 0.22*pos.x} ${pos.y + 0.44*pos.y}
+                    Q ${pos.x + 0.215*pos.x} ${pos.y + 0.42*pos.y}, ${pos.x + 0.21*pos.x} ${pos.y + 0.42*pos.y}
+                    Q ${pos.x + 0.205*pos.x} ${pos.y + 0.38*pos.y}, ${pos.x + 0.2*pos.x} ${pos.y + 0.4*pos.y}
+                    M ${pos.x + 0.21*pos.x} ${pos.y + 0.42*pos.y}
+                    L ${pos.x - 0.21*pos.x} ${pos.y - 0.42*pos.y}
+                    `} 
                 stroke="#111" 
-                strokeWidth="1" 
+                strokeWidth="0.5" 
                 fill={color}
                 strokeLinecap="round" 
             />
