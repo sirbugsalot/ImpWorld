@@ -27,7 +27,7 @@ export const Pencil = ({ pos, color= "#f9c92a" }) => {
                 fill={color}
                 strokeLinecap="round" 
             />
-            <Circle cx={pos.x} cy={pos.y} r='3' fill="#333" />
+            <Circle cx='{pos.x}' cy='{pos.y}' r='3' fill="#333" />
         </>
     );
 };
