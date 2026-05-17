@@ -1,6 +1,6 @@
 import { Defs, Path } from 'react-native-svg';
 import PatternLibrary from '../patterns/PatternLibrary';
-import Pencil from './Objects';
+import {Pencil} from './Objects';
 
 /**
  * Oval Component
@@ -149,9 +149,7 @@ export const LeftArm = ({ pos, shape, color, length = 1.0 }) => {
                 fill={color}
                 strokeLinecap="round" 
             />
-            <Pencil
-                pos = {handCenter}
-            />
+            <Pencil pos={handCenter} />
         </>
     );
 };
