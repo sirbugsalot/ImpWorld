@@ -11,10 +11,10 @@ export const Pencil = ({ pos }) => {
             Path logic: given pos(x,y) is the center
             Color logic: main color of the pencil*/}
             <Path 
-                d={`M ${pos.x - 5} ${pos.y - 16}
+                d={`M ${pos.x - 7} ${pos.y - 14}
                     L ${pos.x + 5} ${pos.y + 16}
-                    Q ${pos.x + 4.25} ${pos.y + 14}, ${pos.x + 4} ${pos.y + 16}
-                    L ${pos.x - 6} ${pos.y - 15.5}
+                    Q ${pos.x + 4.25} ${pos.y + 15.5}, ${pos.x + 6} ${pos.y + 15}
+                    L ${pos.x - 6} ${pos.y - 15}
                     Z`} 
                 stroke="#111" 
                 strokeWidth="0.25" 
@@ -41,6 +41,16 @@ export const Pencil = ({ pos }) => {
                 stroke="#111" 
                 strokeWidth="0.25" 
                 fill="#fddc62"
+                strokeLinecap="round" 
+            />
+            <Path 
+                d={`M ${pos.x} ${pos.y - 25}
+                    L ${pos.x} ${pos.y + 25}
+                    M ${pos.x + 10} ${pos.y}
+                    L ${pos.x - 10} ${pos.y}
+                    Z`} 
+                stroke="#111" 
+                strokeWidth="2"
                 strokeLinecap="round" 
             />
         </>
