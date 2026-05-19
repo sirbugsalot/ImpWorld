@@ -44,13 +44,56 @@ export const Pencil = ({ pos }) => {
                 strokeLinecap="round" 
             />
             <Path 
-                d={`M ${pos.x} ${pos.y - 20}
-                    L ${pos.x} ${pos.y + 20}
-                    M ${pos.x + 10} ${pos.y}
-                    L ${pos.x - 10} ${pos.y}
+                d={`M ${pos.x + 6} ${pos.y + 14.5}
+                    L ${pos.x + 8} ${pos.y + 16}
+                    L ${pos.x + 9} ${pos.y + 15.5}
+                    L ${pos.x + 9} ${pos.y + 13}
                     Z`} 
                 stroke="#111" 
-                strokeWidth="1"
+                strokeWidth="0.25" 
+                fill="#f4e6cc"
+                strokeLinecap="round" 
+            />
+            <Path 
+                d={`M ${pos.x + 8} ${pos.y + 16}
+                    L ${pos.x + 9} ${pos.y + 16.9}
+                    L ${pos.x + 9} ${pos.y + 15.5}
+                    Z`} 
+                stroke="#111" 
+                strokeWidth="0.25" 
+                fill="#3d3d42"
+                strokeLinecap="round" 
+            />
+            <Path 
+                d={`M ${pos.x - 8} ${pos.y - 13.5}
+                    L ${pos.x - 9} ${pos.y - 15.5}
+                    L ${pos.x - 6} ${pos.y - 17}
+                    L ${pos.x - 5} ${pos.y - 15}
+                    Z`} 
+                stroke="#111" 
+                strokeWidth="0.25" 
+                fill="#a5a7aa"
+                strokeLinecap="round" 
+            />
+            <Path 
+                d={`M ${pos.x - 8} ${pos.y - 14.5}
+                    L ${pos.x - 6} ${pos.y - 15.5}
+                    M ${pos.x - 8} ${pos.y - 15.5}
+                    L ${pos.x - 7} ${pos.y - 16}
+                    `} 
+                stroke="#f4e6cc" 
+                strokeWidth="0.5"
+                strokeLinecap="round" 
+            />
+            <Path 
+                d={`M ${pos.x - 9} ${pos.y - 15.5}
+                    L ${pos.x - 10} ${pos.y - 17.5}
+                    L ${pos.x - 7} ${pos.y - 19}
+                    L ${pos.x - 6} ${pos.y - 17}
+                    Z`} 
+                stroke="#111" 
+                strokeWidth="0.25" 
+                fill="#da5d61"
                 strokeLinecap="round" 
             />
         </>
