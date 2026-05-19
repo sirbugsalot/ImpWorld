@@ -3,7 +3,7 @@ import { Circle, Path } from 'react-native-svg';
 /**
 Position is obtained from within the hand
 */
-export const Pencil = ({ pos, color= "#f9c92a" }) => {
+export const Pencil = ({ pos }) => {
     
     return (
         <>
@@ -18,7 +18,7 @@ export const Pencil = ({ pos, color= "#f9c92a" }) => {
                     Z`} 
                 stroke="#111" 
                 strokeWidth="0.25" 
-                fill={color}
+                fill="#f9c92a"
                 strokeLinecap="round" 
             />
         </>
