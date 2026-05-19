@@ -150,6 +150,14 @@ export const LeftArm = ({ pos, shape, color, length = 1.0 }) => {
                 strokeLinecap="round" 
             />
             <Pencil pos={handCenter} />
+            <Path 
+                d={`M ${handCenter.x + 1} ${handCenter.y + 1}
+                   `}
+                stroke="#111" 
+                strokeWidth="1" 
+                fill={color}
+                strokeLinecap="round" 
+            />
         </>
     );
 };
