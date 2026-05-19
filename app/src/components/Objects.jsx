@@ -14,11 +14,33 @@ export const Pencil = ({ pos }) => {
                 d={`M ${pos.x - 5} ${pos.y - 16}
                     L ${pos.x + 5} ${pos.y + 16}
                     Q ${pos.x + 4.25} ${pos.y + 14}, ${pos.x + 4} ${pos.y + 16}
-                    L ${pos.x - 6} ${pos.y - 16}
+                    L ${pos.x - 6} ${pos.y - 15.5}
+                    Z`} 
+                stroke="#111" 
+                strokeWidth="0.25" 
+                fill="#dfb018"
+                strokeLinecap="round" 
+            />
+            <Path 
+                d={`M ${pos.x - 6} ${pos.y - 15.5}
+                    L ${pos.x + 6} ${pos.y + 15.5}
+                    Q ${pos.x + 5.25} ${pos.y + 13.5}, ${pos.x + 5} ${pos.y + 15.5}
+                    L ${pos.x - 7} ${pos.y - 14}
                     Z`} 
                 stroke="#111" 
                 strokeWidth="0.25" 
                 fill="#f9c92a"
+                strokeLinecap="round" 
+            />
+            <Path 
+                d={`M ${pos.x - 7} ${pos.y - 14}
+                    L ${pos.x + 7} ${pos.y + 14}
+                    Q ${pos.x + 6.25} ${pos.y + 12}, ${pos.x + 6} ${pos.y + 13.5}
+                    L ${pos.x - 8} ${pos.y - 13.5}
+                    Z`} 
+                stroke="#111" 
+                strokeWidth="0.25" 
+                fill="#fddc62"
                 strokeLinecap="round" 
             />
         </>
