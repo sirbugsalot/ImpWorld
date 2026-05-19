@@ -15,7 +15,7 @@ export const Pencil = ({ pos, color= "#f9c92a" }) => {
             <Path 
                 d={`M ${pos.x - 0.10*pos.x} ${pos.y - 0.20*pos.y}
                     L ${pos.x + 0.10*pos.x} ${pos.y + 0.20*pos.y}
-                    Q ${pos.x - 0.075*pos.x} ${pos.y + 0.175*pos.y}, ${pos.x + 0.05*pos.x } ${pos.y + 0.19*pos.y}
+                    Q ${pos.x + 0.075*pos.x} ${pos.y + 0.195*pos.y}, ${pos.x + 0.05*pos.x } ${pos.y + 0.19*pos.y}
                     L ${pos.x - 0.05*pos.x } ${pos.y - 0.19*pos.y}
                     Z`} 
                 stroke="#111" 
