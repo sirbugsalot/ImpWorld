@@ -13,7 +13,7 @@ export const Pencil = ({ pos, color= "#f9c92a" }) => {
             <Path 
                 d={`M ${pos.x - 5} ${pos.y - 16}
                     L ${pos.x + 5} ${pos.y + 16}
-                    Q ${pos.x + 4.25} ${pos.y + 14}, ${pos.x + 4} ${pos.y + 16.5}
+                    Q ${pos.x + 4.25} ${pos.y + 14}, ${pos.x + 4} ${pos.y + 16}
                     L ${pos.x - 6} ${pos.y - 16}
                     Z`} 
                 stroke="#111" 
