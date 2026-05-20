@@ -200,9 +200,9 @@ export const LeftArm = ({ pos, shape, color, length = 1.0 }) => {
                 strokeLinecap="round" 
             />
             <Path 
-                d={`M ${handCenter.x - 5.0} ${handCenter.y + 2.0}
-                    A ${6.0/2} ${4.79/2} 0 0 0 ${handCenter.x - 2.2} ${handCenter.y - 4.5} 
-                    A ${6.0/2} ${4.79/2} 0 0 0 ${handCenter.x - 5.0} ${handCenter.y + 2.0}
+                d={`M ${handCenter.x - 5.0} ${handCenter.y + 0.0}
+                    A ${5.8/2} ${4.79/2} 0 0 0 ${handCenter.x - 2.2} ${handCenter.y - 5.0} 
+                    A ${5.8/2} ${4.79/2} 0 0 0 ${handCenter.x - 5.0} ${handCenter.y + 0.0}
                    `}
                 stroke="#111" 
                 strokeWidth="1" 
