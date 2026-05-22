@@ -204,7 +204,7 @@ export const Ears = ({shape, color, length = 1.0 }) => {
     
     // We use 'length' to scale the horizontal offsets from the pivot point
     const reach = (offset) => offset * length;
-    const ref_y = -hy;
+    const ref_y = hy;
     const center_x = (wx / 2);
     const ref_x = (wx / 2)/100;
 
