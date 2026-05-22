@@ -50,6 +50,7 @@ const Imp = ({
                 />
 
                 <Ears 
+                    pos={pos} 
                     shape={shape} 
                     color={color} 
                     length={footLength} 
