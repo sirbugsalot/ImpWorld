@@ -151,7 +151,8 @@ export const LeftArm = ({ pos, shape, color, length = 1.0 }) => {
             />
             <Pencil pos={handCenter} />
             {/* --- Fingers --- */}
-            <Path {/* --- Pinky --- */}
+            {/* --- Pinky --- */}
+            <Path 
                 d={`M ${handCenter.x + 1} ${handCenter.y + 1}
                     A ${3.2/2} ${2.7/2} 0 0 0 ${handCenter.x + 4} ${handCenter.y} 
                     A ${3.2/2} ${2.7/2} 0 0 0 ${handCenter.x + 1} ${handCenter.y + 1}
@@ -161,7 +162,8 @@ export const LeftArm = ({ pos, shape, color, length = 1.0 }) => {
                 fill={color}
                 strokeLinecap="round" 
             />
-            <Path {/* --- Middle --- */}
+            {/* --- Middle --- */}
+            <Path 
                 d={`M ${handCenter.x + 0.2} ${handCenter.y - 0.2}
                     A ${4.24/2} ${2.8/2} 0 0 0 ${handCenter.x + 3.5} ${handCenter.y - 3.2} 
                     A ${3.2/2} ${2.7/2} 0 0 0 ${handCenter.x + 0.2} ${handCenter.y - 0.2}
@@ -171,7 +173,8 @@ export const LeftArm = ({ pos, shape, color, length = 1.0 }) => {
                 fill={color}
                 strokeLinecap="round" 
             />
-            <Path {/* --- Index --- */}
+            {/* --- Index --- */}
+            <Path 
                 d={`M ${handCenter.x - 2.7} ${handCenter.y - 3.2}
                     A ${5.3/2} ${3.64/2} 0 0 0 ${handCenter.x + 2.1} ${handCenter.y - 5} 
                     A ${5.3/2} ${3.64/2} 0 0 0 ${handCenter.x - 2.7} ${handCenter.y - 3.2}
@@ -181,7 +184,8 @@ export const LeftArm = ({ pos, shape, color, length = 1.0 }) => {
                 fill={color}
                 strokeLinecap="round" 
             />
-            <Path {/* --- Thumb --- */}
+            {/* --- Thumb --- */}
+            <Path 
                 d={`M ${handCenter.x - 5.0} ${handCenter.y + 0.2}
                     A ${5.8/2} ${4.9/2} 0 0 0 ${handCenter.x - 2.2} ${handCenter.y - 5.0} 
                     A ${5.8/2} ${4.9/2} 0 0 0 ${handCenter.x - 5.0} ${handCenter.y + 0.2}
