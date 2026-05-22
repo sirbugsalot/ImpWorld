@@ -204,7 +204,7 @@ export const Ears = ({shape, color, length = 1.0 }) => {
     
     // We use 'length' to scale the horizontal offsets from the pivot point
     const reach = (offset) => offset * length;
-    const ref_y = -hy/100;
+    const ref_y = -hy;
     const center_x = (wx / 2);
     const ref_x = (wx / 2)/100;
 
@@ -224,8 +224,7 @@ export const Ears = ({shape, color, length = 1.0 }) => {
                 fill={color}
                 strokeLinecap="round" 
             />
-            <Circle cx={center_x} cy={-hy} r={eyeSize} fill="#333" />
-            
+            <Circle cx={center_x} cy={ref_y} r={eyeSize} fill="#333" />
         </>
     );
 };
