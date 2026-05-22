@@ -195,3 +195,33 @@ export const LeftArm = ({ pos, shape, color, length = 1.0 }) => {
     );
 };
 
+export const Ears = ({shape, color, length = 1.0 }) => {
+    const { hy, wx, wy } = shape || {};
+    
+    // We use 'length' to scale the horizontal offsets from the pivot point
+    const reach = (offset) => offset * length;
+    const ref_y = -hy/100;
+    const center_x = (wx / 2);
+    const ref_x = (wx / 2)/100;
+
+    return (
+        <>
+            {/* --- Outer Ears --- */}
+            <Path 
+                d={`M ${center_x + 2.5*ref_x} ${ref_y + 0.5*ref_x} 
+                   Q ${center_x + 5.0*ref_x} ${ref_y + 2.5*ref_x - reach(2)}, ${center_x + 6.0*ref_x} ${ref_y - 3.0*ref_x - reach(2)}
+                   Q ${center_x + 6.4*ref_x} ${ref_y - 2.8*ref_x - reach(2)}, ${center_x + 6.3*ref_x} ${ref_y + 3.0*ref_x - reach(2)}
+                   M ${center_x - 8.0*ref_x} ${ref_y + 4.0*ref_x} 
+                   Q ${center_x - 9.3*ref_x} ${ref_y + 1.0*ref_x - reach(2)}, ${center_x - 9.0*ref_x} ${ref_y - 2.0*ref_x - reach(2)}
+                   Q ${center_x - 7.0*ref_x} ${ref_y - 1.5*ref_x - reach(2)}, ${center_x - 3.5*ref_x} ${ref_y + 1.0*ref_x - reach(2)}
+                   `} 
+                stroke="#111" 
+                strokeWidth="1" 
+                fill={color}
+                strokeLinecap="round" 
+            />
+            
+        </>
+    );
+};
+
