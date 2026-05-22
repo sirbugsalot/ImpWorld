@@ -1,4 +1,4 @@
-import { Defs, Path } from 'react-native-svg';
+import { Defs, Path, Circle } from 'react-native-svg';
 import PatternLibrary from '../patterns/PatternLibrary';
 import {Pencil} from './Objects';
 
