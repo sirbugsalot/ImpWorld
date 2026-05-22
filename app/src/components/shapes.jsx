@@ -150,26 +150,8 @@ export const LeftArm = ({ pos, shape, color, length = 1.0 }) => {
                 strokeLinecap="round" 
             />
             <Pencil pos={handCenter} />
-            <Path 
-                d={`M ${handCenter.x + 1} ${handCenter.y + 1}
-                    A ${3.2/2} ${2.7/2} 0 0 0 ${handCenter.x + 4} ${handCenter.y} 
-                    A ${3.2/2} ${2.7/2} 0 0 0 ${handCenter.x + 1} ${handCenter.y + 1}
-                    M ${handCenter.x + 0.2} ${handCenter.y - 0.2}
-                    A ${4.24/2} ${2.8/2} 0 0 0 ${handCenter.x + 3.5} ${handCenter.y - 3.2} 
-                    A ${3.2/2} ${2.7/2} 0 0 0 ${handCenter.x + 0.2} ${handCenter.y - 0.2}
-                    M ${handCenter.x - 2.7} ${handCenter.y - 3.2}
-                    A ${5.3/2} ${3.64/2} 0 0 0 ${handCenter.x + 2.1} ${handCenter.y - 5} 
-                    A ${5.3/2} ${3.64/2} 0 0 0 ${handCenter.x - 2.7} ${handCenter.y - 3.2}
-                    M ${handCenter.x - 7.5} ${handCenter.y - 1.9}
-                    A ${5.6/2} ${4.79/2} 0 0 0 ${handCenter.x - 2.2} ${handCenter.y - 4.5} 
-                    A ${5.6/2} ${4.79/2} 0 0 0 ${handCenter.x - 7.5} ${handCenter.y - 1.9}
-                   `}
-                stroke="#111" 
-                strokeWidth="1" 
-                fill={color}
-                strokeLinecap="round" 
-            />
-            <Path 
+            {/* --- Fingers --- */}
+            <Path {/* --- Pinky --- */}
                 d={`M ${handCenter.x + 1} ${handCenter.y + 1}
                     A ${3.2/2} ${2.7/2} 0 0 0 ${handCenter.x + 4} ${handCenter.y} 
                     A ${3.2/2} ${2.7/2} 0 0 0 ${handCenter.x + 1} ${handCenter.y + 1}
@@ -179,7 +161,7 @@ export const LeftArm = ({ pos, shape, color, length = 1.0 }) => {
                 fill={color}
                 strokeLinecap="round" 
             />
-            <Path 
+            <Path {/* --- Middle --- */}
                 d={`M ${handCenter.x + 0.2} ${handCenter.y - 0.2}
                     A ${4.24/2} ${2.8/2} 0 0 0 ${handCenter.x + 3.5} ${handCenter.y - 3.2} 
                     A ${3.2/2} ${2.7/2} 0 0 0 ${handCenter.x + 0.2} ${handCenter.y - 0.2}
@@ -189,7 +171,7 @@ export const LeftArm = ({ pos, shape, color, length = 1.0 }) => {
                 fill={color}
                 strokeLinecap="round" 
             />
-            <Path 
+            <Path {/* --- Index --- */}
                 d={`M ${handCenter.x - 2.7} ${handCenter.y - 3.2}
                     A ${5.3/2} ${3.64/2} 0 0 0 ${handCenter.x + 2.1} ${handCenter.y - 5} 
                     A ${5.3/2} ${3.64/2} 0 0 0 ${handCenter.x - 2.7} ${handCenter.y - 3.2}
@@ -199,10 +181,10 @@ export const LeftArm = ({ pos, shape, color, length = 1.0 }) => {
                 fill={color}
                 strokeLinecap="round" 
             />
-            <Path 
-                d={`M ${handCenter.x - 5.0} ${handCenter.y + 0.0}
-                    A ${5.8/2} ${4.79/2} 0 0 0 ${handCenter.x - 2.2} ${handCenter.y - 5.0} 
-                    A ${5.8/2} ${4.79/2} 0 0 0 ${handCenter.x - 5.0} ${handCenter.y + 0.0}
+            <Path {/* --- Thumb --- */}
+                d={`M ${handCenter.x - 5.0} ${handCenter.y + 0.2}
+                    A ${5.8/2} ${4.9/2} 0 0 0 ${handCenter.x - 2.2} ${handCenter.y - 5.0} 
+                    A ${5.8/2} ${4.9/2} 0 0 0 ${handCenter.x - 5.0} ${handCenter.y + 0.2}
                    `}
                 stroke="#111" 
                 strokeWidth="1" 
