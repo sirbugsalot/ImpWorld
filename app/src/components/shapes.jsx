@@ -224,7 +224,8 @@ export const Ears = ({shape, color, length = 1.0 }) => {
                 fill={color}
                 strokeLinecap="round" 
             />
-            <Circle cx={center_x} cy={ref_y} r='15' fill="#333" />
+            <Circle cx={0} cy={0} r='5' fill="#333" />
+            <Circle cx={0} cy={hy + wy} r='5' fill="#111" />
         </>
     );
 };
