@@ -206,10 +206,26 @@ export const Ears = ({pos, shape, color, length = 1.0 }) => {
     const reach = (offset) => offset * length;
     const ref_y = pos.y - hy;
     const ref_x = pos.x;
+    const scale = 4.0;
 
     return (
         <>
             {/* --- Outer Ears --- */}
+            <Path 
+                d={`M ${ref_x + 2.5*scale} ${ref_y + 0.5} 
+                   Q ${ref_x + 5.0*scale} ${ref_y + 2.5*scale - reach(5)}, ${ref_x + 6.0*scale} ${ref_y - 3.0*scale - reach(5)}
+                   Q ${ref_x + 6.4*scale} ${ref_y - 2.8*scale - reach(5)}, ${ref_x + 6.3*scale} ${ref_y + 3.0*scale - reach(5)}
+                   M ${ref_x - 8.0*scale} ${ref_y + 4.0*scale} 
+                   Q ${ref_x - 9.3*scale} ${ref_y + 1.0*scale - reach(5)}, ${ref_x - 9.0*scale} ${ref_y - 2.0*scale - reach(5)}
+                   Q ${ref_x - 7.0*scale} ${ref_y - 1.5*scale - reach(5)}, ${ref_x - 3.5*scale} ${ref_y + 1.0*scale - reach(5)}
+                   `} 
+                stroke="#111" 
+                strokeWidth="1" 
+                fill="#2d2a32"
+                strokeLinecap="round" 
+            />
+            {/*
+            {/* --- Outer Ears --- *
             <Path 
                 d={`M ${ref_x + 2.5} ${ref_y + 0.5} 
                    Q ${ref_x + 5.0} ${ref_y + 2.5 - reach(2)}, ${ref_x + 6.0} ${ref_y - 3.0 - reach(2)}
@@ -220,10 +236,10 @@ export const Ears = ({pos, shape, color, length = 1.0 }) => {
                    `} 
                 stroke="#111" 
                 strokeWidth="1" 
-                fill={color}
+                fill="#eac3b5"
                 strokeLinecap="round" 
             />
-            <Circle cx={ref_x} cy={ref_y} r='5' fill="#333" />
+            */}
         </>
     );
 };
