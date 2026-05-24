@@ -269,8 +269,8 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
             {/* --- Outer Eyes --- */}
             <Path 
                 d={`M ${p1_L.x} ${p1_L.y}
-                    A ${r1_L} ${R1} 0 0 0 ${p2_L.x} ${p2_L.y}
-                    A ${r1_L} ${R1} 0 0 0 ${p1_L.x} ${p1_L.y}                   `}
+                    A ${R1} ${r1_L} 0 0 0 ${p2_L.x} ${p2_L.y}
+                    A ${R1} ${r1_L} 0 0 0 ${p1_L.x} ${p1_L.y}                   `}
                 stroke="#f4e6cc" 
                 strokeWidth="0.1" 
                 fill="#f4e6cc"
@@ -278,8 +278,8 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
             />
             <Path 
                 d={`M ${p1_R.x} ${p1_R.y}
-                    A ${r1_R} ${R1} 0 0 0 ${p2_R.x} ${p2_R.y}
-                    A ${r1_R} ${R1} 0 0 0 ${p1_R.x} ${p1_R.y}                   `}
+                    A ${R1} ${r1_R} 0 0 0 ${p2_R.x} ${p2_R.y}
+                    A ${R1} ${r1_R} 0 0 0 ${p1_R.x} ${p1_R.y}                   `}
                 stroke="#f4e6cc" 
                 strokeWidth="0.1" 
                 fill="#f4e6cc"
