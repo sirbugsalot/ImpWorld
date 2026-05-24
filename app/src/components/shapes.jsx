@@ -214,12 +214,12 @@ export const Ears = ({pos, shape, color, length = 1.0 }) => {
             <Path 
                 d={`M ${ref_x + 2.5*scale} ${ref_y + 0.5*scale} 
                    Q ${ref_x + 5.0*scale} ${ref_y - 2.5*scale - reach(5)}, ${ref_x + 6.0*scale} ${ref_y - 3.0*scale - reach(5)}
-                   Q ${ref_x + 6.4*scale} ${ref_y - 2.8*scale - reach(5)}, ${ref_x + 6.5*scale} ${ref_y + 6.0*scale}
-                   Q ${ref_x + 4.0*scale} ${ref_y + 2.0*scale}, ${ref_x + 2.5*scale} ${ref_y + 0.5*scale}
+                   Q ${ref_x + 6.4*scale} ${ref_y - 2.8*scale - reach(5)}, ${ref_x + 6.5*scale} ${ref_y + 5.7*scale}
+                   Q ${ref_x + 4.5*scale} ${ref_y + 2.0*scale}, ${ref_x + 2.5*scale} ${ref_y + 0.5*scale}
                    M ${ref_x - 7.0*scale} ${ref_y + 6.0*scale} 
                    Q ${ref_x - 9.3*scale} ${ref_y + 1.0*scale - reach(5)}, ${ref_x - 9.0*scale} ${ref_y - 2.0*scale - reach(5)}
-                   Q ${ref_x - 7.0*scale} ${ref_y - 1.5*scale - reach(5)}, ${ref_x - 2.5*scale} ${ref_y + 2.5*scale}
-                   Q ${ref_x - 5.5*scale} ${ref_y + 1.5*scale}, ${ref_x - 7.0*scale} ${ref_y + 4.5*scale} 
+                   Q ${ref_x - 7.0*scale} ${ref_y - 1.5*scale - reach(5)}, ${ref_x - 2.5*scale} ${ref_y + 2.0*scale}
+                   Q ${ref_x - 5.5*scale} ${ref_y + 1.8*scale}, ${ref_x - 7.0*scale} ${ref_y + 4.5*scale} 
                    `} 
                 stroke="#657c7c" 
                 strokeWidth="0.1" 
@@ -236,7 +236,7 @@ export const Ears = ({pos, shape, color, length = 1.0 }) => {
                    Q ${ref_x - 7.5*scale} ${ref_y - 0.8*scale - reach(5)}, ${ref_x - 5.7*scale} ${ref_y + 3.0*scale}
                    `}
                 stroke="#d59b95" 
-                strokeWidth="1" 
+                strokeWidth="0.25" 
                 fill="#eac3b5"
                 strokeLinecap="round" 
             />
@@ -256,21 +256,21 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
     // Outer Eye parameters
     const R1    = 5.0/2*length; // Outer eye major radius
         // LH
-    const r1_L  = 4.0/2*length*0.2; // Outer eye minor radius LH
-    const p1_L  = {x: ref_x - 6.0*scale*length*0.1, y: ref_y + 6.5*scale}; // Pupil radius LH
-    const p2_L  = {x: ref_x - 2.2*scale*length*0.1, y: ref_y + 6.5*scale}; // Pupil radius LH
+    const r1_L  = 4.0/2*length*0.9; // Outer eye minor radius LH
+    const p1_L  = {x: ref_x - 6.0*scale*length*0.85, y: ref_y + 6.5*scale}; // Pupil radius LH
+    const p2_L  = {x: ref_x - 2.2*scale*length*0.85, y: ref_y + 6.5*scale}; // Pupil radius LH
         // RH
-    const r1_R  = 3.0/2*length*0.1; // Outer eye minor radius RH
-    const p1_R  = {x: ref_x + 4.0*scale*length*0.05, y: ref_y + 6.5*scale}; // Pupil radius RH
-    const p2_R  = {x: ref_x + 7.0*scale*length*0.05, y: ref_y + 6.5*scale}; // Pupil radius RH    
+    const r1_R  = 3.0/2*length*0.85; // Outer eye minor radius RH
+    const p1_R  = {x: ref_x + 4.0*scale*length*0.80, y: ref_y + 6.5*scale}; // Pupil radius RH
+    const p2_R  = {x: ref_x + 7.0*scale*length*0.80, y: ref_y + 6.5*scale}; // Pupil radius RH    
 
     return (
         <>
             {/* --- Outer Eyes --- */}
             <Path 
                 d={`M ${p1_L.x} ${p1_L.y}
-                    A ${R1} ${r1_L} 0 0 0 ${p2_L.x} ${p2_L.y}
-                    A ${R1} ${r1_L} 0 0 0 ${p1_L.x} ${p1_L.y}                   `}
+                    A ${r1_L} ${R1} 0 0 0 ${p2_L.x} ${p2_L.y}
+                    A ${r1_L} ${R1} 0 0 0 ${p1_L.x} ${p1_L.y}                   `}
                 stroke="#f4e6cc" 
                 strokeWidth="0.1" 
                 fill="#f4e6cc"
@@ -278,8 +278,8 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
             />
             <Path 
                 d={`M ${p1_R.x} ${p1_R.y}
-                    A ${R1} ${r1_R} 0 0 0 ${p2_R.x} ${p2_R.y}
-                    A ${R1} ${r1_R} 0 0 0 ${p1_R.x} ${p1_R.y}                   `}
+                    A ${r1_R} ${R1} 0 0 0 ${p2_R.x} ${p2_R.y}
+                    A ${r1_R} ${R1} 0 0 0 ${p1_R.x} ${p1_R.y}                   `}
                 stroke="#f4e6cc" 
                 strokeWidth="0.1" 
                 fill="#f4e6cc"
