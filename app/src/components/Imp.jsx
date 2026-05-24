@@ -4,7 +4,7 @@ import { Oval, Feet, LeftArm, RightArm, Ears, Eyes } from './shapes';
 
 const Imp = ({ 
   customization, 
-  eyeSize = 5,
+  eyeSize = 1,
   footLength = 1.0, // New prop for customization
   armLength = 1.0
 }) => {
