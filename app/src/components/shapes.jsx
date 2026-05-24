@@ -257,12 +257,12 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
     const R1    = 5.0/2*length; // Outer eye major radius
         // LH
     const r1_L  = 4.0/2*length*0.9; // Outer eye minor radius LH
-    const p1_L  = {x: (ref_x - 6.0*scale)*(1 - length*0.05), y: ref_y + 6.5*scale}; // Pupil radius LH
-    const p2_L  = {x: (ref_x - 2.2*scale)*(1 + length*0.05), y: ref_y + 6.5*scale}; // Pupil radius LH
+    const p1_L  = {x: (ref_x - 5.5*scale)*(1 - length*0.05), y: ref_y + 6.5*scale}; // Pupil radius LH
+    const p2_L  = {x: (ref_x - 1.7*scale)*(1 + length*0.05), y: ref_y + 6.5*scale}; // Pupil radius LH
         // RH
-    const r1_R  = 3.0/2*length*0.85; // Outer eye minor radius RH
-    const p1_R  = {x: (ref_x + 4.0*scale)*(1 - length*0.02), y: ref_y + 6.5*scale}; // Pupil radius RH
-    const p2_R  = {x: (ref_x + 7.0*scale)*(1 + length*0.02), y: ref_y + 6.5*scale}; // Pupil radius RH    
+    const r1_R  = 3.0/2*length*0.9; // Outer eye minor radius RH
+    const p1_R  = {x: (ref_x + 3.5*scale)*(1 - length*0.05), y: ref_y + 6.5*scale}; // Pupil radius RH
+    const p2_R  = {x: (ref_x + 6.5*scale)*(1 + length*0.05), y: ref_y + 6.5*scale}; // Pupil radius RH    
 
     return (
         <>
