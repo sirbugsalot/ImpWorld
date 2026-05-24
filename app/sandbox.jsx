@@ -21,7 +21,7 @@ const Sandbox = () => {
         },
         footLength: 1.0,
         armLength: 1.0,
-        eyeSize: 5
+        eyeSize: 1.0
     });
 
     // PanResponder for the sliding dot at [pos.x, pos.y - 10]
@@ -113,13 +113,13 @@ const Sandbox = () => {
                     <View style={styles.buttonGroup}>
                         <TouchableOpacity 
                             style={styles.miniBtn} 
-                            onPress={() => updateConfig('eyeSize', Math.max(2, config.eyeSize - 1))}
+                            onPress={() => updateConfig('eyeSize', Math.max(1, config.eyeSize - 1))}
                         >
                             <Ionicons name="remove" size={20} color="white" />
                         </TouchableOpacity>
                         <TouchableOpacity 
                             style={styles.miniBtn} 
-                            onPress={() => updateConfig('eyeSize', Math.min(15, config.eyeSize + 1))}
+                            onPress={() => updateConfig('eyeSize', Math.min(5, config.eyeSize + 1))}
                         >
                             <Ionicons name="add" size={20} color="white" />
                         </TouchableOpacity>
