@@ -253,13 +253,33 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
     const ref_x = pos.x;
     const scale = 3.0;
 
+    // Outer Eye parameters
+    const R1    = 5.0/2*length; // Outer eye major radius
+        // LH
+    const r1_L  = 4.0/2*length*0.2; // Outer eye minor radius LH
+    const p1_L  = {x: ref_x - 6.0*scale*length*0.1, y: ref_y + 6.5*scale}; // Pupil radius LH
+    const p2_L  = {x: ref_x - 2.2*scale*length*0.1, y: ref_y + 6.5*scale}; // Pupil radius LH
+        // RH
+    const r1_R  = 3.0/2*length*0.1; // Outer eye minor radius RH
+    const p1_R  = {x: ref_x + 4.0*scale*length*0.05, y: ref_y + 6.5*scale}; // Pupil radius RH
+    const p2_R  = {x: ref_x + 7.0*scale*length*0.05, y: ref_y + 6.5*scale}; // Pupil radius RH    
+
     return (
         <>
             {/* --- Outer Eyes --- */}
             <Path 
-                d={`M ${ref_x - 6.0*scale} ${ref_y + 6.5*scale}
-                    A ${5.0/2} ${4.0/2} 0 0 0 ${ref_x - 2.2*scale} ${ref_y - 6.4*scale}
-                   `}
+                d={`M ${p1_L.x} ${p1_L.y}
+                    A ${R1} ${r1_L} 0 0 0 ${p2_L.x} ${p2_L.y}
+                    A ${R1} ${r1_L} 0 0 0 ${p1_L.x} ${p1_L.y}                   `}
+                stroke="#f4e6cc" 
+                strokeWidth="0.1" 
+                fill="#f4e6cc"
+                strokeLinecap="round" 
+            />
+            <Path 
+                d={`M ${p1_R.x} ${p1_R.y}
+                    A ${R1} ${r1_R} 0 0 0 ${p2_R.x} ${p2_R.y}
+                    A ${R1} ${r1_R} 0 0 0 ${p1_R.x} ${p1_R.y}                   `}
                 stroke="#f4e6cc" 
                 strokeWidth="0.1" 
                 fill="#f4e6cc"
