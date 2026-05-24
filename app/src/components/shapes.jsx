@@ -206,7 +206,7 @@ export const Ears = ({pos, shape, color, length = 1.0 }) => {
     const reach = (offset) => offset * length;
     const ref_y = pos.y - hy;
     const ref_x = pos.x;
-    const scale = 4.0;
+    const scale = 3.0;
 
     return (
         <>
@@ -219,27 +219,25 @@ export const Ears = ({pos, shape, color, length = 1.0 }) => {
                    Q ${ref_x - 9.3*scale} ${ref_y + 1.0*scale - reach(5)}, ${ref_x - 9.0*scale} ${ref_y - 2.0*scale - reach(5)}
                    Q ${ref_x - 7.0*scale} ${ref_y - 1.5*scale - reach(5)}, ${ref_x - 3.5*scale} ${ref_y + 1.0*scale - reach(5)}
                    `} 
-                stroke="#111" 
+                stroke="#657c7c" 
                 strokeWidth="1" 
                 fill="#2d2a32"
                 strokeLinecap="round" 
             />
-            {/*
-            {/* --- Inner Ears --- *
+            {/* --- Inner Ears --- */}
             <Path 
-                d={`M ${ref_x + 4.3*scale} ${ref_y + 1.5} 
-                   Q ${ref_x + 5.0*scale} ${ref_y + 2.5*scale - reach(5)}, ${ref_x + 6.0*scale} ${ref_y - 3.0*scale - reach(5)}
-                   Q ${ref_x + 6.4*scale} ${ref_y - 2.8*scale - reach(5)}, ${ref_x + 6.3*scale} ${ref_y + 3.0*scale - reach(5)}
-                   M ${ref_x - 8.0*scale} ${ref_y + 4.0*scale} 
-                   Q ${ref_x - 9.3*scale} ${ref_y + 1.0*scale - reach(5)}, ${ref_x - 9.0*scale} ${ref_y - 2.0*scale - reach(5)}
-                   Q ${ref_x - 7.0*scale} ${ref_y - 1.5*scale - reach(5)}, ${ref_x - 3.5*scale} ${ref_y + 1.0*scale - reach(5)}
+                d={`M ${ref_x + 4.3} ${ref_y + 1.5} 
+                   Q ${ref_x + 5.5*scale} ${ref_y + 2.0*scale - reach(5)}, ${ref_x + 6.0*scale} ${ref_y - 2.5*scale - reach(5)}
+                   Q ${ref_x + 6.1*scale} ${ref_y - 1.0*scale - reach(5)}, ${ref_x + 6.0*scale} ${ref_y + 2.5*scale - reach(5)}
+                   M ${ref_x - 7.8*scale} ${ref_y + 4.0*scale} 
+                   Q ${ref_x - 8.9*scale} ${ref_y + 0.5*scale - reach(5)}, ${ref_x - 8.6*scale} ${ref_y - 1.5*scale - reach(5)}
+                   Q ${ref_x - 7.8*scale} ${ref_y - 0.8*scale - reach(5)}, ${ref_x - 6.0*scale} ${ref_y + 3.0*scale - reach(5)}
                    `}
                 stroke="#111" 
                 strokeWidth="1" 
                 fill="#eac3b5"
                 strokeLinecap="round" 
             />
-            */}
         </>
     );
 };
