@@ -211,12 +211,12 @@ export const Ears = ({pos, shape, color, length = 1.0 }) => {
         <>
             {/* --- Outer Ears --- */}
             <Path 
-                d={`M ${ref_x + 2.5*ref_x} ${ref_y + 0.5*ref_x} 
-                   Q ${ref_x + 5.0*ref_x} ${ref_y + 2.5*ref_x - reach(2)}, ${ref_x + 6.0*ref_x} ${ref_y - 3.0*ref_x - reach(2)}
-                   Q ${ref_x + 6.4*ref_x} ${ref_y - 2.8*ref_x - reach(2)}, ${ref_x + 6.3*ref_x} ${ref_y + 3.0*ref_x - reach(2)}
-                   M ${ref_x - 8.0*ref_x} ${ref_y + 4.0*ref_x} 
-                   Q ${ref_x - 9.3*ref_x} ${ref_y + 1.0*ref_x - reach(2)}, ${ref_x - 9.0*ref_x} ${ref_y - 2.0*ref_x - reach(2)}
-                   Q ${ref_x - 7.0*ref_x} ${ref_y - 1.5*ref_x - reach(2)}, ${ref_x - 3.5*ref_x} ${ref_y + 1.0*ref_x - reach(2)}
+                d={`M ${ref_x + 2.5} ${ref_y + 0.5} 
+                   Q ${ref_x + 5.0} ${ref_y + 2.5 - reach(2)}, ${ref_x + 6.0} ${ref_y - 3.0 - reach(2)}
+                   Q ${ref_x + 6.4} ${ref_y - 2.8 - reach(2)}, ${ref_x + 6.3} ${ref_y + 3.0 - reach(2)}
+                   M ${ref_x - 8.0} ${ref_y + 4.0} 
+                   Q ${ref_x - 9.3} ${ref_y + 1.0 - reach(2)}, ${ref_x - 9.0} ${ref_y - 2.0 - reach(2)}
+                   Q ${ref_x - 7.0} ${ref_y - 1.5 - reach(2)}, ${ref_x - 3.5} ${ref_y + 1.0 - reach(2)}
                    `} 
                 stroke="#111" 
                 strokeWidth="1" 
