@@ -256,11 +256,11 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
             {/* --- Outer Ears --- */}
             <Path 
                 d={`M ${ref_x + 2.5} ${ref_y + 0.5} 
-                   Q ${ref_x + 5.0*scale} ${ref_y - 2.5*scale - reach(5)}, ${ref_x + 6.0*scale} ${ref_y - 3.0*scale - reach(5)}
-                   Q ${ref_x + 6.4*scale} ${ref_y - 2.8*scale - reach(5)}, ${ref_x + 6.3*scale} ${ref_y + 3.0*scale - reach(5)}
-                   M ${ref_x - 8.0*scale} ${ref_y + 4.0*scale} 
+                   Q ${ref_x + 4.5*scale} ${ref_y - 2.5*scale - reach(5)}, ${ref_x + 6.0*scale} ${ref_y - 3.0*scale - reach(5)}
+                   Q ${ref_x + 6.4*scale} ${ref_y - 2.8*scale - reach(5)}, ${ref_x + 6.3*scale} ${ref_y + 6.0*scale - reach(5)}
+                   M ${ref_x - 7.0*scale} ${ref_y + 6.0*scale} 
                    Q ${ref_x - 9.3*scale} ${ref_y + 1.0*scale - reach(5)}, ${ref_x - 9.0*scale} ${ref_y - 2.0*scale - reach(5)}
-                   Q ${ref_x - 7.0*scale} ${ref_y - 1.5*scale - reach(5)}, ${ref_x - 3.5*scale} ${ref_y + 1.0*scale - reach(5)}
+                   Q ${ref_x - 7.0*scale} ${ref_y - 1.5*scale - reach(5)}, ${ref_x - 2.5*scale} ${ref_y + 3.0*scale}
                    `} 
                 stroke="#657c7c" 
                 strokeWidth="1" 
@@ -270,14 +270,14 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
             {/* --- Inner Ears --- */}
             <Path 
                 d={`M ${ref_x + 4.3} ${ref_y + 1.5} 
-                   Q ${ref_x + 5.5*scale} ${ref_y + 2.0*scale - reach(5)}, ${ref_x + 6.0*scale} ${ref_y - 2.5*scale - reach(5)}
+                   Q ${ref_x + 5.5*scale} ${ref_y - 2.0*scale - reach(5)}, ${ref_x + 6.0*scale} ${ref_y - 2.5*scale - reach(5)}
                    Q ${ref_x + 6.1*scale} ${ref_y - 1.0*scale - reach(5)}, ${ref_x + 6.0*scale} ${ref_y + 2.5*scale - reach(5)}
                    M ${ref_x - 7.8*scale} ${ref_y + 4.0*scale} 
                    Q ${ref_x - 8.9*scale} ${ref_y + 0.5*scale - reach(5)}, ${ref_x - 8.6*scale} ${ref_y - 1.5*scale - reach(5)}
-                   Q ${ref_x - 7.8*scale} ${ref_y - 0.8*scale - reach(5)}, ${ref_x - 6.0*scale} ${ref_y + 3.0*scale - reach(5)}
+                   Q ${ref_x - 7.8*scale} ${ref_y - 0.8*scale - reach(5)}, ${ref_x - 6.0*scale} ${ref_y + 3.0*scale}
                    `}
                 stroke="#111" 
-                strokeWidth="1" 
+                strokeWidth="0.25" 
                 fill="#eac3b5"
                 strokeLinecap="round" 
             />
