@@ -256,13 +256,15 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
     // Outer Eye parameters
     const R1    = 5.0/2*length; // Outer eye major radius
         // LH
+    const centerL = {x: ref_x - 3.6*scale, y: ref_y + 6.5*scale}; // Center of LH eye
     const r1_L  = 4.0/2*length*0.9; // Outer eye minor radius LH
-    const p1_L  = {x: (ref_x - 5.5*scale)*(1 - length*0.05), y: ref_y + 6.5*scale}; // Pupil radius LH
-    const p2_L  = {x: (ref_x - 1.7*scale)*(1 + length*0.05), y: ref_y + 6.5*scale}; // Pupil radius LH
+    const p1_L  = {x: centerL.x + r1_L, y: centerL.y}; // LH construction point on outer LH eye
+    const p2_L  = {x: centerL.x - r1_L, y: centerL.y}; // RH construction point on outer LH eye
         // RH
-    const r1_R  = 3.0/2*length*0.9; // Outer eye minor radius RH
-    const p1_R  = {x: (ref_x + 3.5*scale)*(1 - length*0.05), y: ref_y + 6.5*scale}; // Pupil radius RH
-    const p2_R  = {x: (ref_x + 6.5*scale)*(1 + length*0.05), y: ref_y + 6.5*scale}; // Pupil radius RH    
+    const centerR = {x: ref_x + 4*scale, y: ref_y + 6.5*scale}; // Center of LH eye
+    const r1_R  = 3.0/2*length*0.9*(3/4); // Outer eye minor radius RH
+    const p1_R  = {x: centerR.x - r1_R, y: centerR.y}; // LH construction point on outer RH eye
+    const p2_R  = {x: centerR.x + r1_R, y: centerR.y}; // RH construction point on outer RH eye   
 
     return (
         <>
