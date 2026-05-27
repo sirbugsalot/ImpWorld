@@ -262,21 +262,21 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
     const p2_outer_L  = {x: centerL.x - r_outer_L, y: centerL.y}; // RH construction point on outer LH eye
         // RH
     const centerR = {x: ref_x + 4*scale, y: ref_y + 6.5*scale}; // Center of LH eye
-    const r_outer_R  = 3.0/2*scale*length*0.5*0.9*(3/4); // Outer eye minor radius RH
+    const r_outer_R  = r_outer_L*(3/4); // Outer eye minor radius RH
     const p1_outer_R  = {x: centerR.x - r_outer_R, y: centerR.y}; // LH construction point on outer RH eye
     const p2_outer_R  = {x: centerR.x + r_outer_R, y: centerR.y}; // RH construction point on outer RH eye   
 
     // Iris
-    const R_iris    = 4.8/2*scale*length*0.5; // Outer eye major radius
+    const R_iris    = 4.6/2*scale*length*0.5; // Outer eye major radius
         // LH
     const r_iris_L = 3.0/2*scale*length*0.5*0.9; // Inner eye radius LH
-    const p1_iris_L  = {x: centerL.x + r_iris_L + 0.1, y: centerL.y - 0.1}; // LH construction point on iris LH eye
-    const p2_iris_L  = {x: centerL.x - r_iris_L + 0.1, y: centerL.y - 0.1}; // RH construction point on iris LH eye
+    const p1_iris_L  = {x: centerL.x + r_iris_L + 0.2, y: centerL.y - 0.2}; // LH construction point on iris LH eye
+    const p2_iris_L  = {x: centerL.x - r_iris_L + 0.2, y: centerL.y - 0.2}; // RH construction point on iris LH eye
     
         // RH
-    const r_iris_R = 2.5/2*scale*length*0.5*0.9*(2.5/3.0); // Inner eye radius RH
-    const p1_iris_R  = {x: centerR.x - r_iris_R, y: centerR.y}; // LH construction point on iris RH eye
-    const p2_iris_R  = {x: centerR.x + r_iris_R, y: centerR.y}; // RH construction point on iris RH eye
+    const r_iris_R = r_iris_L*3/4; // Inner eye radius RH
+    const p1_iris_R  = {x: centerR.x - r_iris_R + 0.1, y: centerR.y - 0.2}; // LH construction point on iris RH eye
+    const p2_iris_R  = {x: centerR.x + r_iris_R + 0.1, y: centerR.y - 0.2}; // RH construction point on iris RH eye
     return (
         <>
             {/* --- Outer Eyes --- */}
