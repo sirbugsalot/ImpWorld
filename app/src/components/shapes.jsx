@@ -254,33 +254,58 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
     const scale = 3.0;
 
     // Outer Eye parameters
-    const R1    = 5.0/2*length; // Outer eye major radius
+    const R_outer    = 5.0/2*length; // Outer eye major radius
         // LH
     const centerL = {x: ref_x - 3.6*scale, y: ref_y + 6.5*scale}; // Center of LH eye
-    const r1_L  = 4.0/2*length*0.9; // Outer eye minor radius LH
-    const p1_L  = {x: centerL.x + r1_L, y: centerL.y}; // LH construction point on outer LH eye
-    const p2_L  = {x: centerL.x - r1_L, y: centerL.y}; // RH construction point on outer LH eye
+    const r_outer_L  = 4.0/2*length*0.9; // Outer eye minor radius LH
+    const p1_outer_L  = {x: centerL.x + r_outer_L, y: centerL.y}; // LH construction point on outer LH eye
+    const p2_outer_L  = {x: centerL.x - r_outer_L, y: centerL.y}; // RH construction point on outer LH eye
         // RH
     const centerR = {x: ref_x + 4*scale, y: ref_y + 6.5*scale}; // Center of LH eye
-    const r1_R  = 3.0/2*length*0.9*(3/4); // Outer eye minor radius RH
-    const p1_R  = {x: centerR.x - r1_R, y: centerR.y}; // LH construction point on outer RH eye
-    const p2_R  = {x: centerR.x + r1_R, y: centerR.y}; // RH construction point on outer RH eye   
+    const r_outer_R  = 3.0/2*length*0.9*(3/4); // Outer eye minor radius RH
+    const p1_outer_R  = {x: centerR.x - r_outer_R, y: centerR.y}; // LH construction point on outer RH eye
+    const p2_outer_R  = {x: centerR.x + r_outer_R, y: centerR.y}; // RH construction point on outer RH eye   
 
+    // Iris
+        // LH
+    const r_iris_L = 3.0/2*length*0.9; // Inner eye radius LH
+    const p1_iris_L  = {x: centerL.x + r_iris_L, y: centerL.y}; // LH construction point on iris LH eye
+    const p2_iris_L  = {x: centerL.x - r_iris_L, y: centerL.y}; // RH construction point on iris LH eye
+    
+        // RH
+    const r_iris_R = 2.5/2*length*0.9*(2.5/3.0); // Inner eye radius RH
+    const p1_iris_R  = {x: centerR.x - r_iris_R, y: centerR.y}; // LH construction point on iris RH eye
+    const p2_iris_R  = {x: centerR.x + r_iris_R, y: centerR.y}; // RH construction point on iris RH eye
     return (
         <>
             {/* --- Outer Eyes --- */}
             {/* --- LH eye then RH eye --- */}
             <Path 
-                d={`M ${p1_L.x} ${p1_L.y}
-                    A ${r1_L} ${R1} 0 0 0 ${p2_L.x} ${p2_L.y}
-                    A ${r1_L} ${R1} 0 0 0 ${p1_L.x} ${p1_L.y}
-                    M ${p1_R.x} ${p1_R.y}
-                    A ${r1_R} ${R1} 0 0 0 ${p2_R.x} ${p2_R.y}
-                    A ${r1_R} ${R1} 0 0 0 ${p1_R.x} ${p1_R.y}                   
+                d={`M ${p1_outer_L.x} ${p1_outer_L.y}
+                    A ${r_outer_L} ${R_outer} 0 0 0 ${p2_outer_L.x} ${p2_outer_L.y}
+                    A ${r_outer_L} ${R_outer} 0 0 0 ${p1_outer_L.x} ${p1_outer_L.y}
+                    M ${p1_outer_R.x} ${p1_outer_R.y}
+                    A ${r_outer_R} ${R_outer} 0 0 0 ${p2_outer_R.x} ${p2_outer_R.y}
+                    A ${r_outer_R} ${R_outer} 0 0 0 ${p1_outer_R.x} ${p1_outer_R.y}                   
                     `}
                 stroke="#f4e6cc" 
                 strokeWidth="0.1" 
                 fill="#f4e6cc"
+                strokeLinecap="round" 
+            />
+            {/* --- Iris --- */}
+            {/* --- LH eye then RH eye --- */}
+            <Path 
+                d={`M ${p1_iris_L.x} ${p1_iris_L.y}
+                    A ${r_iris_L} ${r_iris_L} 0 0 0 ${p2_iris_L.x} ${p2_iris_L.y}
+                    A ${r_iris_L} ${r_iris_L} 0 0 0 ${p1_iris_L.x} ${p1_iris_L.y}
+                    M ${p1_iris_R.x} ${p1_iris_R.y}
+                    A ${r_iris_R} ${r_iris_R} 0 0 0 ${p2_iris_R.x} ${p2_iris_R.y}
+                    A ${r_iris_R} ${r_iris_R} 0 0 0 ${p1_iris_R.x} ${p1_iris_R.y}                   
+                    `}
+                stroke="#51f189" 
+                strokeWidth="0.1" 
+                fill="#3d6bec"
                 strokeLinecap="round" 
             />
         </>
