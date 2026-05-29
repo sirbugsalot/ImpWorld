@@ -250,11 +250,11 @@ export const Nose = ({pos, shape, color, length = 1.0 }) => {
     const reach = (offset) => offset * length;
     const ref_y = pos.y - hy;
     const ref_x = pos.x;
-    const nose_R = 50.0/2;
-    const nose_r = 15.0/2;
+    const nose_R = 20.0;
+    const nose_r = 20.0;
 
     // Calculate the exact center of your nose path for the gradient alignment
-    const centerX = ref_x + (nose_r / 2);
+    const centerX = ref_x + (nose_r/2);
     const centerY = ref_y + 30;
 
     return (
@@ -277,15 +277,16 @@ export const Nose = ({pos, shape, color, length = 1.0 }) => {
             </Defs>
             
             {/* --- Nose --- */}
-            {/*<Circle cx="80" cy="100" r={eyeSize} fill="#333" /> */}
+            {/*<Circle cx={ref_x + nose_r} cy={ref_y + 30} r="3" fill="#333" />*/}
+            
             <Path 
                 d={`M ${ref_x} ${ref_y + 30}
-                    A ${nose_r} ${nose_R} 0 0 0 ${ref_x + nose_r} ${ref_y + 30}
+                    A ${nose_r} ${nose_R} 0 0 0 ${ref_x + nose_r*2} ${ref_y + 30}
                     A ${nose_r} ${nose_R} 0 0 0 ${ref_x } ${ref_y + 30}
                    `} 
                 stroke="#b0aaa2" 
                 strokeWidth="0.1" 
-                fill={color}
+                fill={"url(#nose3DGradient)"}
                 strokeLinecap="round" 
             />
         </>
