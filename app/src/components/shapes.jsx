@@ -281,18 +281,32 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
     const p2_iris_R  = {x: centerR_iris.x + r_iris_R, y: centerR_iris.y}; // RH construction point on iris RH eye
 
     // Pupil
-    const R_pupil    = R_iris*0.5; // Outer eye major radius
+    const R_pupil    = R_iris*0.8; // Outer eye major radius
         // LH
-    const centerL_pupil = {x: centerL_iris.x + 0.2*length, y: centerL_iris.y - 0.2*length}; // Center of LH eye
+    const centerL_pupil = {x: centerL_iris.x + 0.3*length, y: centerL_iris.y - 0.3*length}; // Center of LH eye
     const r_pupil_L = r_iris_L*0.5; // Inner eye radius LH
     const p1_pupil_L  = {x: centerL_pupil.x + r_pupil_L, y: centerL_pupil.y}; // LH construction point on pupil LH eye
     const p2_pupil_L  = {x: centerL_pupil.x - r_pupil_L, y: centerL_pupil.y}; // RH construction point on pupil LH eye
 
         // RH
-    const centerR_pupil = {x: centerR_iris.x + 0.1*length, y: centerR_iris.y - 0.2*length}; // Center of RH eye
+    const centerR_pupil = {x: centerR_iris.x + 0.2*length, y: centerR_iris.y - 0.3*length}; // Center of RH eye
     const r_pupil_R = r_iris_R*0.5; // Inner eye radius RH
     const p1_pupil_R  = {x: centerR_pupil.x + r_pupil_R, y: centerR_pupil.y}; // LH construction point on pupil RH eye
     const p2_pupil_R  = {x: centerR_pupil.x - r_pupil_R, y: centerR_pupil.y}; // RH construction point on pupil RH eye
+
+    // sparkle
+    const R_spark    = R_iris*0.5; // Outer eye major radius
+        // LH
+    const centerL_spark = {x: centerL_iris.x + 0.7*length, y: centerL_iris.y - 0.7*length}; // Center of LH eye
+    const r_spark_L = r_iris_L*0.5; // Inner eye radius LH
+    const p1_spark_L  = {x: centerL_spark.x + r_spark_L, y: centerL_spark.y}; // LH construction point on sparkle LH eye
+    const p2_spark_L  = {x: centerL_spark.x - r_spark_L, y: centerL_spark.y}; // RH construction point on sparkle LH eye
+
+        // RH
+    const centerR_spark = {x: centerR_iris.x + 0.5*length, y: centerR_iris.y - 0.7*length}; // Center of RH eye
+    const r_spark_R = r_iris_R*0.5; // Inner eye radius RH
+    const p1_spark_R  = {x: centerR_spark.x + r_spark_R, y: centerR_spark.y}; // LH construction point on sparkle RH eye
+    const p2_spark_R  = {x: centerR_spark.x - r_spark_R, y: centerR_spark.y}; // RH construction point on sparkle RH eye
     return (
         <>
             {/* --- Outer Eyes --- */}
@@ -338,6 +352,21 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
                 stroke="#000" 
                 strokeWidth="0.1" 
                 fill="#000"
+                strokeLinecap="round" 
+            />
+            {/* --- Sparkles --- */}
+            {/* --- LH eye then RH eye --- */}
+            <Path 
+                d={`M ${p1_spark_L.x} ${p1_spark_L.y}
+                    A ${r_spark_L} ${R_spark} 0 0 0 ${p2_spark_L.x} ${p2_spark_L.y}
+                    A ${r_spark_L} ${R_spark} 0 0 0 ${p1_spark_L.x} ${p1_spark_L.y}
+                    M ${p1_spark_R.x} ${p1_spark_R.y}
+                    A ${r_spark_R} ${R_spark} 0 0 0 ${p2_spark_R.x} ${p2_spark_R.y}
+                    A ${r_spark_R} ${R_spark} 0 0 0 ${p1_spark_R.x} ${p1_spark_R.y}                   
+                    `}
+                stroke="#000" 
+                strokeWidth="0.1" 
+                fill="#ffffff"
                 strokeLinecap="round" 
             />
         </>
