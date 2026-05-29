@@ -279,6 +279,20 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
     const r_iris_R = r_iris_L*0.75 ; // Inner eye radius RH
     const p1_iris_R  = {x: centerR_iris.x - r_iris_R, y: centerR_iris.y}; // LH construction point on iris RH eye
     const p2_iris_R  = {x: centerR_iris.x + r_iris_R, y: centerR_iris.y}; // RH construction point on iris RH eye
+
+    // Pupil
+    const R_pupil    = R_iris*0.5; // Outer eye major radius
+        // LH
+    const centerL_pupil = {x: centerL_iris.x + 0.2*length, y: centerL_iris.y - 0.2*length}; // Center of LH eye
+    const r_pupil_L = r_iris_L*0.5; // Inner eye radius LH
+    const p1_pupil_L  = {x: centerL_pupil.x + r_pupil_L, y: centerL_pupil.y}; // LH construction point on pupil LH eye
+    const p2_pupil_L  = {x: centerL_pupil.x - r_pupil_L, y: centerL_pupil.y}; // RH construction point on pupil LH eye
+
+        // RH
+    const centerR_pupil = {x: centerR_iris.x + 0.1*length, y: centerR_iris.y - 0.2*length}; // Center of RH eye
+    const r_pupil_R = r_iris_R*0.5; // Inner eye radius RH
+    const p1_pupil_R  = {x: centerR_pupil.x + r_pupil_R, y: centerR_pupil.y}; // LH construction point on pupil RH eye
+    const p2_pupil_R  = {x: centerR_pupil.x - r_pupil_R, y: centerR_pupil.y}; // RH construction point on pupil RH eye
     return (
         <>
             {/* --- Outer Eyes --- */}
@@ -309,6 +323,21 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
                 stroke="#63ede8" 
                 strokeWidth="0.1" 
                 fill="#36d9ef"
+                strokeLinecap="round" 
+            />
+            {/* --- Pupils --- */}
+            {/* --- LH eye then RH eye --- */}
+            <Path 
+                d={`M ${p1_pupil_L.x} ${p1_pupil_L.y}
+                    A ${r_pupil_L} ${R_pupil} 0 0 0 ${p2_pupil_L.x} ${p2_pupil_L.y}
+                    A ${r_pupil_L} ${R_pupil} 0 0 0 ${p1_pupil_L.x} ${p1_pupil_L.y}
+                    M ${p1_pupil_R.x} ${p1_pupil_R.y}
+                    A ${r_pupil_R} ${R_pupil} 0 0 0 ${p2_pupil_R.x} ${p2_pupil_R.y}
+                    A ${r_pupil_R} ${R_pupil} 0 0 0 ${p1_pupil_R.x} ${p1_pupil_R.y}                   
+                    `}
+                stroke="#000" 
+                strokeWidth="0.1" 
+                fill="#000"
                 strokeLinecap="round" 
             />
         </>
