@@ -250,7 +250,7 @@ export const Nose = ({pos, shape, color, length = 1.0 }) => {
     const reach = (offset) => offset * length;
     const ref_y = pos.y - hy;
     const ref_x = pos.x;
-    const nose_R = 14.0/2;
+    const nose_R = 17.0/2;
     const nose_r = 15.0/2;
 
     // Calculate the exact center of your nose path for the gradient alignment
@@ -282,7 +282,7 @@ export const Nose = ({pos, shape, color, length = 1.0 }) => {
                     A ${nose_r} ${nose_R} 0 0 0 ${ref_x + nose_r} ${ref_y + 30}
                     A ${nose_r} ${nose_R} 0 0 0 ${ref_x } ${ref_y + 30}
                    `} 
-                stroke="#657c7c" 
+                stroke="#b0aaa2" 
                 strokeWidth="0.1" 
                 fill="url(#nose3DGradient)"
                 strokeLinecap="round" 
