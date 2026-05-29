@@ -206,19 +206,18 @@ export const Ears = ({pos, shape, color, length = 1.0 }) => {
     const reach = (offset) => offset * length;
     const ref_y = pos.y - hy;
     const ref_x = pos.x;
-    const scale = 3.0;
 
     return (
         <>
             {/* --- Outer Ears --- */}
             <Path 
                 d={`M ${ref_x + 7.5} ${ref_y + 1.5} 
-                   Q ${ref_x + 15.0} ${ref_y - 7.5 - reach(5)}, ${ref_x + 18.0} ${ref_y - 9.0 - reach(5)}
-                   Q ${ref_x + 19.2} ${ref_y - 8.4 - reach(5)}, ${ref_x + 19.5} ${ref_y + 15.6}
+                   Q ${ref_x + 15.0} ${ref_y - 6.5 - reach(5)}, ${ref_x + 18.0} ${ref_y - 8.0 - reach(5)}
+                   Q ${ref_x + 19.2} ${ref_y - 7.4 - reach(5)}, ${ref_x + 19.5} ${ref_y + 15.6}
                    Q ${ref_x + 13.5} ${ref_y + 6.0}, ${ref_x + 7.5} ${ref_y + 1.5}
                    M ${ref_x - 21.0} ${ref_y + 18.0} 
-                   Q ${ref_x - 27.9} ${ref_y + 3.0 - reach(5)}, ${ref_x - 27.0} ${ref_y - 6.0 - reach(5)}
-                   Q ${ref_x - 21.0} ${ref_y - 4.5 - reach(5)}, ${ref_x - 7.5} ${ref_y + 6.0}
+                   Q ${ref_x - 27.9} ${ref_y + 2.0 - reach(5)}, ${ref_x - 27.0} ${ref_y - 5.0 - reach(5)}
+                   Q ${ref_x - 21.0} ${ref_y - 3.5 - reach(5)}, ${ref_x - 7.5} ${ref_y + 6.0}
                    Q ${ref_x - 16.5} ${ref_y + 5.4}, ${ref_x - 21.0} ${ref_y + 13.5} 
                    `} 
                 stroke="#657c7c" 
@@ -229,11 +228,11 @@ export const Ears = ({pos, shape, color, length = 1.0 }) => {
             {/* --- Inner Ears --- */}
             <Path 
                 d={`M ${ref_x + 12.9} ${ref_y + 4.5} 
-                   Q ${ref_x + 16.5} ${ref_y - 5.4 - reach(5)}, ${ref_x + 18.0} ${ref_y - 7.5 - reach(5)}
-                   Q ${ref_x + 18.3} ${ref_y - 3.0 - reach(5)}, ${ref_x + 18.0} ${ref_y + 9.0}
+                   Q ${ref_x + 16.5} ${ref_y - 4.4 - reach(5)}, ${ref_x + 18.0} ${ref_y - 6.5 - reach(5)}
+                   Q ${ref_x + 18.3} ${ref_y - 2.0 - reach(5)}, ${ref_x + 18.0} ${ref_y + 8.0}
                    M ${ref_x - 20.4} ${ref_y + 15.0} 
-                   Q ${ref_x - 26.7} ${ref_y + 1.5 - reach(5)}, ${ref_x - 25.8} ${ref_y - 4.5 - reach(5)}
-                   Q ${ref_x - 22.5} ${ref_y - 2.4 - reach(5)}, ${ref_x - 17.1} ${ref_y + 9.0}
+                   Q ${ref_x - 26.7} ${ref_y + 0.5 - reach(5)}, ${ref_x - 25.8} ${ref_y - 3.5 - reach(5)}
+                   Q ${ref_x - 22.5} ${ref_y - 1.4 - reach(5)}, ${ref_x - 17.1} ${ref_y + 8.0}
                    `}
                 stroke="#d59b95" 
                 strokeWidth="0.25" 
@@ -251,7 +250,6 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
     const reach = (offset) => offset * length;
     const ref_y = pos.y - hy;
     const ref_x = pos.x;
-    const scale = 3.0;
 
     // Outer Eye parameters
     const R_outer    = 14.0/2*length*0.5; // Outer eye major radius
