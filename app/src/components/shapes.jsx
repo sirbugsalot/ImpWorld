@@ -269,13 +269,13 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
     // Iris
     const R_iris    = R_outer*0.8; // Outer eye major radius
         // LH
-    const centerL_iris = {x: centerL_outer.x + 0.1*length, y: centerL_outer.y - 0.1*length}; // Center of LH eye
+    const centerL_iris = {x: centerL_outer.x + 0.2*length, y: centerL_outer.y - 0.2*length}; // Center of LH eye
     const r_iris_L = r_outer_L*0.8; // Inner eye radius LH
     const p1_iris_L  = {x: centerL_iris.x + r_iris_L, y: centerL_iris.y}; // LH construction point on iris LH eye
     const p2_iris_L  = {x: centerL_iris.x - r_iris_L, y: centerL_iris.y}; // RH construction point on iris LH eye
     
         // RH
-    const centerR_iris = {x: centerR_outer.x + 0.05*length, y: centerR_outer.y - 0.1*length}; // Center of RH eye
+    const centerR_iris = {x: centerR_outer.x + 0.1*length, y: centerR_outer.y - 0.2*length}; // Center of RH eye
     const r_iris_R = r_iris_L*0.75 ; // Inner eye radius RH
     const p1_iris_R  = {x: centerR_iris.x - r_iris_R, y: centerR_iris.y}; // LH construction point on iris RH eye
     const p2_iris_R  = {x: centerR_iris.x + r_iris_R, y: centerR_iris.y}; // RH construction point on iris RH eye
