@@ -254,10 +254,10 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
     const scale = 3.0;
 
     // Outer Eye parameters
-    const R_outer    = 15.0/2*length*0.5; // Outer eye major radius
+    const R_outer    = 14.0/2*length*0.5; // Outer eye major radius
         // LH
     const centerL_outer = {x: ref_x - 10.8, y: ref_y + 19.5}; // Center of LH eye
-    const r_outer_L  = 12.0/2*length*0.5*0.9; // Outer eye minor radius LH
+    const r_outer_L  = R_outer*0.8; // Outer eye minor radius LH
     const p1_outer_L  = {x: centerL_outer.x + r_outer_L, y: centerL_outer.y}; // LH construction point on outer LH eye
     const p2_outer_L  = {x: centerL_outer.x - r_outer_L, y: centerL_outer.y}; // RH construction point on outer LH eye
         // RH
@@ -295,15 +295,15 @@ export const Eyes = ({pos, shape, color, length = 1.0 }) => {
     const p2_pupil_R  = {x: centerR_pupil.x - r_pupil_R, y: centerR_pupil.y}; // RH construction point on pupil RH eye
 
     // sparkle
-    const R_spark    = R_iris*0.5; // Outer eye major radius
+    const R_spark    = R_iris*0.25; // Outer eye major radius
         // LH
-    const centerL_spark = {x: centerL_iris.x + 0.7*length, y: centerL_iris.y - 0.7*length}; // Center of LH eye
+    const centerL_spark = {x: centerL_iris.x + 1.0*length, y: centerL_iris.y - 1.0*length}; // Center of LH eye
     const r_spark_L = r_iris_L*0.5; // Inner eye radius LH
     const p1_spark_L  = {x: centerL_spark.x + r_spark_L, y: centerL_spark.y}; // LH construction point on sparkle LH eye
     const p2_spark_L  = {x: centerL_spark.x - r_spark_L, y: centerL_spark.y}; // RH construction point on sparkle LH eye
 
         // RH
-    const centerR_spark = {x: centerR_iris.x + 0.5*length, y: centerR_iris.y - 0.7*length}; // Center of RH eye
+    const centerR_spark = {x: centerR_iris.x + 0.8*length, y: centerR_iris.y - 1.0*length}; // Center of RH eye
     const r_spark_R = r_iris_R*0.5; // Inner eye radius RH
     const p1_spark_R  = {x: centerR_spark.x + r_spark_R, y: centerR_spark.y}; // LH construction point on sparkle RH eye
     const p2_spark_R  = {x: centerR_spark.x - r_spark_R, y: centerR_spark.y}; // RH construction point on sparkle RH eye
