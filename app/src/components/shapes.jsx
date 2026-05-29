@@ -243,6 +243,60 @@ export const Ears = ({pos, shape, color, length = 1.0 }) => {
     );
 };
 
+export const Nose = ({pos, shape, color, length = 1.0 }) => {
+    const { hy, wx, wy } = shape || {};
+    
+    // We use 'length' to scale the vertical offsets from the pivot point
+    const reach = (offset) => offset * length;
+    const ref_y = pos.y - hy;
+    const ref_x = pos.x;
+    const nose_R = 6.0/2;
+    const nose_r = 6.5/2;
+
+    // Calculate the exact center of your nose path for the gradient alignment
+    const centerX = ref_x + (nose_r / 2);
+    const centerY = ref_y + 30;
+
+    return (
+        <>
+            <defs>
+                {/* Radial Gradient: 
+                  cx/cy is the outer boundary center.
+                  fx/fy is the focal point (where the brightest "highlight" sits).
+                  Setting fx/fy slightly off-center (e.g., 35%) gives a more realistic 3D pop!
+                */}
+                <radialGradient 
+                    id="nose3DGradient" 
+                    cx="50%" cy="50%" 
+                    r="50%" 
+                    fx="40%" fy="40%"
+                >
+                    {/* Bright center (Your base color, or slightly brightened) */}
+                    <stop offset="0%" stopColor={color} />
+                    
+                    {/* Mid-tone transition */}
+                    <stop offset="70%" stopColor={color} stopOpacity="0.8" />
+                    
+                    {/* Dark edge for the 3D shadow falloff */}
+                    <stop offset="100%" stopColor="#2d2a32" stopOpacity="0.6" />
+                </radialGradient>
+            </defs>
+            
+            {/* --- Nose --- */}
+            <Path 
+                d={`M ${ref_x} ${ref_y + 30}
+                    A ${nose_r} ${nose_R} 0 0 0 ${ref_x + nose_r} ${ref_y + 30}
+                    A ${nose_r} ${nose_R} 0 0 0 ${ref_x } ${ref_y + 30}
+                   `} 
+                stroke="#657c7c" 
+                strokeWidth="0.1" 
+                fill="url(#nose3DGradient)" {/* <--- Point to the gradient ID here */}
+                strokeLinecap="round" 
+            />
+        </>
+    );
+};
+
 export const Eyes = ({pos, shape, color, length = 1.0 }) => {
     const { hy, wx, wy } = shape || {};
     
