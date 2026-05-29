@@ -290,7 +290,7 @@ export const Nose = ({pos, shape, color, length = 1.0 }) => {
                    `} 
                 stroke="#657c7c" 
                 strokeWidth="0.1" 
-                fill="url(#nose3DGradient)" {/* <--- Point to the gradient ID here */}
+                fill="url(#nose3DGradient)"
                 strokeLinecap="round" 
             />
         </>
