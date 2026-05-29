@@ -251,7 +251,7 @@ export const Nose = ({pos, shape, color, length = 1.0 }) => {
     const ref_y = pos.y - hy;
     const ref_x = pos.x;
     const nose_R = 17.0/2;
-    const nose_r = 15.0/2;
+    const nose_r = 20.0/2;
 
     // Calculate the exact center of your nose path for the gradient alignment
     const centerX = ref_x + (nose_r / 2);
