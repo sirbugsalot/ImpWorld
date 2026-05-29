@@ -277,6 +277,7 @@ export const Nose = ({pos, shape, color, length = 1.0 }) => {
             </Defs>
             
             {/* --- Nose --- */}
+            {/*<Circle cx="80" cy="100" r={eyeSize} fill="#333" /> */}
             <Path 
                 d={`M ${ref_x} ${ref_y + 30}
                     A ${nose_r} ${nose_R} 0 0 0 ${ref_x + nose_r} ${ref_y + 30}
@@ -284,7 +285,7 @@ export const Nose = ({pos, shape, color, length = 1.0 }) => {
                    `} 
                 stroke="#b0aaa2" 
                 strokeWidth="0.1" 
-                fill="url(#nose3DGradient)"
+                fill={color}
                 strokeLinecap="round" 
             />
         </>
