@@ -250,8 +250,8 @@ export const Nose = ({pos, shape, color, length = 1.0 }) => {
     const reach = (offset) => offset * length;
     const ref_y = pos.y - hy;
     const ref_x = pos.x;
-    const nose_R = 5.0 + length;
-    const nose_r = 5.0 + length;
+    const nose_R = 3.0 + length;
+    const nose_r = nose_R*1.3;
 
     // Calculate the exact center of your nose path for the gradient alignment
     const centerX = ref_x + (nose_r/2);
@@ -279,6 +279,35 @@ export const Nose = ({pos, shape, color, length = 1.0 }) => {
             {/* --- Nose --- */}
             {/*<Circle cx={ref_x + nose_r} cy={ref_y + 30} r="3" fill="#333" />*/}
             
+            <Path 
+                d={`M ${ref_x} ${ref_y + 30}
+                    A ${nose_r} ${nose_R} 0 0 0 ${ref_x + nose_r*2} ${ref_y + 30}
+                    A ${nose_r} ${nose_R} 0 0 0 ${ref_x } ${ref_y + 30}
+                   `} 
+                stroke="#b0aaa2" 
+                strokeWidth="0.1" 
+                fill={"url(#nose3DGradient)"}
+                strokeLinecap="round" 
+            />
+        </>
+    );
+};
+
+export const Mouth = ({pos, shape, color, length = 1.0 }) => {
+    const { hy, wx, wy } = shape || {};
+    
+    // We use 'length' to scale the vertical offsets from the pivot point
+    const reach = (offset) => offset * length;
+    const ref_y = pos.y - hy;
+    const ref_x = pos.x;
+
+    // Calculate the corners of the mouth
+    const leftCornerX = ref_x + (nose_r/2);
+    const centerY = ref_y + 30;
+
+    return (
+        <>
+            {/* --- Mouth outline --- */}            
             <Path 
                 d={`M ${ref_x} ${ref_y + 30}
                     A ${nose_r} ${nose_R} 0 0 0 ${ref_x + nose_r*2} ${ref_y + 30}
