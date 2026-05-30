@@ -65,7 +65,7 @@ const Imp = ({
                     pos={pos} 
                     shape={shape} 
                     color={color} 
-                    length={eyeSize} 
+                    length={footLength} 
                 />
             </G>
         </Svg>
