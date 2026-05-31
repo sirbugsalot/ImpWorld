@@ -305,8 +305,12 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
     const mouthWidth = 15; // Total width of the mouth
     const leftCorner = { x: ref_x - (mouthWidth/2) - reach(2), y: ref_y + 30 };
     const rightCorner = { x: ref_x + (mouthWidth/2) + reach(2), y: ref_y + 30 };
-    const upperLip = 3.0;
-    const lowerLip = 9.0;
+    const upperLip_R = 3.0;
+    const lowerLip_R = 9.0;
+
+    // teeth
+    const teethLeftCorner = { x: ref_x - 3.0 - reach(2), y: ref_y + 31.5 };
+    const teethRightCorner = { x: ref_x + 7.5 + reach(2), y: ref_y + 31.5 };
 
     return (
         <>
@@ -320,8 +324,9 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
             {/* --- Mouth outline --- */}            
             <Path 
                 d={`M ${leftCorner.x} ${leftCorner.y}
-                    Q ${ref_x} ${ref_y + upperLip}, ${rightCorner.x} ${rightCorner.y}
-                    Q ${ref_x} ${ref_y + lowerLip}, ${leftCorner.x} ${leftCorner.y}
+                    A ${ref_x - leftCorner.x} ${upperLip_R} 0 0 0 ${rightCorner.x} ${rightCorner.y}
+                    M ${leftCorner.x} ${leftCorner.y}
+                    A ${ref_x - leftCorner.x} ${lowerLip_R} 0 0 0 ${rightCorner.x} ${rightCorner.y}
                    `} 
                 stroke="#9d9c9c" 
                 strokeWidth="0.01" 
@@ -330,19 +335,19 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
             />
             {/* --- Teeth --- */}            
             <Path 
-                d={`M ${ref_x - 3.0 - reach(2)} ${ref_y + 31.1}
-                    L ${ref_x - 3.0 - reach(2)} ${ref_y + 33.6}
-                    Q ${ref_x + 1.0 + reach(2)} ${ref_y + 34.5}, ${ref_x + 2.5 + reach(2)} ${ref_y + 33.0}
-                    L ${ref_x + 7.5 + reach(2)} ${ref_y + 31.5}
-                    Q ${ref_x + 1.0 + reach(2)} ${ref_y + lowerLip}, ${ref_x - 3.0 - reach(2)} ${ref_y + 31.1}
+                d={`M ${teethLeftCorner.x} ${teethLeftCorner.y}
+                    L ${teethLeftCorner.x} ${ref_y + 33.6}
+                    A ${teethRightCorner.x - teethLeftCorner.x} ${0.5} 0 0 0 ${teethRightCorner.x} ${ref_y + 33.6}
+                    L ${teethRightCorner.x} ${teethRightCorner.y}
+                    A ${teethRightCorner.x - teethLeftCorner.x} ${0.5} 0 0 0 ${teethLeftCorner.x} ${teethLeftCorner.y}
                    `} 
                 stroke="#575757" 
                 strokeWidth="0.01" 
                 fill="#fdfdfd"
                 strokeLinecap="round" 
             />
-            <Circle cx={ref_x} cy={ref_y + upperLip} r="1" fill="#333" />
-            <Circle cx={ref_x} cy={ref_y + lowerLip} r="1" fill="#333" />
+            <Circle cx={ref_x} cy={ref_y + 30 + upperLip_R} r="1" fill="#333" />
+            <Circle cx={ref_x} cy={ref_y + 30 + lowerLip_R} r="1" fill="#333" />
         </>
     );
 };
