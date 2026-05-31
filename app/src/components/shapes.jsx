@@ -313,9 +313,11 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
     const teethRightCorner = { x: ref_x + 7.5 + reach(2), y: ref_y + 31.5 };
 
     // Tongue
-    const tongueLeftCorner = { x: ref_x - 2.0 - reach(2), y: ref_y + 33.0 };
-    const tongueRightCorner = { x: ref_x + 2.0 + reach(2), y: ref_y + 33.0 };
-    const tongueMidPoint = { x: ref_x, y: ref_y + 34.5 };
+    const tongueLeftCorner = { x: ref_x - 1.8 - reach(2), y: ref_y + 37.5 };
+    const tongueRightCorner = { x: ref_x + 1.8 + reach(2), y: ref_y + 37.5 };
+    const tongueMidPoint_A = { x: ref_x + 1.8 + reach(1), y: ref_y + 36.9 };
+    const tongueMidPoint_B = { x: ref_x + 1.2 + reach(1), y: ref_y + 36.0 };
+    const tongueBottomPoint = { x: ref_x + reach(1), y: ref_y + 38.5 }; // EDIT HERE AND TONGUE
 
     return (
         <>
@@ -357,19 +359,19 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
                 fill="#fdfdfd"
                 strokeLinecap="round" 
             />
-            {/* --- Tongue ---            
+            {/* --- Tongue ---  */}          
             <Path 
                 d={`M ${tongueLeftCorner.x} ${tongueLeftCorner.y}
-                    L ${tongueLeftCorner.x} ${tongueMidPoint.y}
+                    Q ${(teethRightCorner.x + teethLeftCorner.x)/2} ${ref_y + 34.6}, ${teethRightCorner.x} ${ref_y + 33.6}
                     A ${tongueRightCorner.x - tongueLeftCorner.x} ${0.5} 0 0 0 ${tongueRightCorner.x} ${tongueMidPoint.y}
                     L ${tongueRightCorner.x} ${tongueRightCorner.y}
                     A ${tongueRightCorner.x - tongueLeftCorner.x} ${0.5} 0 0 0 ${tongueLeftCorner.x} ${tongueLeftCorner.y}
                    `} 
                 stroke="#575757" 
                 strokeWidth="0.01" 
-                fill=["url(#tongue3DGradient)"]
+                fill="#fe0808"
                 strokeLinecap="round" 
-            />*/} 
+            />
             <Circle cx={ref_x} cy={ref_y + 30 + upperLip_R} r="1" fill="#333" />
             <Circle cx={ref_x} cy={ref_y + 30 + lowerLip_R} r="1" fill="#333" />
         </>
