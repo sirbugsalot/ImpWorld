@@ -301,9 +301,12 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
     const ref_y = pos.y - hy;
     const ref_x = pos.x;
 
-    // Calculate the corners of the mouth
-    const leftCornerX = ref_x + (nose_r/2);
-    const centerY = ref_y + 30;
+    // Calculate the outline of the mouth
+    const mouthWidth = 15; // Total width of the mouth
+    const leftCorner = { x: ref_x - (mouthWidth/2), y: ref_y + 30 };
+    const rightCorner = { x: ref_x + (mouthWidth/2), y: ref_y + 30 };
+    const upperLip = 3.0;
+    const lowerLip = 9.0;
 
     return (
         <>
