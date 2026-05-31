@@ -312,7 +312,7 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
         <>
             <Defs>
                 <RadialGradient id="mouth3DGradient" cx="50%" cy="50%" r="50%" fx="40%" fy="40%">
-                    <Stop offset="0%" stopColor="#6c3939" />
+                    <Stop offset="0%" stopColor="#dc7676" />
                     <Stop offset="70%" stopColor="#6c3939" stopOpacity="0.8" />
                     <Stop offset="100%" stopColor="#2d2a32" stopOpacity="0.6" />
                 </RadialGradient>
@@ -334,12 +334,15 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
                     L ${ref_x - 3.0 - reach(2)} ${ref_y + 33.6}
                     Q ${ref_x + 1.0 + reach(2)} ${ref_y + 34.5}, ${ref_x + 2.5 + reach(2)} ${ref_y + 33.0}
                     L ${ref_x + 7.5 + reach(2)} ${ref_y + 31.5}
+                    Q ${ref_x + 1.0 + reach(2)} ${ref_y + lowerLip}, ${ref_x - 3.0 - reach(2)} ${ref_y + 31.1}
                    `} 
                 stroke="#575757" 
                 strokeWidth="0.01" 
                 fill="#fdfdfd"
                 strokeLinecap="round" 
             />
+            <Circle cx={ref_x} cy={ref_y + upperLip} r="1" fill="#333" />
+            <Circle cx={ref_x} cy={ref_y + lowerLip} r="1" fill="#333" />
         </>
     );
 };
