@@ -320,12 +320,24 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
             {/* --- Mouth outline --- */}            
             <Path 
                 d={`M ${leftCorner.x} ${leftCorner.y}
-                    Q ${ref_x} ${ref_y - upperLip}, ${rightCorner.x} ${rightCorner.y}
-                    Q ${ref_x} ${ref_y - lowerLip}, ${leftCorner.x} ${leftCorner.y}
+                    Q ${ref_x} ${ref_y + upperLip}, ${rightCorner.x} ${rightCorner.y}
+                    Q ${ref_x} ${ref_y + lowerLip}, ${leftCorner.x} ${leftCorner.y}
                    `} 
                 stroke="#9d9c9c" 
                 strokeWidth="0.01" 
                 fill={"url(#mouth3DGradient)"}
+                strokeLinecap="round" 
+            />
+            {/* --- Teeth --- */}            
+            <Path 
+                d={`M ${ref_x - 3.0 - reach(2)} ${ref_y + 31.1}
+                    L ${ref_x - 3.0 - reach(2)} ${ref_y + 33.6}
+                    Q ${ref_x + 1.0 + reach(2)} ${ref_y + 34.5}, ${ref_x + 2.5 + reach(2)} ${ref_y + 33.0}
+                    L ${ref_x + 7.5 + reach(2)} ${ref_y + 31.5}
+                   `} 
+                stroke="#575757" 
+                strokeWidth="0.01" 
+                fill="#fdfdfd"
                 strokeLinecap="round" 
             />
         </>
