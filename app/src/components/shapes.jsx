@@ -308,9 +308,14 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
     const upperLip_R = 3.0;
     const lowerLip_R = 9.0;
 
-    // teeth
+    // Teeth
     const teethLeftCorner = { x: ref_x - 3.0 - reach(2), y: ref_y + 31.5 };
     const teethRightCorner = { x: ref_x + 7.5 + reach(2), y: ref_y + 31.5 };
+
+    // Tongue
+    const tongueLeftCorner = { x: ref_x - 2.0 - reach(2), y: ref_y + 33.0 };
+    const tongueRightCorner = { x: ref_x + 2.0 + reach(2), y: ref_y + 33.0 };
+    const tongueMidPoint = { x: ref_x, y: ref_y + 34.5 };
 
     return (
         <>
@@ -321,11 +326,17 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
                     <Stop offset="100%" stopColor="#2d2a32" stopOpacity="0.6" />
                 </RadialGradient>
             </Defs>
+            <Defs>
+                <RadialGradient id="tongue3DGradient" cx="50%" cy="50%" r="50%" fx="40%" fy="40%">
+                    <Stop offset="0%" stopColor="#fe0808" />
+                    <Stop offset="70%" stopColor="#763838" stopOpacity="0.8" />
+                    <Stop offset="100%" stopColor="#5b142f" stopOpacity="0.6" />
+                </RadialGradient>
+            </Defs>
             {/* --- Mouth outline --- */}            
             <Path 
                 d={`M ${leftCorner.x} ${leftCorner.y}
-                    A ${ref_x - leftCorner.x} ${upperLip_R} 0 0 0 ${rightCorner.x} ${rightCorner.y}
-                    M ${leftCorner.x} ${leftCorner.y}
+                    Q ${(rightCorner.x - leftCorner.x)/2} ${ref_y + 30 + upperLip_R}, ${rightCorner.x} ${rightCorner.y}
                     A ${ref_x - leftCorner.x} ${lowerLip_R} 0 0 0 ${rightCorner.x} ${rightCorner.y}
                    `} 
                 stroke="#9d9c9c" 
@@ -337,15 +348,28 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
             <Path 
                 d={`M ${teethLeftCorner.x} ${teethLeftCorner.y}
                     L ${teethLeftCorner.x} ${ref_y + 33.6}
-                    A ${teethRightCorner.x - teethLeftCorner.x} ${0.5} 0 0 0 ${teethRightCorner.x} ${ref_y + 33.6}
+                    Q ${(teethRightCorner.x + teethLeftCorner.x)/2} ${ref_y + 34.6}, ${teethRightCorner.x} ${ref_y + 33.6}
                     L ${teethRightCorner.x} ${teethRightCorner.y}
-                    A ${teethRightCorner.x - teethLeftCorner.x} ${0.5} 0 0 0 ${teethLeftCorner.x} ${teethLeftCorner.y}
+                    A ${(teethRightCorner.x + teethLeftCorner.x)/2} ${ref_y + 33.0}, ${teethLeftCorner.x} ${teethLeftCorner.y}
                    `} 
                 stroke="#575757" 
                 strokeWidth="0.01" 
                 fill="#fdfdfd"
                 strokeLinecap="round" 
             />
+            {/* --- Tongue ---            
+            <Path 
+                d={`M ${tongueLeftCorner.x} ${tongueLeftCorner.y}
+                    L ${tongueLeftCorner.x} ${tongueMidPoint.y}
+                    A ${tongueRightCorner.x - tongueLeftCorner.x} ${0.5} 0 0 0 ${tongueRightCorner.x} ${tongueMidPoint.y}
+                    L ${tongueRightCorner.x} ${tongueRightCorner.y}
+                    A ${tongueRightCorner.x - tongueLeftCorner.x} ${0.5} 0 0 0 ${tongueLeftCorner.x} ${tongueLeftCorner.y}
+                   `} 
+                stroke="#575757" 
+                strokeWidth="0.01" 
+                fill=["url(#tongue3DGradient)"]
+                strokeLinecap="round" 
+            />*/} 
             <Circle cx={ref_x} cy={ref_y + 30 + upperLip_R} r="1" fill="#333" />
             <Circle cx={ref_x} cy={ref_y + 30 + lowerLip_R} r="1" fill="#333" />
         </>
