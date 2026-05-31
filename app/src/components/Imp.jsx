@@ -1,6 +1,6 @@
 import React from 'react';
 import Svg, { Path, Circle, G } from 'react-native-svg';
-import { Oval, Feet, LeftArm, RightArm, Ears, Eyes, Nose } from './shapes'; 
+import { Oval, Feet, LeftArm, RightArm, Ears, Eyes, Nose, Mouth } from './shapes'; 
 
 const Imp = ({ 
   customization, 
@@ -66,6 +66,12 @@ const Imp = ({
                     shape={shape} 
                     color={color} 
                     length={footLength} 
+                />
+                <Mouth 
+                    pos={pos} 
+                    shape={shape} 
+                    color={color} 
+                    length={armLength} 
                 />
             </G>
         </Svg>

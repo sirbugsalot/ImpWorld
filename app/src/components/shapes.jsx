@@ -303,22 +303,29 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
 
     // Calculate the outline of the mouth
     const mouthWidth = 15; // Total width of the mouth
-    const leftCorner = { x: ref_x - (mouthWidth/2), y: ref_y + 30 };
-    const rightCorner = { x: ref_x + (mouthWidth/2), y: ref_y + 30 };
+    const leftCorner = { x: ref_x - (mouthWidth/2) - reach(2), y: ref_y + 30 };
+    const rightCorner = { x: ref_x + (mouthWidth/2) + reach(2), y: ref_y + 30 };
     const upperLip = 3.0;
     const lowerLip = 9.0;
 
     return (
         <>
+            <Defs>
+                <RadialGradient id="mouth3DGradient" cx="50%" cy="50%" r="50%" fx="40%" fy="40%">
+                    <Stop offset="0%" stopColor="#6c3939" />
+                    <Stop offset="70%" stopColor="#6c3939" stopOpacity="0.8" />
+                    <Stop offset="100%" stopColor="#2d2a32" stopOpacity="0.6" />
+                </RadialGradient>
+            </Defs>
             {/* --- Mouth outline --- */}            
             <Path 
-                d={`M ${ref_x} ${ref_y + 30}
-                    A ${nose_r} ${nose_R} 0 0 0 ${ref_x + nose_r*2} ${ref_y + 30}
-                    A ${nose_r} ${nose_R} 0 0 0 ${ref_x } ${ref_y + 30}
+                d={`M ${leftCorner.x} ${leftCorner.y}
+                    Q ${ref_x} ${ref_y - upperLip}, ${rightCorner.x} ${rightCorner.y}
+                    Q ${ref_x} ${ref_y - lowerLip}, ${leftCorner.x} ${leftCorner.y}
                    `} 
-                stroke="#b0aaa2" 
-                strokeWidth="0.1" 
-                fill={"url(#nose3DGradient)"}
+                stroke="#9d9c9c" 
+                strokeWidth="0.01" 
+                fill={"url(#mouth3DGradient)"}
                 strokeLinecap="round" 
             />
         </>
