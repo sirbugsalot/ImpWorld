@@ -339,9 +339,9 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
                     Q ${(rightCorner.x - leftCorner.x)/2} ${ref_y + 30 + upperLip_R}, ${rightCorner.x} ${rightCorner.y}
                     A ${ref_x - leftCorner.x} ${lowerLip_R} 0 0 0 ${rightCorner.x} ${rightCorner.y}
                    `} 
-                stroke="#9d9c9c" 
+                stroke="#6b4646" 
                 strokeWidth="0.01" 
-                fill={"url(#mouth3DGradient)"}
+                fill="#6c3939"
                 strokeLinecap="round" 
             />
             {/* --- Teeth --- */}            
