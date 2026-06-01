@@ -327,8 +327,6 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
                     <Stop offset="70%" stopColor="#6c3939" stopOpacity="0.8" />
                     <Stop offset="100%" stopColor="#2d2a32" stopOpacity="0.6" />
                 </RadialGradient>
-            </Defs>
-            <Defs>
                 <RadialGradient id="tongue3DGradient" cx="50%" cy="50%" r="50%" fx="40%" fy="40%">
                     <Stop offset="0%" stopColor="#fe0808" />
                     <Stop offset="70%" stopColor="#763838" stopOpacity="0.8" />
@@ -352,7 +350,7 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
                     L ${teethLeftCorner.x} ${ref_y + 33.6}
                     Q ${teethRightCorner.x/2 + teethLeftCorner.x/2} ${ref_y + 34.6}, ${teethRightCorner.x} ${ref_y + 33.6}
                     L ${teethRightCorner.x} ${teethRightCorner.y}
-                    A ${teethRightCorner.x/2 - teethLeftCorner.x/2} ${ref_y + 33.0}, ${teethLeftCorner.x} ${teethLeftCorner.y}
+                    Q ${teethRightCorner.x/2 - teethLeftCorner.x/2} ${ref_y + 33.0}, ${teethLeftCorner.x} ${teethLeftCorner.y}
                    `} 
                 stroke="#575757" 
                 strokeWidth="0.01" 
