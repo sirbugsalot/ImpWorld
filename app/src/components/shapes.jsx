@@ -336,8 +336,8 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
             {/* --- Mouth outline --- */}            
             <Path 
                 d={`M ${leftCorner.x} ${leftCorner.y}
-                    Q ${(rightCorner.x - leftCorner.x)/2} ${ref_y + 30 + upperLip_R}, ${rightCorner.x} ${rightCorner.y}
-                    A ${ref_x - leftCorner.x} ${lowerLip_R} 0 0 0 ${rightCorner.x} ${rightCorner.y}
+                    Q ${(rightCorner.x + leftCorner.x)/2} ${ref_y + 30 + upperLip_R}, ${rightCorner.x} ${rightCorner.y}
+                    Q ${(rightCorner.x + leftCorner.x)/2} ${ref_y + 30 + lowerLip_R}, ${leftCorner.x} ${leftCorner.y}
                    `} 
                 stroke="#6b4646" 
                 strokeWidth="0.01" 
@@ -350,7 +350,7 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
                     L ${teethLeftCorner.x} ${ref_y + 33.6}
                     Q ${teethRightCorner.x/2 + teethLeftCorner.x/2} ${ref_y + 34.6}, ${teethRightCorner.x} ${ref_y + 33.6}
                     L ${teethRightCorner.x} ${teethRightCorner.y}
-                    Q ${teethRightCorner.x/2 - teethLeftCorner.x/2} ${ref_y + 30 + upperLip_R}, ${teethLeftCorner.x} ${teethLeftCorner.y}
+                    Q ${teethRightCorner.x/2 + teethLeftCorner.x/2} ${ref_y + 30 + upperLip_R}, ${teethLeftCorner.x} ${teethLeftCorner.y}
                    `} 
                 stroke="#575757" 
                 strokeWidth="0.01" 
