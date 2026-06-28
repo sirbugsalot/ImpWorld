@@ -302,15 +302,16 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
     const ref_x = pos.x;
 
     // Calculate the outline of the mouth
-    const mouthWidth = 15; // Total width of the mouth
-    const leftCorner = { x: ref_x - (mouthWidth/2) - reach(2), y: ref_y + 30 };
-    const rightCorner = { x: ref_x + (mouthWidth/2) + reach(2), y: ref_y + 30 };
+    const leftCorner = { x: ref_x - 15/2) - reach(2), y: ref_y + 30 };
+    const rightCorner = { x: ref_x + 15/2) + reach(2), y: ref_y + 30 };
     const upperLip_R = 3.0;
     const lowerLip_R = 9.0;
+    const mouthWidth = rightCorner.x - leftCorner.x; // Total width of the mouth
 
     // Teeth
     const teethLeftCorner = { x: ref_x - 3.0 - reach(2), y: ref_y + 31.5 };
     const teethRightCorner = { x: ref_x + 7.5 + reach(2), y: ref_y + 31.5 };
+    const teethWidth = teethRightCorner.x - teethLeftCorner.x; // Total width of the teeth
 
     // Tongue
     const tongueLeftCorner = { x: ref_x - 1.8 - reach(2), y: ref_y + 37.5 };
@@ -336,8 +337,8 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
             {/* --- Mouth outline --- */}            
             <Path 
                 d={`M ${leftCorner.x} ${leftCorner.y}
-                    Q ${(rightCorner.x + leftCorner.x)/2} ${ref_y + 30 + upperLip_R}, ${rightCorner.x} ${rightCorner.y}
-                    Q ${(rightCorner.x + leftCorner.x)/2} ${ref_y + 30 + lowerLip_R}, ${leftCorner.x} ${leftCorner.y}
+                    A ${(mouthWidth} ${upperLip_R} 0 0 0 ${rightCorner.x} ${rightCorner.y} 
+                    A ${(mouthWidth} ${upperLip_R} 0 0 0 ${leftCorner.x} ${leftCorner.y} 
                    `} 
                 stroke="#6b4646" 
                 strokeWidth="0.01" 
@@ -348,9 +349,9 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
             <Path 
                 d={`M ${teethLeftCorner.x} ${teethLeftCorner.y}
                     L ${teethLeftCorner.x} ${ref_y + 33.6}
-                    Q ${teethRightCorner.x/2 + teethLeftCorner.x/2} ${ref_y + 34.6}, ${teethRightCorner.x} ${ref_y + 33.6}
+                    A ${(teethWidth} ${upperLip_R} 0 0 0 ${teethRightCorner.x} ${ref_y + 33.6}
                     L ${teethRightCorner.x} ${teethRightCorner.y}
-                    Q ${teethRightCorner.x/2 + teethLeftCorner.x/2} ${ref_y + 30 + upperLip_R}, ${teethLeftCorner.x} ${teethLeftCorner.y}
+                    A ${(teethWidth} ${upperLip_R} 0 0 0 ${teethLeftCorner.x} ${teethLeftCorner.y} 
                    `} 
                 stroke="#575757" 
                 strokeWidth="0.01" 
