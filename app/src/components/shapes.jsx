@@ -302,10 +302,10 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
     const ref_x = pos.x;
 
     // Calculate the outline of the mouth
-    const leftCorner = { x: ref_x - (15/2) - reach(2), y: ref_y + 30 };
-    const rightCorner = { x: ref_x + (15/2) + reach(2), y: ref_y + 30 };
-    const upperLip_R = 6.0;
-    const lowerLip_R = 18.0;
+    const leftCorner = { x: ref_x - (10/2) - reach(2), y: ref_y + 30 };
+    const rightCorner = { x: ref_x + (10/2) + reach(2), y: ref_y + 30 };
+    const upperLip_R = 10.0;
+    const lowerLip_R = 25.0;
     const mouthWidth = rightCorner.x - leftCorner.x; // Total width of the mouth
 
     // Teeth
@@ -351,7 +351,7 @@ export const Mouth = ({pos, shape, color, length = 1.0 }) => {
                     L ${teethLeftCorner.x} ${ref_y + 32.6}
                     A ${teethWidth} ${upperLip_R} 0 0 0 ${teethRightCorner.x} ${ref_y + 32.6}
                     L ${teethRightCorner.x} ${teethRightCorner.y}
-                    A ${teethWidth} ${lowerLip_R} 0 0 1 ${teethLeftCorner.x} ${teethLeftCorner.y} 
+                    A ${teethWidth} ${upperLip_R} 0 0 1 ${teethLeftCorner.x} ${teethLeftCorner.y} 
                    `} 
                 stroke="#575757" 
                 strokeWidth="0.01" 
